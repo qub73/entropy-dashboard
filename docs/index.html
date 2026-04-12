@@ -206,8 +206,11 @@ async function fetchStatus() {
   const url = $('statusUrl').value.trim();
   if (!url) return;
 
+  // Append cache-busting timestamp to defeat GitHub CDN caching
+  const bustUrl = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+
   try {
-    const resp = await fetch(url, { cache: 'no-store' });
+    const resp = await fetch(bustUrl, { cache: 'no-store' });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     $('error').style.display = 'none';
