@@ -88,8 +88,27 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
       <span class="value" id="dailyPnl">--</span>
     </div>
     <div class="metric">
-      <span class="label">Total Trades</span>
+      <span class="label">Total Trades (all-time)</span>
       <span class="value" id="totalTrades">--</span>
+    </div>
+  </div>
+</div>
+
+<!-- Lifetime stats -->
+<div class="card wide" style="margin-top: 12px;">
+  <h2>Lifetime Performance (never truncated)</h2>
+  <div class="grid" style="margin: 0;">
+    <div>
+      <div class="metric"><span class="label">Total PnL @10x</span><span class="value" id="cumPnl">--</span></div>
+      <div class="metric"><span class="label">Win Rate</span><span class="value" id="cumWR">--</span></div>
+      <div class="metric"><span class="label">Mean / trade</span><span class="value" id="cumMean">--</span></div>
+      <div class="metric"><span class="label">Best / Worst</span><span class="value" id="cumBestWorst">--</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="label">Exits (TP / SL / TO)</span><span class="value" id="cumReasons">--</span></div>
+      <div class="metric"><span class="label">Longs (WR)</span><span class="value" id="cumLongs">--</span></div>
+      <div class="metric"><span class="label">Shorts (WR)</span><span class="value" id="cumShorts">--</span></div>
+      <div class="metric"><span class="label">Tracking since</span><span class="value" id="cumSince">--</span></div>
     </div>
   </div>
 </div>
@@ -236,7 +255,30 @@ function updateDashboard(data) {
   const dp = data.daily_pnl || 0;
   $('dailyPnl').textContent = `${dp >= 0 ? '+' : ''}${dp.toFixed(1)} bps`;
   $('dailyPnl').className = `value ${dp >= 0 ? 'up' : 'down'}`;
-  $('totalTrades').textContent = data.trades?.length || 0;
+  $('totalTrades').textContent = data.total_trades ?? (data.trades?.length || 0);
+
+  // Lifetime cumulative stats
+  const c = data.cumulative || {};
+  const tp = c.total_pnl_bps_lev || 0;
+  $('cumPnl').textContent = `${tp >= 0 ? '+' : ''}${tp.toFixed(0)} bps @10x`;
+  $('cumPnl').className = `value ${tp >= 0 ? 'up' : 'down'}`;
+  $('cumWR').textContent = c.trades ? `${(c.win_rate * 100).toFixed(0)}% (${c.wins}W/${c.losses}L)` : '--';
+  const mean = c.mean_bps_lev || 0;
+  $('cumMean').textContent = c.trades ? `${mean >= 0 ? '+' : ''}${mean.toFixed(0)} bps @10x` : '--';
+  $('cumMean').className = `value ${mean >= 0 ? 'up' : 'down'}`;
+  if (c.trades) {
+    $('cumBestWorst').textContent = `+${(c.best_bps_lev || 0).toFixed(0)} / ${(c.worst_bps_lev || 0).toFixed(0)} bps`;
+  }
+  $('cumReasons').textContent = c.trades ? `${c.tp || 0} / ${c.sl || 0} / ${c.timeout || 0}` : '--';
+  if (c.long_trades) {
+    $('cumLongs').textContent = `${c.long_trades} (${(c.long_wr * 100).toFixed(0)}%)`;
+  }
+  if (c.short_trades) {
+    $('cumShorts').textContent = `${c.short_trades} (${(c.short_wr * 100).toFixed(0)}%)`;
+  }
+  if (c.since) {
+    $('cumSince').textContent = new Date(c.since).toLocaleDateString();
+  }
 
   // Signals
   const sigs = data.signals || {};
