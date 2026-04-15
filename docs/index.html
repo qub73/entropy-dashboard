@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Entropy Trader Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <style>
 :root { --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #c9d1d9;
         --green: #3fb950; --red: #f85149; --yellow: #d29922; --blue: #58a6ff; }
@@ -44,6 +45,19 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
                         border-radius: 4px; cursor: pointer; font-family: inherit; white-space: nowrap; }
 .config-input button:hover { opacity: 0.8; }
 .refresh-info { font-size: 11px; color: #484f58; text-align: right; }
+.range-selector { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
+.range-selector button { background: var(--card); border: 1px solid var(--border); color: var(--text);
+  padding: 4px 12px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 12px; }
+.range-selector button.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+.range-selector button:hover:not(.active) { background: #21262d; }
+.chart-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
+.chart-tabs button { background: var(--card); border: 1px solid var(--border); color: var(--text);
+  padding: 6px 16px; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: bold; }
+.chart-tabs button.active { background: var(--yellow); color: #000; border-color: var(--yellow); }
+.chart-container { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; margin-top: 12px; }
+#priceChart { width: 100%; height: 480px; }
+.chart-loading { text-align: center; color: #8b949e; padding: 40px; }
 </style>
 </head>
 <body>
@@ -198,6 +212,24 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
   <div class="grid" style="margin-bottom: 0;">
     <div class="metric"><span class="label">BTC Signals</span><span class="value" id="btcSignals">0</span></div>
     <div class="metric"><span class="label">ETH Signals</span><span class="value" id="ethSignals">0</span></div>
+  </div>
+</div>
+
+<!-- Price chart with trade markers -->
+<div class="chart-container">
+  <div class="chart-tabs">
+    <button id="tabBTC" class="active" onclick="switchPair('BTC')">BTC</button>
+    <button id="tabETH" onclick="switchPair('ETH')">ETH</button>
+  </div>
+  <div class="range-selector">
+    <button data-range="1d" class="active" onclick="setRange('1d')">1D</button>
+    <button data-range="7d" onclick="setRange('7d')">7D</button>
+    <button data-range="1mo" onclick="setRange('1mo')">1MO</button>
+    <button data-range="ytd" onclick="setRange('ytd')">YTD</button>
+    <button data-range="all" onclick="setRange('all')">Since Inception</button>
+  </div>
+  <div id="priceChart">
+    <div class="chart-loading">Loading chart…</div>
   </div>
 </div>
 
@@ -378,6 +410,199 @@ function updateEntropy(prefix, data, threshold) {
 setInterval(() => {
   if ($('statusUrl').value.trim()) fetchStatus();
 }, 60000);
+
+// =====================================================
+// Price chart with trade markers
+// =====================================================
+const SYMBOL_MAP = {
+  'BTC': { binance: 'BTCUSDT', kraken: 'PF_XBTUSD' },
+  'ETH': { binance: 'ETHUSDT', kraken: 'PF_ETHUSD' },
+};
+let chartState = { pair: 'BTC', range: '1d' };
+let cachedTrades = [];
+
+async function fetchKlines(pair, range) {
+  const sym = SYMBOL_MAP[pair].binance;
+  // Pick interval + lookback based on range
+  let interval, limit, startMs;
+  const now = Date.now();
+  switch (range) {
+    case '1d':  interval = '5m';  limit = 288;  break;
+    case '7d':  interval = '30m'; limit = 336;  break;
+    case '1mo': interval = '2h';  limit = 360;  break;
+    case 'ytd': {
+      interval = '12h';
+      const ytdStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+      startMs = ytdStart;
+      limit = Math.min(1000, Math.ceil((now - ytdStart) / (12*3600*1000)));
+      break;
+    }
+    case 'all': {
+      // Since first trade
+      const firstTrade = cachedTrades.length > 0
+        ? new Date(cachedTrades[0].time).getTime()
+        : now - 30*86400*1000;
+      const days = (now - firstTrade) / 86400000;
+      if (days <= 7) { interval = '15m'; }
+      else if (days <= 30) { interval = '1h'; }
+      else if (days <= 90) { interval = '4h'; }
+      else { interval = '1d'; }
+      startMs = firstTrade - 3600*1000; // small buffer before first trade
+      limit = 1000;
+      break;
+    }
+    default: interval = '5m'; limit = 288;
+  }
+  let url = `https://api.binance.com/api/v3/klines?symbol=${sym}&interval=${interval}&limit=${limit}`;
+  if (startMs) url += `&startTime=${startMs}`;
+  const r = await fetch(url, { cache: 'no-store' });
+  if (!r.ok) throw new Error(`klines HTTP ${r.status}`);
+  return await r.json();
+}
+
+function tradeMarkers(pair, klinesStartMs, klinesEndMs) {
+  const trades = cachedTrades.filter(t => t.pair === pair);
+  // Filter trades within the visible time window
+  const visible = trades.filter(t => {
+    const tEntry = new Date(t.time).getTime() - (t.hold_min || 0) * 60000;
+    const tExit = new Date(t.time).getTime();
+    return tExit >= klinesStartMs && tEntry <= klinesEndMs;
+  });
+  const entriesX = [], entriesY = [], entriesText = [], entriesColor = [], entriesSymbol = [];
+  const exitsX = [], exitsY = [], exitsText = [], exitsColor = [];
+  for (const t of visible) {
+    const exitTs = new Date(t.time).getTime();
+    const entryTs = exitTs - (t.hold_min || 0) * 60000;
+    const isLong = t.direction === 1;
+    // Entry marker: yellow up-arrow for long, red down-arrow for short
+    entriesX.push(new Date(entryTs).toISOString());
+    entriesY.push(t.entry_price);
+    entriesText.push(`${isLong ? 'BUY' : 'SHORT'} @ $${t.entry_price?.toFixed(2)}<br>` +
+                     `Held: ${t.hold_min?.toFixed(0)}m → exit ${t.reason}`);
+    entriesColor.push(isLong ? '#d29922' : '#f85149');
+    entriesSymbol.push(isLong ? 'triangle-up' : 'triangle-down');
+    // Exit marker
+    exitsX.push(new Date(exitTs).toISOString());
+    exitsY.push(t.exit_price);
+    const pnl = t.pnl_bps_leveraged || 0;
+    const pnlClass = pnl >= 0 ? 'WIN' : 'LOSS';
+    exitsText.push(`EXIT ${t.reason} @ $${t.exit_price?.toFixed(2)}<br>` +
+                   `PnL: ${pnl >= 0 ? '+' : ''}${pnl.toFixed(0)} bps@10x [${pnlClass}]`);
+    exitsColor.push(pnl >= 0 ? '#3fb950' : '#f85149');
+  }
+  return { entriesX, entriesY, entriesText, entriesColor, entriesSymbol,
+           exitsX, exitsY, exitsText, exitsColor };
+}
+
+async function renderChart() {
+  const { pair, range } = chartState;
+  const container = document.getElementById('priceChart');
+  container.innerHTML = '<div class="chart-loading">Loading chart…</div>';
+  try {
+    const klines = await fetchKlines(pair, range);
+    if (!klines || klines.length === 0) {
+      container.innerHTML = '<div class="chart-loading">No price data returned</div>';
+      return;
+    }
+    const x = klines.map(k => new Date(k[0]).toISOString());
+    const open = klines.map(k => parseFloat(k[1]));
+    const high = klines.map(k => parseFloat(k[2]));
+    const low = klines.map(k => parseFloat(k[3]));
+    const close = klines.map(k => parseFloat(k[4]));
+    const startMs = klines[0][0];
+    const endMs = klines[klines.length-1][6] || klines[klines.length-1][0];
+
+    const markers = tradeMarkers(pair, startMs, endMs);
+
+    const traces = [
+      {
+        type: 'candlestick', x, open, high, low, close,
+        name: pair, increasing: { line: { color: '#3fb950' } },
+        decreasing: { line: { color: '#f85149' } },
+        showlegend: false,
+      },
+      {
+        type: 'scatter', mode: 'markers', name: 'Entries',
+        x: markers.entriesX, y: markers.entriesY,
+        text: markers.entriesText, hoverinfo: 'text+x+y',
+        marker: { symbol: markers.entriesSymbol, size: 14,
+                  color: markers.entriesColor,
+                  line: { color: '#fff', width: 1.5 } },
+      },
+      {
+        type: 'scatter', mode: 'markers', name: 'Exits',
+        x: markers.exitsX, y: markers.exitsY,
+        text: markers.exitsText, hoverinfo: 'text+x+y',
+        marker: { symbol: 'x-thin-open', size: 12,
+                  color: markers.exitsColor,
+                  line: { width: 3 } },
+      },
+    ];
+
+    // Connect entry→exit with thin line for visibility
+    const segments = { x: [], y: [], color: [] };
+    for (let i = 0; i < markers.entriesX.length; i++) {
+      segments.x.push(markers.entriesX[i], markers.exitsX[i], null);
+      segments.y.push(markers.entriesY[i], markers.exitsY[i], null);
+    }
+    if (segments.x.length) {
+      traces.push({
+        type: 'scatter', mode: 'lines', name: 'Trade arc',
+        x: segments.x, y: segments.y,
+        line: { color: 'rgba(150,150,150,0.4)', width: 1, dash: 'dot' },
+        hoverinfo: 'skip', showlegend: false,
+      });
+    }
+
+    const layout = {
+      paper_bgcolor: '#161b22', plot_bgcolor: '#161b22',
+      font: { color: '#c9d1d9', family: 'monospace', size: 11 },
+      xaxis: { gridcolor: '#30363d', rangeslider: { visible: false } },
+      yaxis: { gridcolor: '#30363d', title: { text: `${pair}/USD` } },
+      margin: { l: 60, r: 20, t: 20, b: 40 },
+      legend: { x: 0, y: 1.0, bgcolor: 'rgba(0,0,0,0)' },
+      hovermode: 'closest',
+    };
+    Plotly.newPlot('priceChart', traces, layout,
+                   { displaylogo: false, responsive: true });
+  } catch (e) {
+    container.innerHTML = `<div class="chart-loading">Chart error: ${e.message}</div>`;
+  }
+}
+
+function switchPair(pair) {
+  chartState.pair = pair;
+  document.getElementById('tabBTC').classList.toggle('active', pair === 'BTC');
+  document.getElementById('tabETH').classList.toggle('active', pair === 'ETH');
+  renderChart();
+}
+
+function setRange(range) {
+  chartState.range = range;
+  document.querySelectorAll('.range-selector button').forEach(b => {
+    b.classList.toggle('active', b.dataset.range === range);
+  });
+  renderChart();
+}
+
+// Hook into status fetch to refresh trade list, then re-render chart
+const _origFetchStatus = fetchStatus;
+fetchStatus = async function() {
+  await _origFetchStatus();
+  // Read latest trades from gist payload
+  const url = $('statusUrl').value.trim();
+  if (!url) return;
+  try {
+    const bustUrl = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    const r = await fetch(bustUrl, { cache: 'no-store' });
+    const data = await r.json();
+    cachedTrades = data.trades || [];
+    if (!window._chartInitialized) {
+      window._chartInitialized = true;
+      renderChart();
+    }
+  } catch (e) { /* ignore */ }
+};
 
 loadUrl();
 </script>
