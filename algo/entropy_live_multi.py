@@ -39,10 +39,13 @@ PAIRS = {
         "take_profit_bps": 200,
         "timeout_minutes": 240,
         "h_thresh": 0.3500,
-        # Upgrade: cooldown 30 bars after a losing trade (BTC backtest +2.19 Calmar)
+        # Upgrade 1: cooldown 30 bars after a losing trade (BTC backtest +2.19 Calmar)
         "cooldown_bars_after_loss": 30,
         # No-falling-knife not used on BTC (backtest showed slight loss)
         "knife_threshold_bps": None,
+        # Upgrade 2 (T5): at timeout, if trade is in profit, switch to trailing stop
+        # at 2x ATR below peak. Cross-pair winner: BTC Calmar 8.26 -> 13.54 (+64%).
+        "trailing_atr_mult": 2.0,
     },
     "ETH": {
         "futures_symbol": "PF_ETHUSD",
@@ -53,9 +56,10 @@ PAIRS = {
         "h_thresh": 0.4352,
         # No cooldown on ETH (backtest showed it hurts)
         "cooldown_bars_after_loss": 0,
-        # Upgrade: block long if 60-bar return < -50 bps (and short if > +50 bps)
-        # Backtest: ETH +1.51 Calmar, addresses the live falling-knife failure mode
+        # Block long if 60-bar return < -50 bps (and short if > +50 bps)
         "knife_threshold_bps": 50,
+        # Same ATR-trailing upgrade: ETH Calmar 3.65 -> 9.03 (+147%).
+        "trailing_atr_mult": 2.0,
     },
 }
 
@@ -190,8 +194,9 @@ def state_index(sign, imb_tercile, spread_regime):
 
 
 class EntropyEngine:
-    def __init__(self, window=30):
+    def __init__(self, window=30, atr_window=14):
         self.window = window
+        self.atr_window = atr_window
         self.mids = deque(maxlen=window + 200)
         self.imbalances = deque(maxlen=window + 200)
         self.spreads_bps = deque(maxlen=window + 200)
@@ -199,12 +204,36 @@ class EntropyEngine:
         self.counts = np.zeros((NUM_STATES, NUM_STATES), dtype=np.float64)
         self.bar_count = 0
         self.last_H = None
+        # Bar high/low for ATR (aggregated from tick data)
+        self.bar_highs = deque(maxlen=atr_window + 50)
+        self.bar_lows = deque(maxlen=atr_window + 50)
+        self.true_ranges = deque(maxlen=atr_window + 50)
+        self.last_atr_bps = None
 
-    def on_bar(self, mid, imbalance, spread_bps):
+    def on_bar(self, mid, imbalance, spread_bps, bar_high=None, bar_low=None):
         self.mids.append(mid)
         self.imbalances.append(imbalance)
         self.spreads_bps.append(spread_bps)
         self.bar_count += 1
+
+        # Track high/low for ATR. Fallback: approximate from spread.
+        if bar_high is None or bar_low is None:
+            half_spread = mid * spread_bps / 2 / 10000
+            bar_high = mid + half_spread
+            bar_low = mid - half_spread
+        self.bar_highs.append(bar_high)
+        self.bar_lows.append(bar_low)
+
+        # True range
+        if len(self.mids) >= 2:
+            prev_close = self.mids[-2]
+            tr = max(bar_high - bar_low,
+                     abs(bar_high - prev_close),
+                     abs(bar_low - prev_close))
+            self.true_ranges.append(tr)
+            if len(self.true_ranges) >= 3:
+                atr = float(np.mean(list(self.true_ranges)[-self.atr_window:]))
+                self.last_atr_bps = (atr / mid * 10000) if mid > 0 else 0
 
         if len(self.mids) < 2:
             return None
@@ -482,6 +511,9 @@ class MultiPairManager:
             "size": fill_size,  # use actual filled size
             "symbol": symbol,
             "order_id": order_id,
+            # ATR trailing state:
+            "peak_mid": fill_price,       # highest mid seen (longs) / lowest (shorts)
+            "trailing_active": False,     # switched on when timeout hits with profit
         }
         self._save_state()
         logger.info(f"ENTRY [{pair}]: CONFIRMED {side.upper()} {fill_size} {symbol} "
@@ -548,7 +580,7 @@ class MultiPairManager:
         self._save_state()
         return trade
 
-    def check_exit(self, mid_price):
+    def check_exit(self, mid_price, atr_bps=None):
         if not self.has_position():
             return None
         pos = self.position
@@ -556,11 +588,52 @@ class MultiPairManager:
         pnl_bps = pos["direction"] * (mid_price / pos["entry_price"] - 1.0) * 10000
         elapsed = (time.time() - pos["entry_time"]) / 60
 
+        # Update peak mid (for trailing stop)
+        if pos["direction"] == 1:
+            if mid_price > pos.get("peak_mid", pos["entry_price"]):
+                pos["peak_mid"] = mid_price
+        else:
+            if mid_price < pos.get("peak_mid", pos["entry_price"]):
+                pos["peak_mid"] = mid_price
+
+        trailing_active = pos.get("trailing_active", False)
+        trail_mult = pair_cfg.get("trailing_atr_mult")
+
+        # --- Trailing stop logic (T5 — trail 2x ATR at timeout if in profit) ---
+        if trailing_active and trail_mult and atr_bps and atr_bps > 0:
+            # Peak PnL in bps
+            peak_pnl_bps = pos["direction"] * (pos["peak_mid"] / pos["entry_price"] - 1.0) * 10000
+            trail_width_bps = trail_mult * atr_bps
+            floor_bps = peak_pnl_bps - trail_width_bps
+            # Trailing never loosens SL
+            floor_bps = max(floor_bps, -pair_cfg["stop_loss_bps"])
+            if pnl_bps <= floor_bps:
+                # Save floor for logging
+                pos["_trail_floor_bps"] = floor_bps
+                pos["_trail_peak_bps"] = peak_pnl_bps
+                return "trail_stop"
+            # TP still valid
+            if pnl_bps >= pair_cfg["take_profit_bps"]:
+                return "tp"
+            return None
+
+        # --- Standard logic (not trailing yet) ---
         if pnl_bps <= -pair_cfg["stop_loss_bps"]:
             return "sl"
         if pnl_bps >= pair_cfg["take_profit_bps"]:
             return "tp"
+
+        # At timeout: if in profit AND trailing configured, activate trailing
+        # instead of exiting. Otherwise exit as normal.
         if elapsed >= pair_cfg["timeout_minutes"]:
+            if trail_mult and pnl_bps > 0 and atr_bps and atr_bps > 0:
+                pos["trailing_active"] = True
+                logger.info(
+                    f"[{pos['pair']}] TIMEOUT reached in profit ({pnl_bps:.1f} bps) "
+                    f"— switching to {trail_mult}x ATR trailing stop "
+                    f"(ATR={atr_bps:.1f} bps, trail_width={trail_mult*atr_bps:.1f} bps)")
+                self._save_state()
+                return None
             return "timeout"
         return None
 
@@ -622,12 +695,14 @@ def main():
         bar_mid = td["mids"][-1]
         bar_imb = np.mean(td["imbs"])
         bar_spread = np.mean(td["spreads"])
+        bar_high = max(td["mids"])
+        bar_low = min(td["mids"])
 
         td["mids"].clear()
         td["imbs"].clear()
         td["spreads"].clear()
 
-        H = engines[pair].on_bar(bar_mid, bar_imb, bar_spread)
+        H = engines[pair].on_bar(bar_mid, bar_imb, bar_spread, bar_high, bar_low)
         if H is None:
             return None
 
@@ -635,7 +710,8 @@ def main():
 
         # Check exit if we hold this pair
         if mgr.has_position() and mgr.position["pair"] == pair:
-            reason = mgr.check_exit(bar_mid)
+            atr_bps = engines[pair].last_atr_bps
+            reason = mgr.check_exit(bar_mid, atr_bps=atr_bps)
             if reason:
                 trade = mgr.close_position(bar_mid, reason)
                 # Set cooldown if this was a loss and pair has cooldown configured

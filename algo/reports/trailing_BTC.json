@@ -1,0 +1,299 @@
+[
+  {
+    "name": "BASELINE",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 171.64961996391594,
+    "pnl_usd": 19756.302569137675,
+    "max_dd": 20.777453861686844,
+    "calmar": 8.26134044655173,
+    "avg_bps": 50.456269965087074,
+    "avg_hold": 150.53125,
+    "avg_peak_minus_exit": 58.78552040877379,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "timeout": 11
+    }
+  },
+  {
+    "name": "T1_trail_at_TO_50bps",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 183.11578321641008,
+    "pnl_usd": 20997.52608594681,
+    "max_dd": 20.78983356927784,
+    "calmar": 8.807948491084089,
+    "avg_bps": 51.98860802081878,
+    "avg_hold": 152.875,
+    "avg_peak_minus_exit": 57.240055944383144,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 9,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "T2_trail_at_TO_30bps",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 229.5073980638366,
+    "pnl_usd": 25855.75109710603,
+    "max_dd": 20.818738208702296,
+    "calmar": 11.024078201238046,
+    "avg_bps": 57.61360802081878,
+    "avg_hold": 151.21875,
+    "avg_peak_minus_exit": 51.240055944383144,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 9,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "T3_trail_at_TO_80bps",
+    "trades": 32,
+    "wins": 17,
+    "losses": 15,
+    "win_rate": 0.53125,
+    "ret_pct": 147.69644734564346,
+    "pnl_usd": 17278.336844731082,
+    "max_dd": 20.756895518109427,
+    "calmar": 7.1155364836126465,
+    "avg_bps": 47.05789990759892,
+    "avg_hold": 175.34375,
+    "avg_peak_minus_exit": 65.45925369815299,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 8,
+      "timeout": 3
+    }
+  },
+  {
+    "name": "T4_TO_50_if_rising",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 174.1455621401854,
+    "pnl_usd": 20027.157368353797,
+    "max_dd": 20.786875887377764,
+    "calmar": 8.377668827374407,
+    "avg_bps": 50.75146910041737,
+    "avg_hold": 151.03125,
+    "avg_peak_minus_exit": 58.55967079281132,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "timeout": 9,
+      "trail_stop": 2
+    }
+  },
+  {
+    "name": "T5_TO_atr_2x",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 282.3280014248376,
+    "pnl_usd": 31378.57843879601,
+    "max_dd": 20.845773457175145,
+    "calmar": 13.543656799535059,
+    "avg_bps": 63.20731958698541,
+    "avg_hold": 151.125,
+    "avg_peak_minus_exit": 45.273430273805396,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 9,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "T5b_TO_atr_3x",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 268.30547092087465,
+    "pnl_usd": 29913.86958869621,
+    "max_dd": 20.83901990931576,
+    "calmar": 12.875148259776502,
+    "avg_bps": 61.78542537006873,
+    "avg_hold": 151.125,
+    "avg_peak_minus_exit": 46.790117438516525,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 9,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "T6_no_TO_trail50",
+    "trades": 32,
+    "wins": 19,
+    "losses": 13,
+    "win_rate": 0.59375,
+    "ret_pct": 222.7871026748073,
+    "pnl_usd": 25241.36010239193,
+    "max_dd": 19.065267341222842,
+    "calmar": 11.685495864676282,
+    "avg_bps": 56.7091470056917,
+    "avg_hold": 158.5625,
+    "avg_peak_minus_exit": 57.45523355945043,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 11
+    }
+  },
+  {
+    "name": "T6b_no_TO_trail30",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 239.92374472870955,
+    "pnl_usd": 26959.42746979132,
+    "max_dd": 18.471399642983275,
+    "calmar": 12.988931503079103,
+    "avg_bps": 58.661879006693205,
+    "avg_hold": 151.4375,
+    "avg_peak_minus_exit": 50.12190022611709,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 11
+    }
+  },
+  {
+    "name": "T8_trail_after_50bps",
+    "trades": 34,
+    "wins": 21,
+    "losses": 13,
+    "win_rate": 0.6176470588235294,
+    "ret_pct": 120.10971679280806,
+    "pnl_usd": 14152.102390004984,
+    "max_dd": 16.404462257257354,
+    "calmar": 7.321771046757194,
+    "avg_bps": 39.82395203433299,
+    "avg_hold": 95.61764705882354,
+    "avg_peak_minus_exit": 51.1103879569599,
+    "reasons": {
+      "trail_stop": 15,
+      "sl": 10,
+      "tp": 6,
+      "timeout": 3
+    }
+  },
+  {
+    "name": "T9_trail_after_100bps",
+    "trades": 33,
+    "wins": 19,
+    "losses": 14,
+    "win_rate": 0.5757575757575758,
+    "ret_pct": 139.6979025652209,
+    "pnl_usd": 16184.875557107076,
+    "max_dd": 16.47517172700778,
+    "calmar": 8.47929872173738,
+    "avg_bps": 44.22432019445911,
+    "avg_hold": 122.87878787878788,
+    "avg_peak_minus_exit": 56.53600715473857,
+    "reasons": {
+      "trail_stop": 9,
+      "sl": 12,
+      "tp": 6,
+      "timeout": 6
+    }
+  },
+  {
+    "name": "T10_trail_after_50_30",
+    "trades": 35,
+    "wins": 23,
+    "losses": 12,
+    "win_rate": 0.6571428571428571,
+    "ret_pct": 97.29105700928976,
+    "pnl_usd": 11996.620966763263,
+    "max_dd": 16.15280472320598,
+    "calmar": 6.0231680303493205,
+    "avg_bps": 34.50051667216972,
+    "avg_hold": 81.57142857142857,
+    "avg_peak_minus_exit": 44.045277889123874,
+    "reasons": {
+      "trail_stop": 21,
+      "sl": 10,
+      "tp": 2,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "T11_trail_after_TPish_150",
+    "trades": 33,
+    "wins": 18,
+    "losses": 15,
+    "win_rate": 0.5454545454545454,
+    "ret_pct": 121.73482020974082,
+    "pnl_usd": 14496.394999896642,
+    "max_dd": 20.69097698964049,
+    "calmar": 5.883473761083913,
+    "avg_bps": 41.697438767997916,
+    "avg_hold": 139.6060606060606,
+    "avg_peak_minus_exit": 59.3220178076659,
+    "reasons": {
+      "trail_stop": 7,
+      "sl": 13,
+      "tp": 4,
+      "timeout": 9
+    }
+  },
+  {
+    "name": "T12_TO_trail50_min30",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 178.59243943952657,
+    "pnl_usd": 20537.793571184437,
+    "max_dd": 20.79240584389277,
+    "calmar": 8.58931096191466,
+    "avg_bps": 51.410699588017884,
+    "avg_hold": 152.5625,
+    "avg_peak_minus_exit": 57.85649160603744,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 7,
+      "timeout": 4
+    }
+  },
+  {
+    "name": "T13_TO_trail50_min50",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 180.05976836403858,
+    "pnl_usd": 20690.808892744277,
+    "max_dd": 20.79240584389277,
+    "calmar": 8.65988138726748,
+    "avg_bps": 51.597653019265174,
+    "avg_hold": 152.46875,
+    "avg_peak_minus_exit": 57.65707461270699,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 6,
+      "timeout": 5
+    }
+  }
+]
