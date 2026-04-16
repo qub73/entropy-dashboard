@@ -211,6 +211,8 @@ class EntropyEngine:
         self.bar_lows = deque(maxlen=atr_window + 50)
         self.true_ranges = deque(maxlen=atr_window + 50)
         self.last_atr_bps = None
+        # H history for dH computation
+        self.h_history = deque(maxlen=50)
 
     def on_bar(self, mid, imbalance, spread_bps, bar_high=None, bar_low=None):
         self.mids.append(mid)
@@ -297,6 +299,7 @@ class EntropyEngine:
         inner = np.sum(P * np.log(P_safe) * (P > 1e-15), axis=1)
         H = float(-np.dot(pi, inner) / log_norm)
         self.last_H = H
+        self.h_history.append(H)
         return H
 
     def get_trailing_return_bps(self, lookback=5):
@@ -307,6 +310,13 @@ class EntropyEngine:
         if past <= 0:
             return None
         return (current / past - 1.0) * 10000
+
+    def get_dH(self, lookback=5):
+        """Return H_now - H_{lookback bars ago}. Negative = entropy falling."""
+        if len(self.h_history) < lookback + 1:
+            return None
+        h_list = list(self.h_history)
+        return h_list[-1] - h_list[-lookback - 1]
 
 
 # ---- Position & State ----
@@ -758,6 +768,12 @@ def main():
             return None  # already in a trade (other pair)
 
         if H >= cfg["h_thresh"]:
+            return None
+
+        # --- I1: Entropy must be FALLING (dH_5 < 0) ---
+        # Cross-pair Calmar +3.30 vs baseline. ETH 19.60 -> 27.23, DD 17% -> 13.5%.
+        dH = engines[pair].get_dH(5)
+        if dH is not None and dH >= 0:
             return None
 
         if abs(bar_imb) < SHARED_CONFIG["imbalance_threshold"]:
