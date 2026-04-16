@@ -43,9 +43,12 @@ PAIRS = {
         "cooldown_bars_after_loss": 30,
         # No-falling-knife not used on BTC (backtest showed slight loss)
         "knife_threshold_bps": None,
-        # Upgrade 2 (T5): at timeout, if trade is in profit, switch to trailing stop
-        # at 2x ATR below peak. Cross-pair winner: BTC Calmar 8.26 -> 13.54 (+64%).
+        # T5: at timeout, if in profit, switch to 2x ATR trailing stop.
         "trailing_atr_mult": 2.0,
+        # TP-trail: once profit reaches +150 bps, replace fixed TP with 50 bps trail.
+        # Cross-pair winner: BTC Cal 13.54->15.58, ETH Cal 9.03->12.69. Combined +618% vs +500%.
+        "trail_tp_after": 150,
+        "trail_tp_bps": 50,
     },
     "ETH": {
         "futures_symbol": "PF_ETHUSD",
@@ -54,12 +57,11 @@ PAIRS = {
         "take_profit_bps": 200,
         "timeout_minutes": 240,
         "h_thresh": 0.4352,
-        # No cooldown on ETH (backtest showed it hurts)
         "cooldown_bars_after_loss": 0,
-        # Block long if 60-bar return < -50 bps (and short if > +50 bps)
         "knife_threshold_bps": 50,
-        # Same ATR-trailing upgrade: ETH Calmar 3.65 -> 9.03 (+147%).
         "trailing_atr_mult": 2.0,
+        "trail_tp_after": 150,
+        "trail_tp_bps": 50,
     },
 }
 
@@ -617,20 +619,47 @@ class MultiPairManager:
                 return "tp"
             return None
 
+        # --- TP-trail: once profit exceeds trail_tp_after, switch to trailing TP ---
+        trail_tp_after = pair_cfg.get("trail_tp_after")
+        trail_tp_bps = pair_cfg.get("trail_tp_bps", 50)
+        tp_trailing = pos.get("tp_trailing", False)
+
+        if tp_trailing:
+            # Already in TP-trail mode: trail at trail_tp_bps below peak
+            peak_pnl = pos["direction"] * (pos["peak_mid"] / pos["entry_price"] - 1.0) * 10000
+            floor = peak_pnl - trail_tp_bps
+            floor = max(floor, -pair_cfg["stop_loss_bps"])
+            if pnl_bps <= floor:
+                return "tp_trail"
+            return None
+
         # --- Standard logic (not trailing yet) ---
         if pnl_bps <= -pair_cfg["stop_loss_bps"]:
             return "sl"
-        if pnl_bps >= pair_cfg["take_profit_bps"]:
-            return "tp"
 
-        # At timeout: if in profit AND trailing configured, activate trailing
+        # Check if we should activate TP-trail instead of fixed TP
+        if trail_tp_after is not None:
+            peak_pnl = pos["direction"] * (pos["peak_mid"] / pos["entry_price"] - 1.0) * 10000
+            if peak_pnl >= trail_tp_after:
+                pos["tp_trailing"] = True
+                logger.info(
+                    f"[{pos['pair']}] Profit reached +{peak_pnl:.1f} bps (>={trail_tp_after}) "
+                    f"-- switching to {trail_tp_bps} bps trailing TP")
+                self._save_state()
+                return None
+        else:
+            # Fixed TP only when no TP-trail configured
+            if pnl_bps >= pair_cfg["take_profit_bps"]:
+                return "tp"
+
+        # At timeout: if in profit AND ATR trailing configured, activate trailing
         # instead of exiting. Otherwise exit as normal.
         if elapsed >= pair_cfg["timeout_minutes"]:
             if trail_mult and pnl_bps > 0 and atr_bps and atr_bps > 0:
                 pos["trailing_active"] = True
                 logger.info(
                     f"[{pos['pair']}] TIMEOUT reached in profit ({pnl_bps:.1f} bps) "
-                    f"— switching to {trail_mult}x ATR trailing stop "
+                    f"-- switching to {trail_mult}x ATR trailing stop "
                     f"(ATR={atr_bps:.1f} bps, trail_width={trail_mult*atr_bps:.1f} bps)")
                 self._save_state()
                 return None
