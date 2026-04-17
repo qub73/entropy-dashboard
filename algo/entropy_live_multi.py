@@ -326,6 +326,46 @@ class EntropyEngine:
         h_list = list(self.h_history)
         return h_list[-1] - h_list[-lookback - 1]
 
+    def snapshot(self):
+        """Return engine state as a JSON-serializable dict for persistence."""
+        return {
+            "window": self.window,
+            "atr_window": self.atr_window,
+            "mids": list(self.mids),
+            "imbalances": list(self.imbalances),
+            "spreads_bps": list(self.spreads_bps),
+            "states": list(self.states),
+            "counts": self.counts.tolist(),
+            "bar_count": self.bar_count,
+            "last_H": self.last_H,
+            "bar_highs": list(self.bar_highs),
+            "bar_lows": list(self.bar_lows),
+            "true_ranges": list(self.true_ranges),
+            "last_atr_bps": self.last_atr_bps,
+            "h_history": list(self.h_history),
+        }
+
+    def restore(self, snap):
+        """Restore engine state from a snapshot dict. Returns True on success."""
+        try:
+            self.mids.clear(); self.mids.extend(snap.get("mids", []))
+            self.imbalances.clear(); self.imbalances.extend(snap.get("imbalances", []))
+            self.spreads_bps.clear(); self.spreads_bps.extend(snap.get("spreads_bps", []))
+            self.states.clear(); self.states.extend(snap.get("states", []))
+            counts = snap.get("counts")
+            if counts:
+                self.counts = np.asarray(counts, dtype=np.float64)
+            self.bar_count = int(snap.get("bar_count", 0))
+            self.last_H = snap.get("last_H")
+            self.bar_highs.clear(); self.bar_highs.extend(snap.get("bar_highs", []))
+            self.bar_lows.clear(); self.bar_lows.extend(snap.get("bar_lows", []))
+            self.true_ranges.clear(); self.true_ranges.extend(snap.get("true_ranges", []))
+            self.last_atr_bps = snap.get("last_atr_bps")
+            self.h_history.clear(); self.h_history.extend(snap.get("h_history", []))
+            return True
+        except Exception:
+            return False
+
 
 # ---- Position & State ----
 
@@ -744,6 +784,46 @@ def main():
     rejected_knife = {p: 0 for p in PAIRS}
     rejected_extended = {p: 0 for p in PAIRS}
 
+    # ---- Engine state persistence (avoids cold-start warmup on restart) ----
+    engine_state_file = STATE_DIR / "engine_state.json"
+    ENGINE_STATE_MAX_AGE_SEC = 30 * 60  # 30 min: older than this, restart cold
+
+    def _save_engine_state():
+        try:
+            data = {
+                "saved_at": time.time(),
+                "pairs": {p: engines[p].snapshot() for p in PAIRS},
+                "cooldown_until_bar": cooldown_until_bar,
+            }
+            tmp = str(engine_state_file) + ".tmp"
+            with open(tmp, "w") as f:
+                json.dump(data, f)
+            os.replace(tmp, str(engine_state_file))
+        except Exception as e:
+            logger.warning(f"engine state save failed: {e}")
+
+    if engine_state_file.exists():
+        try:
+            with open(engine_state_file) as f:
+                saved = json.load(f)
+            age = time.time() - saved.get("saved_at", 0)
+            if age <= ENGINE_STATE_MAX_AGE_SEC:
+                for p in PAIRS:
+                    snap = saved.get("pairs", {}).get(p)
+                    if snap and engines[p].restore(snap):
+                        logger.info(
+                            f"[{p}] engine state restored: {engines[p].bar_count} bars, "
+                            f"H={engines[p].last_H}, age={age:.0f}s")
+                cd = saved.get("cooldown_until_bar", {})
+                for p, v in cd.items():
+                    if p in cooldown_until_bar:
+                        cooldown_until_bar[p] = int(v)
+            else:
+                logger.info(f"engine state file too old ({age:.0f}s > "
+                            f"{ENGINE_STATE_MAX_AGE_SEC}s) -- cold start")
+        except Exception as e:
+            logger.warning(f"engine state restore failed: {e}")
+
     logger.info(f"Config: {json.dumps(SHARED_CONFIG, indent=2)}")
     for p, cfg in PAIRS.items():
         logger.info(f"  {p}: {json.dumps(cfg)}")
@@ -927,6 +1007,8 @@ def main():
                             if sig is not None:
                                 pending_signals.append(sig)
                             last_bar_minute[p] = current_minute
+                    # Persist engine state so a restart doesn't need a fresh warmup
+                    _save_engine_state()
 
                     # PRIORITY: if multiple signals, pick lowest entropy
                     if pending_signals and not mgr.has_position():
