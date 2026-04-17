@@ -384,7 +384,14 @@ class MultiPairManager:
         os.replace(tmp, str(self.state_file))
 
     def _cumulative_stats(self):
-        """Compute all-time stats from full_history."""
+        """Compute all-time stats from full_history.
+
+        Note: total_pnl_bps_lev is a compound return (not arithmetic sum).
+        pnl_bps_leveraged per trade is the leveraged price move, which
+        equals the ~equity return for that trade. Compounding these is the
+        correct way to get lifetime return; summing would overstate gains
+        and understate losses because each trade is applied to current equity.
+        """
         h = self.full_history
         if not h:
             return {"trades": 0, "wins": 0, "losses": 0, "win_rate": 0,
@@ -405,12 +412,19 @@ class MultiPairManager:
         shorts = [t for t in h if t.get("direction") == -1]
         long_wins = sum(1 for t in longs if t.get("pnl_bps_leveraged", 0) > 0)
         short_wins = sum(1 for t in shorts if t.get("pnl_bps_leveraged", 0) > 0)
+
+        equity = 1.0
+        for p in pnls:
+            equity *= (1.0 + p / 10000.0)
+        compound_bps = (equity - 1.0) * 10000
+
         return {
             "trades": len(h),
             "wins": wins,
             "losses": losses,
             "win_rate": wins / len(h) if h else 0,
-            "total_pnl_bps_lev": sum(pnls),
+            "total_pnl_bps_lev": compound_bps,
+            "sum_pnl_bps_lev": sum(pnls),
             "best_bps_lev": max(pnls) if pnls else 0,
             "worst_bps_lev": min(pnls) if pnls else 0,
             "mean_bps_lev": sum(pnls) / len(pnls) if pnls else 0,

@@ -98,7 +98,7 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
       <span class="value" id="equity">--</span>
     </div>
     <div class="metric">
-      <span class="label">Daily PnL</span>
+      <span class="label">Total PnL (compound)</span>
       <span class="value" id="dailyPnl">--</span>
     </div>
     <div class="metric">
@@ -113,15 +113,17 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
   <h2>Lifetime Performance (never truncated)</h2>
   <div class="grid" style="margin: 0;">
     <div>
-      <div class="metric"><span class="label">Total PnL @10x</span><span class="value" id="cumPnl">--</span></div>
+      <div class="metric"><span class="label">Compound Return @10x</span><span class="value" id="cumPnl">--</span></div>
+      <div class="metric"><span class="label">Max Drawdown</span><span class="value" id="cumMaxDD">--</span></div>
       <div class="metric"><span class="label">Win Rate</span><span class="value" id="cumWR">--</span></div>
       <div class="metric"><span class="label">Mean / trade</span><span class="value" id="cumMean">--</span></div>
-      <div class="metric"><span class="label">Best / Worst</span><span class="value" id="cumBestWorst">--</span></div>
+      <div class="metric"><span class="label">Best / Worst trade</span><span class="value" id="cumBestWorst">--</span></div>
     </div>
     <div>
       <div class="metric"><span class="label">Exits (TP / SL / TO)</span><span class="value" id="cumReasons">--</span></div>
       <div class="metric"><span class="label">Longs (WR)</span><span class="value" id="cumLongs">--</span></div>
       <div class="metric"><span class="label">Shorts (WR)</span><span class="value" id="cumShorts">--</span></div>
+      <div class="metric"><span class="label">Sum of trade %</span><span class="value" id="cumSum">--</span></div>
       <div class="metric"><span class="label">Tracking since</span><span class="value" id="cumSince">--</span></div>
     </div>
   </div>
@@ -284,16 +286,24 @@ function updateDashboard(data) {
 
   // Account
   if (data.equity) $('equity').textContent = `$${data.equity.toFixed(2)}`;
-  const dp = data.daily_pnl || 0;
-  $('dailyPnl').textContent = `${dp >= 0 ? '+' : ''}${dp.toFixed(1)} bps`;
-  $('dailyPnl').className = `value ${dp >= 0 ? 'up' : 'down'}`;
+  // Top-box total PnL: show compound return (same number as Lifetime section)
+  const topPct = ((data.cumulative || {}).compound_return_pct) || 0;
+  $('dailyPnl').textContent = data.cumulative && data.cumulative.trades
+    ? `${topPct >= 0 ? '+' : ''}${topPct.toFixed(2)}%`
+    : '--';
+  $('dailyPnl').className = `value ${topPct >= 0 ? 'up' : 'down'}`;
   $('totalTrades').textContent = data.total_trades ?? (data.trades?.length || 0);
 
   // Lifetime cumulative stats
   const c = data.cumulative || {};
-  const tp = c.total_pnl_bps_lev || 0;
-  $('cumPnl').textContent = `${tp >= 0 ? '+' : ''}${tp.toFixed(0)} bps @10x`;
-  $('cumPnl').className = `value ${tp >= 0 ? 'up' : 'down'}`;
+  // Compound return (correct math: product of 1+r, not sum of r)
+  const compBps = (c.compound_return_bps_lev != null) ? c.compound_return_bps_lev : (c.total_pnl_bps_lev || 0);
+  const compPct = compBps / 100;
+  $('cumPnl').textContent = c.trades ? `${compPct >= 0 ? '+' : ''}${compPct.toFixed(2)}% (${compBps >= 0 ? '+' : ''}${compBps.toFixed(0)} bps)` : '--';
+  $('cumPnl').className = `value ${compPct >= 0 ? 'up' : 'down'}`;
+  const mdd = c.max_dd_pct || 0;
+  $('cumMaxDD').textContent = c.trades ? `-${mdd.toFixed(2)}%` : '--';
+  $('cumMaxDD').className = `value down`;
   $('cumWR').textContent = c.trades ? `${(c.win_rate * 100).toFixed(0)}% (${c.wins}W/${c.losses}L)` : '--';
   const mean = c.mean_bps_lev || 0;
   $('cumMean').textContent = c.trades ? `${mean >= 0 ? '+' : ''}${mean.toFixed(0)} bps @10x` : '--';
@@ -308,6 +318,8 @@ function updateDashboard(data) {
   if (c.short_trades) {
     $('cumShorts').textContent = `${c.short_trades} (${(c.short_wr * 100).toFixed(0)}%)`;
   }
+  const sum = (c.sum_pnl_bps_lev != null) ? c.sum_pnl_bps_lev : 0;
+  $('cumSum').textContent = c.trades ? `${sum >= 0 ? '+' : ''}${sum.toFixed(0)} bps (arith.)` : '--';
   if (c.since) {
     $('cumSince').textContent = new Date(c.since).toLocaleDateString();
   }
