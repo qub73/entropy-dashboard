@@ -49,6 +49,11 @@ PAIRS = {
         # Cross-pair winner: BTC Cal 13.54->15.58, ETH Cal 9.03->12.69. Combined +618% vs +500%.
         "trail_tp_after": 150,
         "trail_tp_bps": 50,
+        # Skip entry if 2.5h (150-bar) move in trade direction already exceeds this.
+        # Rationale: strategy is mean-reverting; entries after extended moves in the
+        # same direction are chasing exhaustion. Backtest (ETH) Cal 31.30 -> 40.16.
+        "extended_move_lookback": 150,
+        "extended_move_cap_bps": 100,
     },
     "ETH": {
         "futures_symbol": "PF_ETHUSD",
@@ -62,6 +67,8 @@ PAIRS = {
         "trailing_atr_mult": 2.0,
         "trail_tp_after": 150,
         "trail_tp_bps": 50,
+        "extended_move_lookback": 150,
+        "extended_move_cap_bps": 100,
     },
 }
 
@@ -199,10 +206,11 @@ class EntropyEngine:
     def __init__(self, window=30, atr_window=14):
         self.window = window
         self.atr_window = atr_window
-        self.mids = deque(maxlen=window + 200)
-        self.imbalances = deque(maxlen=window + 200)
-        self.spreads_bps = deque(maxlen=window + 200)
-        self.states = deque(maxlen=window + 200)
+        # Buffer sized to support up to 150-bar (2.5h) trailing returns + margin.
+        self.mids = deque(maxlen=window + 300)
+        self.imbalances = deque(maxlen=window + 300)
+        self.spreads_bps = deque(maxlen=window + 300)
+        self.states = deque(maxlen=window + 300)
         self.counts = np.zeros((NUM_STATES, NUM_STATES), dtype=np.float64)
         self.bar_count = 0
         self.last_H = None
@@ -734,6 +742,7 @@ def main():
     # Filter rejection counts (for visibility)
     rejected_cooldown = {p: 0 for p in PAIRS}
     rejected_knife = {p: 0 for p in PAIRS}
+    rejected_extended = {p: 0 for p in PAIRS}
 
     logger.info(f"Config: {json.dumps(SHARED_CONFIG, indent=2)}")
     for p, cfg in PAIRS.items():
@@ -831,6 +840,26 @@ def main():
                     logger.info(
                         f"[{pair}] SHORT signal blocked: ret_60={ret_60:.1f} bps "
                         f"> +{knife_bps} (rising knife)")
+                    return None
+
+        # --- Upgrade 3: extended-move filter (skip chasing exhausted trends) ---
+        # Don't enter in the direction the market has already moved strongly.
+        ext_cap = cfg.get("extended_move_cap_bps")
+        ext_lb = cfg.get("extended_move_lookback", 150)
+        if ext_cap is not None:
+            ret_ext = engines[pair].get_trailing_return_bps(ext_lb)
+            if ret_ext is not None:
+                if direction == 1 and ret_ext > ext_cap:
+                    rejected_extended[pair] += 1
+                    logger.info(
+                        f"[{pair}] LONG signal blocked: ret_{ext_lb}={ret_ext:.1f} bps "
+                        f"> +{ext_cap} (extended up-move; don't chase)")
+                    return None
+                if direction == -1 and ret_ext < -ext_cap:
+                    rejected_extended[pair] += 1
+                    logger.info(
+                        f"[{pair}] SHORT signal blocked: ret_{ext_lb}={ret_ext:.1f} bps "
+                        f"< -{ext_cap} (extended down-move; don't chase)")
                     return None
 
         return {
@@ -950,6 +979,7 @@ def main():
                 "signals": dict(signal_counts),
                 "rejected_cooldown": dict(rejected_cooldown),
                 "rejected_knife": dict(rejected_knife),
+                "rejected_extended": dict(rejected_extended),
             }
             for p in PAIRS:
                 e = engines[p]
