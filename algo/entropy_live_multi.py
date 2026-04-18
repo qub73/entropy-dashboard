@@ -654,78 +654,95 @@ class MultiPairManager:
         self._save_state()
         return trade
 
-    def check_exit(self, mid_price, atr_bps=None):
+    def check_exit(self, mid_price, atr_bps=None, bar_high=None, bar_low=None):
+        """Evaluate exit conditions for the current bar.
+
+        bar_high/bar_low are intra-bar extremes; when provided, peak tracking
+        uses bar_high/bar_low (matching backtest semantics) instead of mid-only.
+        This avoids under-counting favorable excursions that occurred intra-bar.
+        """
         if not self.has_position():
             return None
         pos = self.position
         pair_cfg = PAIRS[pos["pair"]]
-        pnl_bps = pos["direction"] * (mid_price / pos["entry_price"] - 1.0) * 10000
+        entry = pos["entry_price"]
+        d = pos["direction"]
+        pnl_bps = d * (mid_price / entry - 1.0) * 10000
         elapsed = (time.time() - pos["entry_time"]) / 60
 
-        # Update peak mid (for trailing stop)
-        if pos["direction"] == 1:
-            if mid_price > pos.get("peak_mid", pos["entry_price"]):
-                pos["peak_mid"] = mid_price
+        # Best/worst intrabar PnL (in bps) in the direction of the trade.
+        if bar_high is not None and bar_low is not None:
+            if d == 1:
+                best_bps  = (bar_high / entry - 1.0) * 10000
+                worst_bps = (bar_low  / entry - 1.0) * 10000
+            else:
+                best_bps  = -(bar_low  / entry - 1.0) * 10000
+                worst_bps = -(bar_high / entry - 1.0) * 10000
         else:
-            if mid_price < pos.get("peak_mid", pos["entry_price"]):
-                pos["peak_mid"] = mid_price
+            best_bps = worst_bps = pnl_bps
+
+        # Update peak_mid using intrabar favourable price when available.
+        favourable_px = bar_high if (d == 1 and bar_high is not None) else \
+                        (bar_low if (d == -1 and bar_low is not None) else mid_price)
+        prior_peak = pos.get("peak_mid", entry)
+        if d == 1:
+            if favourable_px > prior_peak: pos["peak_mid"] = favourable_px
+        else:
+            if favourable_px < prior_peak: pos["peak_mid"] = favourable_px
+
+        peak_pnl = d * (pos["peak_mid"] / entry - 1.0) * 10000
 
         trailing_active = pos.get("trailing_active", False)
         trail_mult = pair_cfg.get("trailing_atr_mult")
+        trail_tp_after = pair_cfg.get("trail_tp_after")
+        trail_tp_bps = pair_cfg.get("trail_tp_bps", 50)
+        sl_bps = pair_cfg["stop_loss_bps"]
+        tp_bps = pair_cfg["take_profit_bps"]
 
-        # --- Trailing stop logic (T5 — trail 2x ATR at timeout if in profit) ---
+        # --- Fix: activate tp_trailing BEFORE SL check when peak has
+        # already crossed the trigger on this bar. Prevents the race where
+        # a volatile bar hits both +trigger and -SL and SL wins.
+        if (trail_tp_after is not None
+                and not pos.get("tp_trailing", False)
+                and peak_pnl >= trail_tp_after):
+            pos["tp_trailing"] = True
+            logger.info(
+                f"[{pos['pair']}] Peak reached +{peak_pnl:.1f} bps (>={trail_tp_after}) "
+                f"-- switching to {trail_tp_bps} bps trailing TP")
+            self._save_state()
+
+        tp_trailing = pos.get("tp_trailing", False)
+
+        # --- ATR-trail after timeout (T5) ---
         if trailing_active and trail_mult and atr_bps and atr_bps > 0:
-            # Peak PnL in bps
-            peak_pnl_bps = pos["direction"] * (pos["peak_mid"] / pos["entry_price"] - 1.0) * 10000
             trail_width_bps = trail_mult * atr_bps
-            floor_bps = peak_pnl_bps - trail_width_bps
-            # Trailing never loosens SL
-            floor_bps = max(floor_bps, -pair_cfg["stop_loss_bps"])
-            if pnl_bps <= floor_bps:
-                # Save floor for logging
+            floor_bps = max(peak_pnl - trail_width_bps, -sl_bps)
+            if worst_bps <= floor_bps:
                 pos["_trail_floor_bps"] = floor_bps
-                pos["_trail_peak_bps"] = peak_pnl_bps
+                pos["_trail_peak_bps"] = peak_pnl
                 return "trail_stop"
-            # TP still valid
-            if pnl_bps >= pair_cfg["take_profit_bps"]:
+            if best_bps >= tp_bps:
                 return "tp"
             return None
 
-        # --- TP-trail: once profit exceeds trail_tp_after, switch to trailing TP ---
-        trail_tp_after = pair_cfg.get("trail_tp_after")
-        trail_tp_bps = pair_cfg.get("trail_tp_bps", 50)
-        tp_trailing = pos.get("tp_trailing", False)
-
+        # --- TP-trail mode (active after peak crossed trigger) ---
         if tp_trailing:
-            # Already in TP-trail mode: trail at trail_tp_bps below peak
-            peak_pnl = pos["direction"] * (pos["peak_mid"] / pos["entry_price"] - 1.0) * 10000
-            floor = peak_pnl - trail_tp_bps
-            floor = max(floor, -pair_cfg["stop_loss_bps"])
-            if pnl_bps <= floor:
+            floor = max(peak_pnl - trail_tp_bps, -sl_bps)
+            if worst_bps <= floor:
+                pos["_trail_floor_bps"] = floor
+                pos["_trail_peak_bps"] = peak_pnl
                 return "tp_trail"
             return None
 
-        # --- Standard logic (not trailing yet) ---
-        if pnl_bps <= -pair_cfg["stop_loss_bps"]:
+        # --- Standard logic (no trail phase active) ---
+        if worst_bps <= -sl_bps:
             return "sl"
 
-        # Check if we should activate TP-trail instead of fixed TP
-        if trail_tp_after is not None:
-            peak_pnl = pos["direction"] * (pos["peak_mid"] / pos["entry_price"] - 1.0) * 10000
-            if peak_pnl >= trail_tp_after:
-                pos["tp_trailing"] = True
-                logger.info(
-                    f"[{pos['pair']}] Profit reached +{peak_pnl:.1f} bps (>={trail_tp_after}) "
-                    f"-- switching to {trail_tp_bps} bps trailing TP")
-                self._save_state()
-                return None
-        else:
-            # Fixed TP only when no TP-trail configured
-            if pnl_bps >= pair_cfg["take_profit_bps"]:
-                return "tp"
+        # Fixed TP only when no TP-trail configured for this pair
+        if trail_tp_after is None and best_bps >= tp_bps:
+            return "tp"
 
-        # At timeout: if in profit AND ATR trailing configured, activate trailing
-        # instead of exiting. Otherwise exit as normal.
+        # Timeout: if in profit AND ATR trailing configured, switch to ATR trail
         if elapsed >= pair_cfg["timeout_minutes"]:
             if trail_mult and pnl_bps > 0 and atr_bps and atr_bps > 0:
                 pos["trailing_active"] = True
@@ -853,7 +870,8 @@ def main():
         # Check exit if we hold this pair
         if mgr.has_position() and mgr.position["pair"] == pair:
             atr_bps = engines[pair].last_atr_bps
-            reason = mgr.check_exit(bar_mid, atr_bps=atr_bps)
+            reason = mgr.check_exit(bar_mid, atr_bps=atr_bps,
+                                     bar_high=bar_high, bar_low=bar_low)
             if reason:
                 trade = mgr.close_position(bar_mid, reason)
                 # Set cooldown if this was a loss and pair has cooldown configured
