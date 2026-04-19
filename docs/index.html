@@ -2,745 +2,604 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Entropy Trader Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d1117">
+<title>Entropy Trader · ETH</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <style>
-:root { --bg: #0d1117; --card: #161b22; --border: #30363d; --text: #c9d1d9;
-        --green: #3fb950; --red: #f85149; --yellow: #d29922; --blue: #58a6ff; }
-* { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: var(--bg); color: var(--text); font-family: 'SF Mono', 'Fira Code', monospace;
-       font-size: 14px; padding: 20px; max-width: 900px; margin: 0 auto; }
-h1 { font-size: 18px; margin-bottom: 4px; color: var(--blue); }
-.subtitle { font-size: 12px; color: #8b949e; margin-bottom: 20px; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
-.card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-.card h2 { font-size: 13px; color: #8b949e; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-.metric { display: flex; justify-content: space-between; margin-bottom: 8px; }
-.metric .label { color: #8b949e; }
-.metric .value { font-weight: bold; }
+:root {
+  --bg: #0d1117;
+  --card: #161b22;
+  --card2: #1a2028;
+  --border: #30363d;
+  --text: #e6edf3;
+  --dim: #7d8590;
+  --green: #3fb950;
+  --red: #f85149;
+  --yellow: #d29922;
+  --blue: #58a6ff;
+  --purple: #bc8cff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: -apple-system, system-ui, 'Segoe UI', sans-serif;
+  font-size: 15px; line-height: 1.45;
+  padding: 12px; max-width: 720px; margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+/* Typography */
+.mono { font-family: ui-monospace, 'SF Mono', 'Fira Code', Menlo, monospace; }
+.num { font-variant-numeric: tabular-nums; }
+
+h1 { font-size: 16px; font-weight: 600; color: var(--text); }
+h2 { font-size: 12px; font-weight: 600; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.sub { font-size: 11px; color: var(--dim); }
+
 .up { color: var(--green); }
 .down { color: var(--red); }
-.neutral { color: var(--yellow); }
-.wide { grid-column: 1 / -1; }
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { text-align: left; color: #8b949e; padding: 6px 8px; border-bottom: 1px solid var(--border); }
-td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
-.bar-container { height: 20px; background: #21262d; border-radius: 4px; overflow: hidden; position: relative; }
-.bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
-.bar-label { position: absolute; right: 6px; top: 2px; font-size: 11px; color: var(--text); }
-.status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-.status-dot.live { background: var(--green); animation: pulse 2s infinite; }
-.status-dot.off { background: var(--red); }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
-.position-card { border-left: 3px solid var(--yellow); }
-.position-card.long { border-left-color: var(--green); }
-.position-card.short { border-left-color: var(--red); }
-.position-card.none { border-left-color: var(--border); }
-#error { color: var(--red); padding: 10px; display: none; }
-.config-input { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
-.config-input input { background: var(--card); border: 1px solid var(--border); color: var(--text);
-                       padding: 6px 10px; border-radius: 4px; font-family: inherit; width: 100%; }
-.config-input button { background: var(--blue); color: #fff; border: none; padding: 6px 16px;
-                        border-radius: 4px; cursor: pointer; font-family: inherit; white-space: nowrap; }
-.config-input button:hover { opacity: 0.8; }
-.refresh-info { font-size: 11px; color: #484f58; text-align: right; }
-.range-selector { display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap; }
-.range-selector button { background: var(--card); border: 1px solid var(--border); color: var(--text);
-  padding: 4px 12px; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 12px; }
-.range-selector button.active { background: var(--blue); color: #fff; border-color: var(--blue); }
-.range-selector button:hover:not(.active) { background: #21262d; }
-.chart-tabs { display: flex; gap: 6px; margin-bottom: 8px; }
-.chart-tabs button { background: var(--card); border: 1px solid var(--border); color: var(--text);
-  padding: 6px 16px; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: bold; }
-.chart-tabs button.active { background: var(--yellow); color: #000; border-color: var(--yellow); }
-.chart-container { background: var(--card); border: 1px solid var(--border); border-radius: 8px;
-  padding: 12px; margin-top: 12px; }
-#priceChart { width: 100%; height: 480px; }
-.chart-loading { text-align: center; color: #8b949e; padding: 40px; }
+.dim { color: var(--dim); }
+.yellow { color: var(--yellow); }
+.blue { color: var(--blue); }
+
+/* Cards */
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px;
+  margin-bottom: 10px;
+}
+.card-tight { padding: 10px 14px; }
+
+/* Header bar */
+.topbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 999px;
+  background: var(--card2); border: 1px solid var(--border);
+  font-size: 12px;
+}
+.dot { width: 6px; height: 6px; border-radius: 50%; background: var(--red); }
+.dot.live { background: var(--green); box-shadow: 0 0 0 0 rgba(63,185,80,0.6); animation: pulse 2s infinite; }
+@keyframes pulse { 0%{box-shadow:0 0 0 0 rgba(63,185,80,0.5);} 70%{box-shadow:0 0 0 6px rgba(63,185,80,0);} 100%{box-shadow:0 0 0 0 rgba(63,185,80,0);} }
+
+/* Big number display */
+.bignum { font-size: 32px; font-weight: 700; letter-spacing: -0.5px; }
+.bignum.sm { font-size: 22px; }
+.bignum .unit { font-size: 14px; color: var(--dim); font-weight: 400; margin-left: 4px; }
+
+/* Position card */
+.pos { border-left: 3px solid var(--border); }
+.pos.long  { border-left-color: var(--green); }
+.pos.short { border-left-color: var(--red); }
+.pos.profit { background: linear-gradient(180deg, rgba(63,185,80,0.05), var(--card)); }
+.pos.loss   { background: linear-gradient(180deg, rgba(248,81,73,0.05), var(--card)); }
+
+/* Stat rows */
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; }
+.stat { display: flex; justify-content: space-between; align-items: baseline; padding: 3px 0; }
+.stat .k { color: var(--dim); font-size: 12px; }
+.stat .v { font-weight: 600; font-size: 14px; }
+
+/* Inline row */
+.row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; }
+.row + .row { border-top: 1px solid var(--border); }
+
+/* Buttons / inputs */
+button {
+  background: var(--card2); color: var(--text); border: 1px solid var(--border);
+  padding: 8px 14px; border-radius: 8px; font: inherit; cursor: pointer;
+  min-height: 36px;
+}
+button:active { transform: scale(0.98); }
+button.primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+input[type=text] {
+  background: var(--card2); color: var(--text); border: 1px solid var(--border);
+  padding: 8px 12px; border-radius: 8px; font: inherit; width: 100%;
+  min-height: 36px;
+}
+
+/* Trade list */
+.trades { display: flex; flex-direction: column; gap: 6px; }
+.tr {
+  display: grid; grid-template-columns: auto 1fr auto;
+  gap: 8px; align-items: center;
+  padding: 10px 12px; border-radius: 8px;
+  background: var(--card2); border: 1px solid var(--border);
+  cursor: pointer; user-select: none;
+}
+.tr:active { transform: scale(0.995); }
+.tr .bar { width: 3px; height: 100%; min-height: 28px; border-radius: 2px; }
+.tr.win .bar  { background: var(--green); }
+.tr.loss .bar { background: var(--red); }
+.tr .mid { min-width: 0; }
+.tr .top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.tr .bot { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--dim); margin-top: 2px; }
+.tr .pnl { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Chart shells */
+.chart { width: 100%; min-height: 280px; }
+.chart-sm { width: 100%; min-height: 220px; }
+.chart-loading { text-align: center; color: var(--dim); padding: 40px 0; font-size: 13px; }
+
+/* Segmented control */
+.seg { display: flex; gap: 4px; background: var(--card2); padding: 3px; border-radius: 8px; border: 1px solid var(--border); }
+.seg button { flex: 1; background: transparent; border: none; padding: 6px 10px; font-size: 12px; color: var(--dim); min-height: 30px; }
+.seg button.active { background: var(--blue); color: #fff; }
+
+/* Collapsible */
+details { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; }
+details summary { padding: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+details summary::-webkit-details-marker { display: none; }
+details summary::after { content: '▾'; color: var(--dim); }
+details[open] summary::after { content: '▴'; }
+details > *:not(summary) { padding: 0 14px 14px; }
+
+/* Tiny hint */
+.kv { display: flex; gap: 6px; align-items: baseline; font-size: 12px; }
+.kv .k { color: var(--dim); }
+
+@media (max-width: 480px) {
+  body { padding: 10px; padding-bottom: 40px; }
+  .card { padding: 12px; }
+  .bignum { font-size: 28px; }
+  .stat-grid { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 
-<h1>Entropy Trader</h1>
-<div class="subtitle">Multi-Pair Order-Flow Entropy | Kraken Futures 10x</div>
-
-<div class="config-input">
-  <input type="text" id="statusUrl" placeholder="Status JSON URL (Pi endpoint or GitHub gist raw URL)" />
-  <button onclick="saveUrl()">Set</button>
-  <button onclick="fetchStatus()">Refresh</button>
-</div>
-<div id="error"></div>
-
-<div class="grid">
-  <!-- Connection -->
-  <div class="card">
-    <h2>System</h2>
-    <div class="metric">
-      <span class="label">Status</span>
-      <span class="value" id="sysStatus"><span class="status-dot off"></span>Offline</span>
-    </div>
-    <div class="metric">
-      <span class="label">Uptime</span>
-      <span class="value" id="sysUptime">--</span>
-    </div>
-    <div class="metric">
-      <span class="label">Last Update</span>
-      <span class="value" id="sysLastUpdate">--</span>
-    </div>
-  </div>
-
-  <!-- Account -->
-  <div class="card">
-    <h2>Account</h2>
-    <div class="metric">
-      <span class="label">Equity</span>
-      <span class="value" id="equity">--</span>
-    </div>
-    <div class="metric">
-      <span class="label">Total PnL (compound)</span>
-      <span class="value" id="dailyPnl">--</span>
-    </div>
-    <div class="metric">
-      <span class="label">Total Trades (all-time)</span>
-      <span class="value" id="totalTrades">--</span>
-    </div>
-  </div>
+<div class="topbar">
+  <h1>Entropy Trader · ETH</h1>
+  <span class="pill"><span class="dot" id="liveDot"></span><span id="lastUpdate">–</span></span>
 </div>
 
-<!-- Lifetime stats -->
-<div class="card wide" style="margin-top: 12px;">
-  <h2>Lifetime Performance (never truncated)</h2>
-  <div class="grid" style="margin: 0;">
+<!-- STATUS / EQUITY ROW -->
+<div class="card card-tight">
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; gap:12px; flex-wrap:wrap;">
     <div>
-      <div class="metric"><span class="label">Compound Return @10x</span><span class="value" id="cumPnl">--</span></div>
-      <div class="metric"><span class="label">Max Drawdown</span><span class="value" id="cumMaxDD">--</span></div>
-      <div class="metric"><span class="label">Win Rate</span><span class="value" id="cumWR">--</span></div>
-      <div class="metric"><span class="label">Mean / trade</span><span class="value" id="cumMean">--</span></div>
-      <div class="metric"><span class="label">Best / Worst trade</span><span class="value" id="cumBestWorst">--</span></div>
+      <div class="sub">Compound return (lifetime)</div>
+      <div class="bignum num" id="bigPnl">–</div>
+      <div class="kv"><span class="k">Max DD:</span><span id="bigDD" class="down">–</span></div>
     </div>
-    <div>
-      <div class="metric"><span class="label">Exits (TP / SL / TO)</span><span class="value" id="cumReasons">--</span></div>
-      <div class="metric"><span class="label">Longs (WR)</span><span class="value" id="cumLongs">--</span></div>
-      <div class="metric"><span class="label">Shorts (WR)</span><span class="value" id="cumShorts">--</span></div>
-      <div class="metric"><span class="label">Sum of trade %</span><span class="value" id="cumSum">--</span></div>
-      <div class="metric"><span class="label">Tracking since</span><span class="value" id="cumSince">--</span></div>
+    <div style="text-align:right;">
+      <div class="sub">Equity</div>
+      <div class="bignum sm num" id="bigEquity">–</div>
+      <div class="kv" style="justify-content:flex-end"><span class="k">WR:</span><span id="bigWR">–</span></div>
     </div>
   </div>
 </div>
 
-<!-- Position -->
-<div class="card position-card none wide" id="positionCard">
-  <h2>Position</h2>
-  <div id="positionContent">
-    <div class="metric">
-      <span class="label">Status</span>
-      <span class="value neutral">No Position</span>
-    </div>
+<!-- POSITION -->
+<div class="card pos" id="posCard">
+  <h2 id="posTitle">No Position</h2>
+  <div id="posBody">
+    <div class="dim" id="noPosMsg" style="font-size:13px;">Waiting for signal…</div>
+  </div>
+</div>
+<div id="posChartCard" class="card" style="display:none;">
+  <h2>Position chart</h2>
+  <div id="posChart" class="chart-sm"><div class="chart-loading">loading…</div></div>
+</div>
+
+<!-- ETH PRICE / RANGE -->
+<div class="card">
+  <h2>ETH Now</h2>
+  <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+    <div class="bignum sm num" id="ethPrice">–</div>
+    <div class="kv"><span class="k">24h:</span><span id="eth24pct" class="num">–</span></div>
+  </div>
+  <div class="stat-grid">
+    <div class="stat"><span class="k">6h hi/lo</span><span class="v num" id="hl6">–</span></div>
+    <div class="stat"><span class="k">6h range</span><span class="v num" id="rg6">–</span></div>
+    <div class="stat"><span class="k">12h hi/lo</span><span class="v num" id="hl12">–</span></div>
+    <div class="stat"><span class="k">12h range</span><span class="v num" id="rg12">–</span></div>
+    <div class="stat"><span class="k">24h hi/lo</span><span class="v num" id="hl24">–</span></div>
+    <div class="stat"><span class="k">24h range</span><span class="v num" id="rg24">–</span></div>
   </div>
 </div>
 
-<!-- Entropy -->
-<div class="grid" style="margin-top: 12px;">
-  <div class="card">
-    <h2>ETH Entropy</h2>
-    <div class="metric">
-      <span class="label">H</span>
-      <span class="value" id="ethH">--</span>
-    </div>
-    <div class="metric">
-      <span class="label">Threshold</span>
-      <span class="value" id="ethThresh">0.4352</span>
-    </div>
-    <div class="metric">
-      <span class="label">Mid</span>
-      <span class="value" id="ethMid">--</span>
-    </div>
-    <div class="metric">
-      <span class="label">Bars</span>
-      <span class="value" id="ethBars">--</span>
-    </div>
-    <div style="margin-top: 8px;">
-      <div class="bar-container">
-        <div class="bar-fill" id="ethBar" style="width: 0%; background: var(--green);"></div>
-        <span class="bar-label" id="ethBarLabel">--</span>
-      </div>
-    </div>
+<!-- ENTROPY STATUS -->
+<div class="card">
+  <h2>Signal Status</h2>
+  <div class="row">
+    <span class="dim">Entropy H</span>
+    <span class="num" id="entH">–</span>
+  </div>
+  <div class="row">
+    <span class="dim">Threshold</span>
+    <span class="num">&lt; 0.4352</span>
+  </div>
+  <div class="row">
+    <span class="dim">State</span>
+    <span class="num" id="entState">–</span>
+  </div>
+  <div class="row">
+    <span class="dim">Bars warmed</span>
+    <span class="num" id="entBars">–</span>
   </div>
 </div>
 
-<!-- Trade History -->
-<div class="card wide" style="margin-top: 12px;">
-  <h2>Trade History</h2>
-  <table>
-    <thead>
-      <tr><th>Time</th><th>Pair</th><th>Dir</th><th>Entry</th><th>Exit</th><th>PnL</th><th>Reason</th><th>Hold</th></tr>
-    </thead>
-    <tbody id="tradeTable">
-      <tr><td colspan="8" style="color: #484f58; text-align: center;">No trades yet</td></tr>
-    </tbody>
-  </table>
-</div>
-
-<!-- Signal Log -->
-<div class="card wide" style="margin-top: 12px;">
-  <h2>Signals</h2>
-  <div class="grid" style="margin-bottom: 0;">
-    <div class="metric"><span class="label">ETH Signals</span><span class="value" id="ethSignals">0</span></div>
+<!-- TRADES -->
+<div class="card">
+  <h2>Recent Trades <span class="sub" id="tradesMeta"></span></h2>
+  <div id="tradesList" class="trades">
+    <div class="dim" style="padding:8px 0;">No trades yet</div>
   </div>
 </div>
 
-<!-- ETH high/low marks (6h/12h/24h) -->
-<div class="card wide" style="margin-top: 12px;">
-  <h2>ETH Recent Range</h2>
-  <div class="grid" style="margin-bottom: 0;">
-    <div>
-      <div class="metric"><span class="label">6h High / Low</span><span class="value" id="eth6hHL">--</span></div>
-      <div class="metric"><span class="label">6h Range</span><span class="value" id="eth6hRange">--</span></div>
-    </div>
-    <div>
-      <div class="metric"><span class="label">12h High / Low</span><span class="value" id="eth12hHL">--</span></div>
-      <div class="metric"><span class="label">12h Range</span><span class="value" id="eth12hRange">--</span></div>
-    </div>
-    <div>
-      <div class="metric"><span class="label">24h High / Low</span><span class="value" id="eth24hHL">--</span></div>
-      <div class="metric"><span class="label">24h Range</span><span class="value" id="eth24hRange">--</span></div>
+<!-- Trade zoom drawer -->
+<div class="card" id="zoomCard" style="display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <h2 id="zoomTitle" style="margin:0;">Trade detail</h2>
+    <button onclick="closeZoom()">Close</button>
+  </div>
+  <div class="stat-grid" id="zoomStats" style="margin-bottom:10px;"></div>
+  <div id="zoomChart" class="chart-sm"><div class="chart-loading">loading…</div></div>
+</div>
+
+<!-- EQUITY CURVE -->
+<div class="card">
+  <h2>Equity Curve</h2>
+  <div id="eqChart" class="chart-sm"><div class="chart-loading">loading…</div></div>
+</div>
+
+<!-- PRICE CHART (with trade markers) -->
+<div class="card">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <h2 style="margin:0;">Price + trade markers</h2>
+    <div class="seg" id="rangeSeg">
+      <button data-r="1d" class="active" onclick="setRange('1d')">1D</button>
+      <button data-r="7d" onclick="setRange('7d')">7D</button>
+      <button data-r="1mo" onclick="setRange('1mo')">1M</button>
+      <button data-r="all" onclick="setRange('all')">All</button>
     </div>
   </div>
+  <div id="priceChart" class="chart"><div class="chart-loading">loading…</div></div>
 </div>
 
-<!-- Open position chart -->
-<div class="chart-container" id="openPosChartContainer" style="display:none;">
-  <h2 style="margin-top:0;">Open Position — 1h pre-entry to now</h2>
-  <div id="openPosChart"><div class="chart-loading">Loading…</div></div>
-</div>
-
-<!-- Price chart with trade markers -->
-<div class="chart-container">
-  <h2 style="margin-top:0;">ETH Price with Trade Markers</h2>
-  <div class="range-selector">
-    <button data-range="1d" class="active" onclick="setRange('1d')">1D</button>
-    <button data-range="7d" onclick="setRange('7d')">7D</button>
-    <button data-range="1mo" onclick="setRange('1mo')">1MO</button>
-    <button data-range="ytd" onclick="setRange('ytd')">YTD</button>
-    <button data-range="all" onclick="setRange('all')">Since Inception</button>
+<!-- LIFETIME STATS (collapsed) -->
+<details>
+  <summary><span><strong>Lifetime stats</strong> <span class="sub" id="statsSummary"></span></span></summary>
+  <div class="stat-grid">
+    <div class="stat"><span class="k">Trades</span><span class="v num" id="s_trades">–</span></div>
+    <div class="stat"><span class="k">W / L</span><span class="v num" id="s_wl">–</span></div>
+    <div class="stat"><span class="k">Mean / trade</span><span class="v num" id="s_mean">–</span></div>
+    <div class="stat"><span class="k">Best / worst</span><span class="v num" id="s_bw">–</span></div>
+    <div class="stat"><span class="k">TP / SL / TO</span><span class="v num" id="s_exits">–</span></div>
+    <div class="stat"><span class="k">Longs (WR)</span><span class="v num" id="s_long">–</span></div>
+    <div class="stat"><span class="k">Shorts (WR)</span><span class="v num" id="s_short">–</span></div>
+    <div class="stat"><span class="k">Since</span><span class="v num" id="s_since">–</span></div>
   </div>
-  <div id="priceChart">
-    <div class="chart-loading">Loading chart…</div>
+</details>
+
+<!-- REJECTION COUNTERS (collapsed) -->
+<details>
+  <summary><span><strong>Filter rejections</strong> <span class="sub" id="rejSummary"></span></span></summary>
+  <div class="stat-grid">
+    <div class="stat"><span class="k">Signals fired</span><span class="v num" id="r_signals">–</span></div>
+    <div class="stat"><span class="k">Cooldown</span><span class="v num" id="r_cd">–</span></div>
+    <div class="stat"><span class="k">Knife</span><span class="v num" id="r_knife">–</span></div>
+    <div class="stat"><span class="k">Extended move</span><span class="v num" id="r_ext">–</span></div>
   </div>
-</div>
+</details>
 
-<!-- Per-trade zoom chart (opens when a trade row is clicked) -->
-<div class="chart-container" id="tradeZoomContainer" style="display:none;">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <h2 style="margin-top:0;" id="tradeZoomTitle">Trade detail</h2>
-    <button onclick="closeTradeZoom()" style="background:transparent; color:#aab; border:1px solid #333; border-radius:4px; padding:4px 10px; cursor:pointer;">Close</button>
+<!-- CONFIG (collapsed, bottom) -->
+<details id="cfgBox">
+  <summary><span><strong>Connection</strong> <span class="sub" id="cfgSummary"></span></span></summary>
+  <div style="display:flex; gap:8px; flex-direction:column;">
+    <input type="text" id="statusUrl" placeholder="Status JSON URL (gist raw or Pi endpoint)" />
+    <div style="display:flex; gap:8px;">
+      <button class="primary" onclick="saveUrl()" style="flex:1;">Save</button>
+      <button onclick="fetchStatus()" style="flex:1;">Refresh now</button>
+    </div>
+    <div class="sub" id="uptimeLine" style="margin-top:4px;"></div>
   </div>
-  <div id="tradeZoomChart"><div class="chart-loading">Loading…</div></div>
-</div>
+</details>
 
-<!-- Equity curve -->
-<div class="chart-container">
-  <h2 style="margin-top:0;">Equity Curve (compound)</h2>
-  <div id="equityChart"><div class="chart-loading">Loading…</div></div>
-</div>
-
-<div class="refresh-info" id="refreshInfo">Paste your status URL above to connect</div>
+<div id="error" class="sub down" style="display:none; padding:8px 0;"></div>
 
 <script>
 const $ = id => document.getElementById(id);
+let cachedTrades = [];
+let chartState = { range: '1d' };
+const CFG = { tp: 200, sl: 50, trail_after: 150, trail_bps: 50 };
 
+// ---- URL config ----
 function saveUrl() {
   const url = $('statusUrl').value.trim();
-  if (url) {
-    localStorage.setItem('entropyStatusUrl', url);
-    fetchStatus();
-  }
-}
-
-function loadUrl() {
-  const saved = localStorage.getItem('entropyStatusUrl');
-  const defaultUrl = 'https://gist.githubusercontent.com/qub73/6d0a9b60924bc83ee20f28381e713450/raw/status.json';
-  $('statusUrl').value = saved || defaultUrl;
+  if (!url) return;
+  localStorage.setItem('entropyStatusUrl', url);
   fetchStatus();
 }
+function loadUrl() {
+  const saved = localStorage.getItem('entropyStatusUrl');
+  if (saved) { $('statusUrl').value = saved; fetchStatus(); }
+  else { $('cfgBox').open = true; }
+}
 
+// ---- Core fetch ----
 async function fetchStatus() {
   const url = $('statusUrl').value.trim();
   if (!url) return;
-
-  // Append cache-busting timestamp to defeat GitHub CDN caching
-  const bustUrl = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
-
+  $('error').style.display = 'none';
   try {
-    const resp = await fetch(bustUrl, { cache: 'no-store' });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const data = await resp.json();
-    $('error').style.display = 'none';
-    updateDashboard(data);
-    $('refreshInfo').textContent = `Last fetched: ${new Date().toLocaleTimeString()}`;
+    const bust = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    const r = await fetch(bust, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    cachedTrades = data.trades || [];
+    render(data);
+    if (!window._initialized) {
+      window._initialized = true;
+      renderPriceChart();
+    }
   } catch (e) {
-    $('error').textContent = `Fetch error: ${e.message}`;
+    $('error').textContent = 'Fetch error: ' + e.message;
     $('error').style.display = 'block';
   }
 }
 
-function updateDashboard(data) {
-  // System
-  $('sysStatus').innerHTML = `<span class="status-dot live"></span>Online`;
+// ---- Main render ----
+function render(data) {
+  const now = Date.now() / 1000;
+  const fresh = data.last_update && (now - data.last_update) < 180;
+  $('liveDot').className = fresh ? 'dot live' : 'dot';
   if (data.last_update) {
-    const ago = Math.floor((Date.now()/1000 - data.last_update) / 60);
-    $('sysLastUpdate').textContent = `${ago}m ago`;
-    $('sysUptime').textContent = data.uptime || '--';
+    const ago = Math.floor(now - data.last_update);
+    $('lastUpdate').textContent = ago < 60 ? `${ago}s ago` : `${Math.floor(ago/60)}m ago`;
   }
+  $('uptimeLine').textContent = data.uptime ? `Service: ${data.uptime}` : '';
 
-  // Account
-  if (data.equity) $('equity').textContent = `$${data.equity.toFixed(2)}`;
-  // Top-box total PnL: show compound return (same number as Lifetime section)
-  const topPct = ((data.cumulative || {}).compound_return_pct) || 0;
-  $('dailyPnl').textContent = data.cumulative && data.cumulative.trades
-    ? `${topPct >= 0 ? '+' : ''}${topPct.toFixed(2)}%`
-    : '--';
-  $('dailyPnl').className = `value ${topPct >= 0 ? 'up' : 'down'}`;
-  $('totalTrades').textContent = data.total_trades ?? (data.trades?.length || 0);
-
-  // Lifetime cumulative stats
+  // Big compound %, equity, WR, DD
   const c = data.cumulative || {};
-  // Compound return (correct math: product of 1+r, not sum of r)
-  const compBps = (c.compound_return_bps_lev != null) ? c.compound_return_bps_lev : (c.total_pnl_bps_lev || 0);
-  const compPct = compBps / 100;
-  $('cumPnl').textContent = c.trades ? `${compPct >= 0 ? '+' : ''}${compPct.toFixed(2)}% (${compBps >= 0 ? '+' : ''}${compBps.toFixed(0)} bps)` : '--';
-  $('cumPnl').className = `value ${compPct >= 0 ? 'up' : 'down'}`;
-  const mdd = c.max_dd_pct || 0;
-  $('cumMaxDD').textContent = c.trades ? `-${mdd.toFixed(2)}%` : '--';
-  $('cumMaxDD').className = `value down`;
-  $('cumWR').textContent = c.trades ? `${(c.win_rate * 100).toFixed(0)}% (${c.wins}W/${c.losses}L)` : '--';
-  const mean = c.mean_bps_lev || 0;
-  $('cumMean').textContent = c.trades ? `${mean >= 0 ? '+' : ''}${mean.toFixed(0)} bps @10x` : '--';
-  $('cumMean').className = `value ${mean >= 0 ? 'up' : 'down'}`;
-  if (c.trades) {
-    $('cumBestWorst').textContent = `+${(c.best_bps_lev || 0).toFixed(0)} / ${(c.worst_bps_lev || 0).toFixed(0)} bps`;
-  }
-  $('cumReasons').textContent = c.trades ? `${c.tp || 0} / ${c.sl || 0} / ${c.timeout || 0}` : '--';
-  if (c.long_trades) {
-    $('cumLongs').textContent = `${c.long_trades} (${(c.long_wr * 100).toFixed(0)}%)`;
-  }
-  if (c.short_trades) {
-    $('cumShorts').textContent = `${c.short_trades} (${(c.short_wr * 100).toFixed(0)}%)`;
-  }
-  const sum = (c.sum_pnl_bps_lev != null) ? c.sum_pnl_bps_lev : 0;
-  $('cumSum').textContent = c.trades ? `${sum >= 0 ? '+' : ''}${sum.toFixed(0)} bps (arith.)` : '--';
-  if (c.since) {
-    $('cumSince').textContent = new Date(c.since).toLocaleDateString();
-  }
-
-  // Signals (ETH only now)
-  const sigs = data.signals || {};
-  $('ethSignals').textContent = sigs.ETH || 0;
-
-  // ETH entropy
-  const eth = data.ETH || {};
-  updateEntropy('eth', eth, 0.4352);
+  const pct = c.compound_return_pct || 0;
+  $('bigPnl').innerHTML = c.trades
+    ? `<span class="${pct>=0?'up':'down'}">${pct>=0?'+':''}${pct.toFixed(2)}%</span>`
+    : '–';
+  $('bigDD').textContent = c.trades ? `-${(c.max_dd_pct||0).toFixed(2)}%` : '–';
+  $('bigEquity').textContent = data.equity != null ? '$'+data.equity.toFixed(0) : '–';
+  $('bigWR').innerHTML = c.trades
+    ? `${(c.win_rate*100).toFixed(0)}% <span class="dim">${c.wins}W/${c.losses}L</span>` : '–';
 
   // Position
-  const posCard = $('positionCard');
-  const posContent = $('positionContent');
-  const posChartContainer = $('openPosChartContainer');
-  if (data.position) {
-    const p = data.position;
-    const dir = p.direction === 1 ? 'LONG' : 'SHORT';
-    const dirClass = p.direction === 1 ? 'long' : 'short';
-    posCard.className = `card position-card ${dirClass} wide`;
-    const elapsed = data.last_update ? Math.floor((data.last_update - p.entry_time) / 60) : 0;
-    const mid = eth.mid || p.entry_price;
-    const pnl = p.direction * (mid / p.entry_price - 1) * 10000;
-    const pnlClass = pnl >= 0 ? 'up' : 'down';
-    // TP / SL targets (ETH config currently)
-    const tpBps = 200, slBps = 50, trailAfter = 150;
-    const tpPrice = p.entry_price * (1 + p.direction * tpBps / 10000);
-    const slPrice = p.entry_price * (1 - p.direction * slBps / 10000);
-    const trailPrice = p.entry_price * (1 + p.direction * trailAfter / 10000);
-    posContent.innerHTML = `
-      <div class="metric"><span class="label">Pair</span><span class="value">${p.pair}</span></div>
-      <div class="metric"><span class="label">Direction</span><span class="value ${dirClass === 'long' ? 'up' : 'down'}">${dir}</span></div>
-      <div class="metric"><span class="label">Entry</span><span class="value">$${p.entry_price.toFixed(2)}</span></div>
-      <div class="metric"><span class="label">Current</span><span class="value">$${mid.toFixed(2)}</span></div>
-      <div class="metric"><span class="label">Unrealized</span><span class="value ${pnlClass}">${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)} bps (${(pnl*10).toFixed(0)} @10x)</span></div>
-      <div class="metric"><span class="label">Held</span><span class="value">${elapsed}m</span></div>
-      <div class="metric"><span class="label">TP / SL</span><span class="value">$${tpPrice.toFixed(2)} / $${slPrice.toFixed(2)}</span></div>
-      <div class="metric"><span class="label">Trail trigger</span><span class="value">$${trailPrice.toFixed(2)}</span></div>
-      <div class="metric"><span class="label">Size</span><span class="value">${p.size}</span></div>`;
-    posChartContainer.style.display = 'block';
-    renderOpenPositionChart(p, mid);
-  } else {
-    posCard.className = 'card position-card none wide';
-    posContent.innerHTML = `<div class="metric"><span class="label">Status</span><span class="value neutral">No Position</span></div>`;
-    posChartContainer.style.display = 'none';
-  }
+  renderPosition(data);
 
-  // Trades
-  const trades = data.trades || [];
-  const tbody = $('tradeTable');
-  if (trades.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="color:#484f58;text-align:center">No trades yet</td></tr>';
-  } else {
-    tbody.innerHTML = trades.slice().reverse().map((t, idx) => {
-      const realIdx = trades.length - 1 - idx;
-      const dir = t.direction === 1 ? 'LONG' : 'SHORT';
-      const dirClass = t.direction === 1 ? 'up' : 'down';
-      const pnlClass = t.pnl_bps_leveraged >= 0 ? 'up' : 'down';
-      const time = t.time ? new Date(t.time).toLocaleString() : '--';
-      return `<tr class="trade-row" style="cursor:pointer" onclick="openTradeZoom(${realIdx})">
-        <td>${time}</td>
-        <td>${t.pair}</td>
-        <td class="${dirClass}">${dir}</td>
-        <td>$${t.entry_price?.toFixed(2) || '--'}</td>
-        <td>$${t.exit_price?.toFixed(2) || '--'}</td>
-        <td class="${pnlClass}">${t.pnl_bps_leveraged >= 0 ? '+' : ''}${t.pnl_bps_leveraged?.toFixed(0) || 0} bps</td>
-        <td>${t.reason}</td>
-        <td>${t.hold_min?.toFixed(0) || '--'}m</td>
-      </tr>`;
-    }).join('');
-  }
+  // Signal / entropy state
+  const eth = data.ETH || {};
+  renderEntropy(eth);
 
-  // Recent range marks (6h/12h/24h) + equity curve
-  updateRecentRange();
-  updateEquityCurve(trades);
+  // Trade list
+  renderTrades(cachedTrades);
+
+  // Lifetime stats details
+  $('statsSummary').textContent = c.trades
+    ? `${c.trades} tr · ${(c.win_rate*100).toFixed(0)}% · ${pct>=0?'+':''}${pct.toFixed(1)}%`
+    : '';
+  $('s_trades').textContent = c.trades || 0;
+  $('s_wl').textContent = c.trades ? `${c.wins} / ${c.losses}` : '–';
+  $('s_mean').textContent = c.trades ? `${c.mean_bps_lev>=0?'+':''}${(c.mean_bps_lev||0).toFixed(0)} bps@10x` : '–';
+  $('s_bw').textContent = c.trades ? `+${(c.best_bps_lev||0).toFixed(0)} / ${(c.worst_bps_lev||0).toFixed(0)}` : '–';
+  $('s_exits').textContent = c.trades ? `${c.tp||0} / ${c.sl||0} / ${c.timeout||0}` : '–';
+  $('s_long').textContent = c.long_trades ? `${c.long_trades} (${(c.long_wr*100).toFixed(0)}%)` : '0';
+  $('s_short').textContent = c.short_trades ? `${c.short_trades} (${(c.short_wr*100).toFixed(0)}%)` : '0';
+  $('s_since').textContent = c.since ? new Date(c.since).toLocaleDateString() : '–';
+
+  // Rejections
+  const sigs = data.signals || {};
+  const rj = { cd: data.rejected_cooldown, kn: data.rejected_knife, ex: data.rejected_extended };
+  $('r_signals').textContent = sigs.ETH || 0;
+  $('r_cd').textContent = (rj.cd && rj.cd.ETH) || 0;
+  $('r_knife').textContent = (rj.kn && rj.kn.ETH) || 0;
+  $('r_ext').textContent = (rj.ex && rj.ex.ETH) || 0;
+  $('rejSummary').textContent = `signals ${sigs.ETH||0} · rejected ${(rj.cd?.ETH||0)+(rj.kn?.ETH||0)+(rj.ex?.ETH||0)}`;
+
+  $('cfgSummary').textContent = fresh ? 'connected' : 'stale';
+
+  // Recent range card + equity curve update from 24h data
+  updateRecent();
+  updateEquity(cachedTrades);
 }
 
-function updateEntropy(prefix, data, threshold) {
-  const h = data.last_H;
-  const mid = data.mid;
-  $(prefix + 'Bars').textContent = data.bars || 0;
-  $(prefix + 'Mid').textContent = mid ? `$${mid.toFixed(2)}` : '--';
-  $(prefix + 'Thresh').textContent = threshold.toFixed(4);
-
-  if (h != null) {
-    $(prefix + 'H').textContent = h.toFixed(4);
-    const pct = Math.min(100, Math.max(0, (h / 0.7) * 100));
-    const bar = $(prefix + 'Bar');
-    bar.style.width = pct + '%';
-    // Color: green when near threshold, red when far
-    const dist = h - threshold;
-    if (dist <= 0) {
-      bar.style.background = 'var(--green)';
-      $(prefix + 'H').className = 'value up';
-    } else if (dist < 0.05) {
-      bar.style.background = 'var(--yellow)';
-      $(prefix + 'H').className = 'value neutral';
-    } else {
-      bar.style.background = 'var(--red)';
-      $(prefix + 'H').className = 'value';
-    }
-    $(prefix + 'BarLabel').textContent = `${h.toFixed(3)} / ${threshold.toFixed(3)}`;
-  } else {
-    $(prefix + 'H').textContent = 'warming...';
-    $(prefix + 'H').className = 'value neutral';
+// ---- Position ----
+function renderPosition(data) {
+  const posCard = $('posCard');
+  const body = $('posBody');
+  const eth = data.ETH || {};
+  if (!data.position) {
+    posCard.className = 'card pos';
+    $('posTitle').textContent = 'No Position';
+    const h = eth.last_H;
+    const mid = eth.mid;
+    body.innerHTML = `<div class="dim" style="font-size:13px;">
+      Waiting for signal…<br>
+      Current H: <span class="num">${h!=null? h.toFixed(4) : 'warming'}</span> ·
+      Current mid: <span class="num">${mid? '$'+mid.toFixed(2) : '–'}</span>
+    </div>`;
+    $('posChartCard').style.display = 'none';
+    return;
   }
+  const p = data.position;
+  const d = p.direction;
+  const isLong = d === 1;
+  const mid = eth.mid || p.entry_price;
+  const pnl = d * (mid / p.entry_price - 1) * 10000;
+  const profit = pnl >= 0;
+  posCard.className = `card pos ${isLong?'long':'short'} ${profit?'profit':'loss'}`;
+  $('posTitle').textContent = `${isLong?'LONG':'SHORT'} · ${p.pair}`;
+  const elapsed = data.last_update ? Math.floor((data.last_update - p.entry_time) / 60) : 0;
+  const tpPrice = p.entry_price * (1 + d * CFG.tp / 10000);
+  const slPrice = p.entry_price * (1 - d * CFG.sl / 10000);
+  const trailPrice = p.entry_price * (1 + d * CFG.trail_after / 10000);
+  body.innerHTML = `
+    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;">
+      <div class="bignum num ${profit?'up':'down'}">${profit?'+':''}${pnl.toFixed(1)}<span class="unit">bps</span></div>
+      <div class="num dim">${(pnl*10).toFixed(0)} @10x · held ${elapsed}m</div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><span class="k">Entry</span><span class="v num">$${p.entry_price.toFixed(2)}</span></div>
+      <div class="stat"><span class="k">Now</span><span class="v num">$${mid.toFixed(2)}</span></div>
+      <div class="stat"><span class="k">TP +${CFG.tp}</span><span class="v num up">$${tpPrice.toFixed(2)}</span></div>
+      <div class="stat"><span class="k">SL -${CFG.sl}</span><span class="v num down">$${slPrice.toFixed(2)}</span></div>
+      <div class="stat"><span class="k">Trail @+${CFG.trail_after}</span><span class="v num blue">$${trailPrice.toFixed(2)}</span></div>
+      <div class="stat"><span class="k">Size</span><span class="v num">${p.size}</span></div>
+    </div>`;
+  $('posChartCard').style.display = 'block';
+  renderPosChart(p, mid);
 }
 
-// Auto-refresh every 60s
-setInterval(() => {
-  if ($('statusUrl').value.trim()) fetchStatus();
-}, 60000);
-
-// =====================================================
-// Price chart with trade markers (ETH only now)
-// =====================================================
-const SYMBOL_MAP = {
-  'ETH': { binance: 'ETHUSDT', kraken: 'PF_ETHUSD' },
-};
-let chartState = { pair: 'ETH', range: '1d' };
-let cachedTrades = [];
-
-async function fetchKlines(pair, range) {
-  const sym = SYMBOL_MAP[pair].binance;
-  // Pick interval + lookback based on range
-  let interval, limit, startMs;
-  const now = Date.now();
-  switch (range) {
-    case '1d':  interval = '5m';  limit = 288;  break;
-    case '7d':  interval = '30m'; limit = 336;  break;
-    case '1mo': interval = '2h';  limit = 360;  break;
-    case 'ytd': {
-      interval = '12h';
-      const ytdStart = new Date(new Date().getFullYear(), 0, 1).getTime();
-      startMs = ytdStart;
-      limit = Math.min(1000, Math.ceil((now - ytdStart) / (12*3600*1000)));
-      break;
-    }
-    case 'all': {
-      // Since first trade
-      const firstTrade = cachedTrades.length > 0
-        ? new Date(cachedTrades[0].time).getTime()
-        : now - 30*86400*1000;
-      const days = (now - firstTrade) / 86400000;
-      if (days <= 7) { interval = '15m'; }
-      else if (days <= 30) { interval = '1h'; }
-      else if (days <= 90) { interval = '4h'; }
-      else { interval = '1d'; }
-      startMs = firstTrade - 3600*1000; // small buffer before first trade
-      limit = 1000;
-      break;
-    }
-    default: interval = '5m'; limit = 288;
+// ---- Entropy ----
+function renderEntropy(eth) {
+  const h = eth.last_H, th = 0.4352;
+  $('entBars').textContent = eth.bars || 0;
+  if (h == null) {
+    $('entH').textContent = 'warming';
+    $('entState').textContent = '–';
+    return;
   }
-  let url = `https://api.binance.com/api/v3/klines?symbol=${sym}&interval=${interval}&limit=${limit}`;
-  if (startMs) url += `&startTime=${startMs}`;
-  const r = await fetch(url, { cache: 'no-store' });
-  if (!r.ok) throw new Error(`klines HTTP ${r.status}`);
-  return await r.json();
+  $('entH').textContent = h.toFixed(4);
+  const below = h < th;
+  const close = Math.abs(h - th) < 0.05;
+  const el = $('entState');
+  if (below) { el.innerHTML = '<span class="up">READY</span>'; }
+  else if (close) { el.innerHTML = `<span class="yellow">close (${(h-th).toFixed(3)})</span>`; }
+  else { el.innerHTML = `<span class="down">blocked (${(h-th).toFixed(3)})</span>`; }
 }
 
-function tradeMarkers(pair, klinesStartMs, klinesEndMs) {
-  const trades = cachedTrades.filter(t => t.pair === pair);
-  // Filter trades within the visible time window
-  const visible = trades.filter(t => {
-    const tEntry = new Date(t.time).getTime() - (t.hold_min || 0) * 60000;
-    const tExit = new Date(t.time).getTime();
-    return tExit >= klinesStartMs && tEntry <= klinesEndMs;
-  });
-  const entriesX = [], entriesY = [], entriesText = [], entriesColor = [], entriesSymbol = [];
-  const exitsX = [], exitsY = [], exitsText = [], exitsColor = [];
-  for (const t of visible) {
-    const exitTs = new Date(t.time).getTime();
-    const entryTs = exitTs - (t.hold_min || 0) * 60000;
-    const isLong = t.direction === 1;
-    // Entry marker: yellow up-arrow for long, red down-arrow for short
-    entriesX.push(new Date(entryTs).toISOString());
-    entriesY.push(t.entry_price);
-    entriesText.push(`${isLong ? 'BUY' : 'SHORT'} @ $${t.entry_price?.toFixed(2)}<br>` +
-                     `Held: ${t.hold_min?.toFixed(0)}m → exit ${t.reason}`);
-    entriesColor.push(isLong ? '#d29922' : '#f85149');
-    entriesSymbol.push(isLong ? 'triangle-up' : 'triangle-down');
-    // Exit marker
-    exitsX.push(new Date(exitTs).toISOString());
-    exitsY.push(t.exit_price);
+// ---- Trade list ----
+function renderTrades(trades) {
+  const list = $('tradesList');
+  if (!trades.length) {
+    list.innerHTML = '<div class="dim" style="padding:8px 0;">No trades yet</div>';
+    $('tradesMeta').textContent = '';
+    return;
+  }
+  $('tradesMeta').textContent = `· last ${Math.min(trades.length, 15)} of ${trades.length}`;
+  list.innerHTML = trades.slice().reverse().slice(0, 15).map((t, i) => {
+    const idx = trades.length - 1 - i;
+    const win = (t.pnl_bps_leveraged || 0) >= 0;
+    const d = t.direction === 1 ? 'L' : 'S';
+    const time = new Date(t.time);
+    const timeStr = time.toLocaleString([], { month: 'short', day: 'numeric',
+                                              hour: '2-digit', minute: '2-digit' });
     const pnl = t.pnl_bps_leveraged || 0;
-    const pnlClass = pnl >= 0 ? 'WIN' : 'LOSS';
-    exitsText.push(`EXIT ${t.reason} @ $${t.exit_price?.toFixed(2)}<br>` +
-                   `PnL: ${pnl >= 0 ? '+' : ''}${pnl.toFixed(0)} bps@10x [${pnlClass}]`);
-    exitsColor.push(pnl >= 0 ? '#3fb950' : '#f85149');
-  }
-  return { entriesX, entriesY, entriesText, entriesColor, entriesSymbol,
-           exitsX, exitsY, exitsText, exitsColor };
+    return `<div class="tr ${win?'win':'loss'}" onclick="openZoom(${idx})">
+      <div class="bar"></div>
+      <div class="mid">
+        <div class="top">
+          <span><strong>${d}</strong> ${t.pair} @ $${(t.entry_price||0).toFixed(2)}</span>
+          <span class="dim">${t.reason}</span>
+        </div>
+        <div class="bot">
+          <span>${timeStr}</span>
+          <span>→ $${(t.exit_price||0).toFixed(2)} · ${(t.hold_min||0).toFixed(0)}m</span>
+        </div>
+      </div>
+      <div class="pnl ${win?'up':'down'}">${pnl>=0?'+':''}${pnl.toFixed(0)}</div>
+    </div>`;
+  }).join('');
 }
 
-async function renderChart() {
-  const { pair, range } = chartState;
-  const container = document.getElementById('priceChart');
-  container.innerHTML = '<div class="chart-loading">Loading chart…</div>';
+// ---- ETH 24h data + ranges ----
+let _ethCache = null;
+async function updateRecent() {
   try {
-    const klines = await fetchKlines(pair, range);
-    if (!klines || klines.length === 0) {
-      container.innerHTML = '<div class="chart-loading">No price data returned</div>';
-      return;
-    }
-    const x = klines.map(k => new Date(k[0]).toISOString());
-    const open = klines.map(k => parseFloat(k[1]));
-    const high = klines.map(k => parseFloat(k[2]));
-    const low = klines.map(k => parseFloat(k[3]));
-    const close = klines.map(k => parseFloat(k[4]));
-    const startMs = klines[0][0];
-    const endMs = klines[klines.length-1][6] || klines[klines.length-1][0];
-
-    const markers = tradeMarkers(pair, startMs, endMs);
-
-    const traces = [
-      {
-        type: 'candlestick', x, open, high, low, close,
-        name: pair, increasing: { line: { color: '#3fb950' } },
-        decreasing: { line: { color: '#f85149' } },
-        showlegend: false,
-      },
-      {
-        type: 'scatter', mode: 'markers', name: 'Entries',
-        x: markers.entriesX, y: markers.entriesY,
-        text: markers.entriesText, hoverinfo: 'text+x+y',
-        marker: { symbol: markers.entriesSymbol, size: 14,
-                  color: markers.entriesColor,
-                  line: { color: '#fff', width: 1.5 } },
-      },
-      {
-        type: 'scatter', mode: 'markers', name: 'Exits',
-        x: markers.exitsX, y: markers.exitsY,
-        text: markers.exitsText, hoverinfo: 'text+x+y',
-        marker: { symbol: 'x-thin-open', size: 12,
-                  color: markers.exitsColor,
-                  line: { width: 3 } },
-      },
-    ];
-
-    // Connect entry→exit with thin line for visibility
-    const segments = { x: [], y: [], color: [] };
-    for (let i = 0; i < markers.entriesX.length; i++) {
-      segments.x.push(markers.entriesX[i], markers.exitsX[i], null);
-      segments.y.push(markers.entriesY[i], markers.exitsY[i], null);
-    }
-    if (segments.x.length) {
-      traces.push({
-        type: 'scatter', mode: 'lines', name: 'Trade arc',
-        x: segments.x, y: segments.y,
-        line: { color: 'rgba(150,150,150,0.4)', width: 1, dash: 'dot' },
-        hoverinfo: 'skip', showlegend: false,
-      });
-    }
-
-    const layout = {
-      paper_bgcolor: '#161b22', plot_bgcolor: '#161b22',
-      font: { color: '#c9d1d9', family: 'monospace', size: 11 },
-      xaxis: { gridcolor: '#30363d', rangeslider: { visible: false } },
-      yaxis: { gridcolor: '#30363d', title: { text: `${pair}/USD` } },
-      margin: { l: 60, r: 20, t: 20, b: 40 },
-      legend: { x: 0, y: 1.0, bgcolor: 'rgba(0,0,0,0)' },
-      hovermode: 'closest',
-    };
-    Plotly.newPlot('priceChart', traces, layout,
-                   { displaylogo: false, responsive: true });
-  } catch (e) {
-    container.innerHTML = `<div class="chart-loading">Chart error: ${e.message}</div>`;
-  }
-}
-
-function setRange(range) {
-  chartState.range = range;
-  document.querySelectorAll('.range-selector button').forEach(b => {
-    b.classList.toggle('active', b.dataset.range === range);
-  });
-  renderChart();
-}
-
-// =====================================================
-// Recent range (6h / 12h / 24h high/low)
-// =====================================================
-async function updateRecentRange() {
-  try {
-    const r = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=5m&limit=288`,
-      { cache: 'no-store' });
+    const r = await fetch('https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=5m&limit=288',
+                          { cache: 'no-store' });
     if (!r.ok) return;
     const kl = await r.json();
+    _ethCache = kl;
     const now = Date.now();
-    const buckets = [
-      { h: 6,  el: 'eth6hHL',  re: 'eth6hRange'  },
-      { h: 12, el: 'eth12hHL', re: 'eth12hRange' },
-      { h: 24, el: 'eth24hHL', re: 'eth24hRange' },
-    ];
-    const currentPrice = parseFloat(kl[kl.length-1][4]);
-    for (const b of buckets) {
-      const cutoff = now - b.h * 3600 * 1000;
-      const segment = kl.filter(k => k[0] >= cutoff);
-      if (!segment.length) continue;
-      const highs = segment.map(k => parseFloat(k[2]));
-      const lows = segment.map(k => parseFloat(k[3]));
-      const hi = Math.max(...highs), lo = Math.min(...lows);
-      const rangeBps = ((hi - lo) / lo) * 10000;
-      // Distance from current to each extreme
-      const distHi = ((hi - currentPrice) / currentPrice) * 10000;
-      const distLo = ((currentPrice - lo) / currentPrice) * 10000;
-      $(b.el).textContent = `$${hi.toFixed(2)} / $${lo.toFixed(2)}`;
-      $(b.re).textContent = `${rangeBps.toFixed(0)} bps  (to hi: +${distHi.toFixed(0)}, to lo: +${distLo.toFixed(0)})`;
+    const cur = parseFloat(kl[kl.length-1][4]);
+    const open24 = parseFloat(kl[0][1]);
+    const pct24 = ((cur/open24 - 1) * 100);
+    $('ethPrice').textContent = '$' + cur.toFixed(2);
+    $('eth24pct').innerHTML = `<span class="${pct24>=0?'up':'down'}">${pct24>=0?'+':''}${pct24.toFixed(2)}%</span>`;
+    for (const [hr, hlId, rgId] of [[6,'hl6','rg6'],[12,'hl12','rg12'],[24,'hl24','rg24']]) {
+      const cutoff = now - hr*3600*1000;
+      const seg = kl.filter(k => k[0] >= cutoff);
+      if (!seg.length) continue;
+      const hi = Math.max(...seg.map(k=>parseFloat(k[2])));
+      const lo = Math.min(...seg.map(k=>parseFloat(k[3])));
+      const rg = ((hi-lo)/lo)*10000;
+      $(hlId).textContent = `$${hi.toFixed(0)} / $${lo.toFixed(0)}`;
+      $(rgId).textContent = `${rg.toFixed(0)} bps`;
     }
-  } catch (e) { /* ignore */ }
+  } catch(e) { /* ignore */ }
 }
 
-// =====================================================
-// Open position chart (1h pre-entry to now, with TP/SL lines)
-// =====================================================
-async function renderOpenPositionChart(p, currentMid) {
-  const container = $('openPosChart');
+// ---- Open-position chart ----
+async function renderPosChart(p, currentMid) {
+  const c = $('posChart');
   try {
-    const sym = SYMBOL_MAP[p.pair]?.binance || 'ETHUSDT';
     const entryTs = (p.entry_time || 0) * 1000;
-    const startTs = entryTs - 60 * 60 * 1000; // 1h pre-entry
+    const startTs = entryTs - 60*60*1000;
     const r = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1m&startTime=${startTs}&limit=720`,
+      `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=${startTs}&limit=720`,
       { cache: 'no-store' });
-    if (!r.ok) { container.innerHTML = 'fetch error'; return; }
+    if (!r.ok) throw new Error('fetch');
     const kl = await r.json();
     const x = kl.map(k => new Date(k[0]).toISOString());
     const close = kl.map(k => parseFloat(k[4]));
-    const high = kl.map(k => parseFloat(k[2]));
-    const low = kl.map(k => parseFloat(k[3]));
-    const volume = kl.map(k => parseFloat(k[5]));
-
-    const tpBps = 200, slBps = 50, trailAfter = 150;
-    const tpPrice = p.entry_price * (1 + p.direction * tpBps / 10000);
-    const slPrice = p.entry_price * (1 - p.direction * slBps / 10000);
-    const trailPrice = p.entry_price * (1 + p.direction * trailAfter / 10000);
-
-    const entryTsIso = new Date(entryTs).toISOString();
+    const tp = p.entry_price * (1 + p.direction*CFG.tp/10000);
+    const sl = p.entry_price * (1 - p.direction*CFG.sl/10000);
+    const trail = p.entry_price * (1 + p.direction*CFG.trail_after/10000);
+    const entryIso = new Date(entryTs).toISOString();
     const nowIso = new Date().toISOString();
-
+    const yMin = Math.min(...close, sl) * 0.9995;
+    const yMax = Math.max(...close, tp) * 1.0005;
     const traces = [
-      { type:'scatter', mode:'lines', x, y: close, name:'Price',
-        line:{ color:'#58a6ff', width:1.5 }, yaxis:'y' },
-      { type:'bar', x, y: volume, name:'Volume',
-        marker:{ color:'rgba(201,141,246,0.4)' }, yaxis:'y2' },
-      // Entry vertical
-      { type:'scatter', mode:'lines', x:[entryTsIso, entryTsIso],
-        y:[Math.min(...low, slPrice), Math.max(...high, tpPrice)],
-        line:{ color:'#d29922', width:2, dash:'dash' },
-        name:`Entry $${p.entry_price.toFixed(2)}`, hoverinfo:'name' },
-      // TP/SL/Trail horizontals
-      { type:'scatter', mode:'lines', x:[entryTsIso, nowIso],
-        y:[tpPrice, tpPrice], line:{ color:'#3fb950', width:1, dash:'dot' },
-        name:`TP $${tpPrice.toFixed(2)}`, hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[entryTsIso, nowIso],
-        y:[trailPrice, trailPrice], line:{ color:'#79c0ff', width:1, dash:'dot' },
-        name:`Trail trigger $${trailPrice.toFixed(2)}`, hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[entryTsIso, nowIso],
-        y:[slPrice, slPrice], line:{ color:'#f85149', width:1, dash:'dot' },
-        name:`SL $${slPrice.toFixed(2)}`, hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[entryTsIso, nowIso],
-        y:[p.entry_price, p.entry_price], line:{ color:'#d29922', width:1, dash:'dot' },
-        name:'Entry price', hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x, y:close, line:{color:'#58a6ff',width:1.5}, showlegend:false },
+      { type:'scatter', mode:'lines', x:[entryIso,entryIso], y:[yMin,yMax],
+        line:{color:'#d29922',width:2,dash:'dash'}, name:'Entry', showlegend:false, hoverinfo:'skip' },
+      { type:'scatter', mode:'lines', x:[entryIso,nowIso], y:[tp,tp],
+        line:{color:'#3fb950',width:1,dash:'dot'}, name:`TP $${tp.toFixed(0)}`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryIso,nowIso], y:[trail,trail],
+        line:{color:'#79c0ff',width:1,dash:'dot'}, name:`Trail $${trail.toFixed(0)}`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryIso,nowIso], y:[sl,sl],
+        line:{color:'#f85149',width:1,dash:'dot'}, name:`SL $${sl.toFixed(0)}`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryIso,nowIso], y:[p.entry_price,p.entry_price],
+        line:{color:'#d29922',width:1,dash:'dot'}, name:'entry', hoverinfo:'skip', showlegend:false },
     ];
-
-    const layout = {
-      paper_bgcolor:'#161b22', plot_bgcolor:'#161b22',
-      font:{ color:'#c9d1d9', family:'monospace', size:11 },
-      xaxis:{ gridcolor:'#30363d' },
-      yaxis:{ gridcolor:'#30363d', title:'Price', domain:[0.25, 1] },
-      yaxis2:{ gridcolor:'#30363d', title:'Vol', domain:[0, 0.2], showgrid:false },
-      margin:{ l:60, r:30, t:20, b:40 },
-      legend:{ orientation:'h', x:0, y:1.06, bgcolor:'rgba(0,0,0,0)' },
-      height: 400,
-    };
-    Plotly.newPlot('openPosChart', traces, layout,
+    Plotly.newPlot('posChart', traces, chartLayout({yRange:[yMin,yMax]}),
                    { displaylogo:false, responsive:true });
-  } catch (e) {
-    container.innerHTML = `<div class="chart-loading">Error: ${e.message}</div>`;
+  } catch(e) {
+    c.innerHTML = `<div class="chart-loading">chart err: ${e.message}</div>`;
   }
 }
 
-// =====================================================
-// Per-trade zoom chart (±1h around entry/exit, with volume)
-// =====================================================
-async function openTradeZoom(idx) {
+// ---- Per-trade zoom ----
+async function openZoom(idx) {
   const t = cachedTrades[idx];
   if (!t) return;
-  $('tradeZoomContainer').style.display = 'block';
+  $('zoomCard').style.display = 'block';
   const exitTs = new Date(t.time).getTime();
-  const entryTs = exitTs - (t.hold_min || 0) * 60000;
+  const entryTs = exitTs - (t.hold_min||0)*60000;
   const pnl = t.pnl_bps_leveraged || 0;
-  const pnlClass = pnl >= 0 ? 'up' : 'down';
-  $('tradeZoomTitle').innerHTML =
-    `Trade #${idx + 1} · ${t.pair} ${t.direction === 1 ? 'LONG' : 'SHORT'} · `
-    + `entry $${t.entry_price.toFixed(2)} -> exit $${t.exit_price.toFixed(2)} · `
-    + `<span class="${pnlClass}">${pnl >= 0 ? '+' : ''}${pnl.toFixed(0)} bps@10x</span>`
-    + ` · ${t.reason} · ${t.hold_min?.toFixed(0)}m hold`;
+  const win = pnl >= 0;
+  $('zoomTitle').innerHTML = `#${idx+1} · ${t.direction===1?'LONG':'SHORT'} · ` +
+    `<span class="${win?'up':'down'}">${pnl>=0?'+':''}${pnl.toFixed(0)} bps@10x</span>`;
+  $('zoomStats').innerHTML = `
+    <div class="stat"><span class="k">Entry</span><span class="v num">$${t.entry_price.toFixed(2)}</span></div>
+    <div class="stat"><span class="k">Exit</span><span class="v num">$${t.exit_price.toFixed(2)}</span></div>
+    <div class="stat"><span class="k">PnL bps</span><span class="v num ${win?'up':'down'}">${(t.pnl_bps||0).toFixed(1)}</span></div>
+    <div class="stat"><span class="k">Hold</span><span class="v num">${(t.hold_min||0).toFixed(0)}m</span></div>
+    <div class="stat"><span class="k">Reason</span><span class="v">${t.reason}</span></div>
+    <div class="stat"><span class="k">Time</span><span class="v num">${new Date(t.time).toLocaleString()}</span></div>`;
 
-  const container = $('tradeZoomChart');
-  container.innerHTML = '<div class="chart-loading">Loading…</div>';
+  const chart = $('zoomChart');
+  chart.innerHTML = '<div class="chart-loading">loading…</div>';
   try {
-    const sym = SYMBOL_MAP[t.pair]?.binance || 'ETHUSDT';
-    const startTs = entryTs - 60 * 60 * 1000; // 1h before entry
-    const endTs = exitTs + 60 * 60 * 1000; // 1h after exit
+    const startTs = entryTs - 60*60*1000;
+    const endTs = exitTs + 60*60*1000;
     const r = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1m&startTime=${startTs}&endTime=${endTs}&limit=1000`,
+      `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=${startTs}&endTime=${endTs}&limit=1000`,
       { cache: 'no-store' });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const kl = await r.json();
     const x = kl.map(k => new Date(k[0]).toISOString());
     const open = kl.map(k => parseFloat(k[1]));
@@ -748,124 +607,163 @@ async function openTradeZoom(idx) {
     const low = kl.map(k => parseFloat(k[3]));
     const close = kl.map(k => parseFloat(k[4]));
     const vol = kl.map(k => parseFloat(k[5]));
-
-    const entryTsIso = new Date(entryTs).toISOString();
-    const exitTsIso = new Date(exitTs).toISOString();
-
-    const priceSpan = [Math.min(...low), Math.max(...high)];
-    // TP / SL / trail lines based on entry price and standard ETH config
+    const entryIso = new Date(entryTs).toISOString();
+    const exitIso = new Date(exitTs).toISOString();
     const d = t.direction;
-    const tp = t.entry_price * (1 + d * 200 / 10000);
-    const sl = t.entry_price * (1 - d * 50 / 10000);
-    const trail = t.entry_price * (1 + d * 150 / 10000);
-    priceSpan[0] = Math.min(priceSpan[0], sl);
-    priceSpan[1] = Math.max(priceSpan[1], tp);
-
+    const tp = t.entry_price * (1 + d*CFG.tp/10000);
+    const sl = t.entry_price * (1 - d*CFG.sl/10000);
+    const trail = t.entry_price * (1 + d*CFG.trail_after/10000);
+    const yMin = Math.min(...low, sl) * 0.9995;
+    const yMax = Math.max(...high, tp) * 1.0005;
     const traces = [
       { type:'candlestick', x, open, high, low, close,
-        increasing:{ line:{ color:'#3fb950' } },
-        decreasing:{ line:{ color:'#f85149' } },
+        increasing:{line:{color:'#3fb950'}}, decreasing:{line:{color:'#f85149'}},
         name:'', showlegend:false, yaxis:'y' },
-      { type:'bar', x, y: vol, name:'Volume',
-        marker:{ color:'rgba(201,141,246,0.4)' }, yaxis:'y2' },
-      // Entry/exit verticals
-      { type:'scatter', mode:'lines', x:[entryTsIso, entryTsIso],
-        y: priceSpan, line:{ color:'#d29922', width:2, dash:'dash' },
-        name:'Entry', hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[exitTsIso, exitTsIso],
-        y: priceSpan, line:{ color: pnl>=0 ? '#3fb950' : '#f85149', width:2, dash:'dash' },
-        name:'Exit', hoverinfo:'name' },
-      // TP / SL / trail horizontals over trade span
-      { type:'scatter', mode:'lines', x:[entryTsIso, exitTsIso],
-        y:[tp, tp], line:{ color:'#3fb950', width:1, dash:'dot' },
-        name:`TP $${tp.toFixed(2)}`, hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[entryTsIso, exitTsIso],
-        y:[trail, trail], line:{ color:'#79c0ff', width:1, dash:'dot' },
-        name:`Trail trigger $${trail.toFixed(2)}`, hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[entryTsIso, exitTsIso],
-        y:[sl, sl], line:{ color:'#f85149', width:1, dash:'dot' },
-        name:`SL $${sl.toFixed(2)}`, hoverinfo:'name' },
+      { type:'bar', x, y:vol, marker:{color:'rgba(188,140,255,0.35)'},
+        name:'vol', yaxis:'y2', showlegend:false },
+      { type:'scatter', mode:'lines', x:[entryIso,entryIso], y:[yMin,yMax],
+        line:{color:'#d29922',width:2,dash:'dash'}, name:'Entry', hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[exitIso,exitIso], y:[yMin,yMax],
+        line:{color: win?'#3fb950':'#f85149', width:2, dash:'dash'}, name:'Exit', hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryIso,exitIso], y:[tp,tp],
+        line:{color:'#3fb950',width:1,dash:'dot'}, name:`TP`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryIso,exitIso], y:[trail,trail],
+        line:{color:'#79c0ff',width:1,dash:'dot'}, name:`Trail`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryIso,exitIso], y:[sl,sl],
+        line:{color:'#f85149',width:1,dash:'dot'}, name:`SL`, hoverinfo:'name' },
     ];
-    const layout = {
-      paper_bgcolor:'#161b22', plot_bgcolor:'#161b22',
-      font:{ color:'#c9d1d9', family:'monospace', size:11 },
-      xaxis:{ gridcolor:'#30363d', rangeslider:{ visible:false } },
-      yaxis:{ gridcolor:'#30363d', domain:[0.25, 1], title:'Price' },
-      yaxis2:{ gridcolor:'#30363d', domain:[0, 0.2], title:'Vol', showgrid:false },
-      margin:{ l:60, r:30, t:20, b:40 },
-      legend:{ orientation:'h', x:0, y:1.08, bgcolor:'rgba(0,0,0,0)' },
-      height: 460,
-    };
-    Plotly.newPlot('tradeZoomChart', traces, layout,
-                   { displaylogo:false, responsive:true });
-    // Scroll into view
-    $('tradeZoomContainer').scrollIntoView({ behavior:'smooth', block:'center' });
-  } catch (e) {
-    container.innerHTML = `<div class="chart-loading">Error: ${e.message}</div>`;
+    Plotly.newPlot('zoomChart', traces,
+      chartLayout({ split:true, yRange:[yMin,yMax] }),
+      { displaylogo:false, responsive:true });
+    $('zoomCard').scrollIntoView({ behavior:'smooth', block:'start' });
+  } catch(e) {
+    chart.innerHTML = `<div class="chart-loading">err: ${e.message}</div>`;
   }
 }
+function closeZoom() { $('zoomCard').style.display = 'none'; }
 
-function closeTradeZoom() {
-  $('tradeZoomContainer').style.display = 'none';
-}
-
-// =====================================================
-// Equity curve (compound)
-// =====================================================
-function updateEquityCurve(trades) {
+// ---- Equity curve ----
+function updateEquity(trades) {
   if (!trades || !trades.length) return;
   let eq = 1.0;
   const x = [new Date(trades[0].time).toISOString()];
   const y = [eq];
   for (const t of trades) {
-    const pnlLev = t.pnl_bps_leveraged || 0;
-    eq *= (1.0 + pnlLev / 10000);
+    eq *= (1 + (t.pnl_bps_leveraged||0)/10000);
     x.push(new Date(t.time).toISOString());
     y.push(eq);
   }
-  const returnPct = (eq - 1) * 100;
-  const color = returnPct >= 0 ? '#3fb950' : '#f85149';
-  const traces = [{
-    type:'scatter', mode:'lines+markers', x, y,
-    line:{ color, width:2 },
-    marker:{ size:5, color },
-    hovertemplate: '%{x}<br>Equity: %{y:.4f}x<extra></extra>',
-    showlegend:false,
-  }, {
-    type:'scatter', mode:'lines', x:[x[0], x[x.length-1]], y:[1.0, 1.0],
-    line:{ color:'#6e7681', width:1, dash:'dot' },
-    hoverinfo:'skip', showlegend:false,
-  }];
-  const layout = {
-    paper_bgcolor:'#161b22', plot_bgcolor:'#161b22',
-    font:{ color:'#c9d1d9', family:'monospace', size:11 },
-    xaxis:{ gridcolor:'#30363d' },
-    yaxis:{ gridcolor:'#30363d', title:`Equity mult (${returnPct >= 0 ? '+' : ''}${returnPct.toFixed(2)}% compound)` },
-    margin:{ l:80, r:30, t:20, b:40 },
-    height: 300,
-  };
-  Plotly.newPlot('equityChart', traces, layout,
-                 { displaylogo:false, responsive:true });
+  const pct = (eq-1)*100;
+  const col = pct >= 0 ? '#3fb950' : '#f85149';
+  Plotly.newPlot('eqChart', [
+    { type:'scatter', mode:'lines+markers', x, y, line:{color:col,width:2},
+      marker:{size:5,color:col}, showlegend:false, hovertemplate:'%{x}<br>%{y:.4f}x<extra></extra>' },
+    { type:'scatter', mode:'lines', x:[x[0],x[x.length-1]], y:[1.0,1.0],
+      line:{color:'#6e7681',width:1,dash:'dot'}, hoverinfo:'skip', showlegend:false },
+  ], chartLayout({ yTitle:`${pct>=0?'+':''}${pct.toFixed(2)}%` }),
+  { displaylogo:false, responsive:true });
 }
 
-// Hook into status fetch to refresh trade list, then re-render chart
-const _origFetchStatus = fetchStatus;
-fetchStatus = async function() {
-  await _origFetchStatus();
-  // Read latest trades from gist payload
-  const url = $('statusUrl').value.trim();
-  if (!url) return;
+// ---- Price chart w/ trade markers ----
+function setRange(r) {
+  chartState.range = r;
+  document.querySelectorAll('#rangeSeg button').forEach(b => {
+    b.classList.toggle('active', b.dataset.r === r);
+  });
+  renderPriceChart();
+}
+async function renderPriceChart() {
+  const c = $('priceChart');
+  c.innerHTML = '<div class="chart-loading">loading…</div>';
   try {
-    const bustUrl = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
-    const r = await fetch(bustUrl, { cache: 'no-store' });
-    const data = await r.json();
-    cachedTrades = data.trades || [];
-    if (!window._chartInitialized) {
-      window._chartInitialized = true;
-      renderChart();
+    let interval, limit, startMs;
+    const now = Date.now();
+    switch(chartState.range) {
+      case '1d':  interval='5m';  limit=288; break;
+      case '7d':  interval='30m'; limit=336; break;
+      case '1mo': interval='2h';  limit=360; break;
+      case 'all': {
+        const firstT = cachedTrades.length ? new Date(cachedTrades[0].time).getTime() : now-7*86400*1000;
+        const days = (now-firstT)/86400000;
+        if (days<=7) interval='15m';
+        else if (days<=30) interval='1h';
+        else interval='4h';
+        startMs = firstT - 3600*1000;
+        limit = 1000;
+        break;
+      }
     }
-  } catch (e) { /* ignore */ }
-};
+    let url = `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=${interval}&limit=${limit}`;
+    if (startMs) url += `&startTime=${startMs}`;
+    const r = await fetch(url, {cache:'no-store'});
+    const kl = await r.json();
+    const x = kl.map(k => new Date(k[0]).toISOString());
+    const open = kl.map(k=>parseFloat(k[1]));
+    const high = kl.map(k=>parseFloat(k[2]));
+    const low = kl.map(k=>parseFloat(k[3]));
+    const close = kl.map(k=>parseFloat(k[4]));
+    const s = kl[0][0], e = kl[kl.length-1][0];
+    // Trade markers in range
+    const visible = cachedTrades.filter(t => {
+      const ex = new Date(t.time).getTime();
+      const en = ex - (t.hold_min||0)*60000;
+      return ex >= s && en <= e;
+    });
+    const entX=[], entY=[], entText=[], entCol=[];
+    const exX=[], exY=[], exText=[], exCol=[];
+    for (const t of visible) {
+      const exT = new Date(t.time).getTime();
+      const enT = exT - (t.hold_min||0)*60000;
+      const pnl = t.pnl_bps_leveraged||0;
+      entX.push(new Date(enT).toISOString());
+      entY.push(t.entry_price);
+      entText.push(`Entry $${t.entry_price.toFixed(2)}<br>${t.direction===1?'LONG':'SHORT'}`);
+      entCol.push(pnl>=0 ? '#3fb950' : '#d29922');
+      exX.push(new Date(exT).toISOString());
+      exY.push(t.exit_price);
+      exText.push(`Exit $${t.exit_price.toFixed(2)} · ${pnl>=0?'+':''}${pnl.toFixed(0)} bps · ${t.reason}`);
+      exCol.push(pnl>=0 ? '#3fb950' : '#f85149');
+    }
+    const traces = [
+      { type:'candlestick', x, open, high, low, close,
+        increasing:{line:{color:'#3fb950'}}, decreasing:{line:{color:'#f85149'}},
+        showlegend:false, name:'' },
+      { type:'scatter', mode:'markers', x:entX, y:entY, text:entText, hoverinfo:'text',
+        marker:{symbol:'triangle-up',size:11,color:entCol,line:{color:'#fff',width:1}},
+        name:'Entries' },
+      { type:'scatter', mode:'markers', x:exX, y:exY, text:exText, hoverinfo:'text',
+        marker:{symbol:'x',size:9,color:exCol,line:{width:2}}, name:'Exits' },
+    ];
+    Plotly.newPlot('priceChart', traces, chartLayout({height:360}),
+                   {displaylogo:false, responsive:true});
+  } catch (e) {
+    c.innerHTML = `<div class="chart-loading">err: ${e.message}</div>`;
+  }
+}
+
+// ---- Shared chart layout ----
+function chartLayout(opts={}) {
+  const layout = {
+    paper_bgcolor:'#161b22', plot_bgcolor:'#161b22',
+    font:{ color:'#c9d1d9', family:'ui-monospace,SF Mono,monospace', size:11 },
+    xaxis:{ gridcolor:'#30363d', rangeslider:{visible:false} },
+    yaxis:{ gridcolor:'#30363d' },
+    margin:{ l:50, r:12, t:10, b:36 },
+    legend:{ orientation:'h', y:1.08, x:0, bgcolor:'rgba(0,0,0,0)', font:{size:10} },
+    height: opts.height || 280,
+  };
+  if (opts.yTitle) layout.yaxis.title = { text: opts.yTitle, font:{size:11} };
+  if (opts.yRange) layout.yaxis.range = opts.yRange;
+  if (opts.split) {
+    layout.yaxis.domain = [0.22, 1];
+    layout.yaxis2 = { gridcolor:'#30363d', domain:[0, 0.18], showgrid:false };
+    layout.height = 380;
+  }
+  return layout;
+}
+
+// Auto-refresh
+setInterval(() => { if ($('statusUrl').value.trim()) fetchStatus(); }, 60000);
 
 loadUrl();
 </script>
