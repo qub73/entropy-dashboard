@@ -159,7 +159,35 @@ details > *:not(summary) { padding: 0 14px 14px; }
   .card { padding: 12px; }
   .bignum { font-size: 28px; }
   .stat-grid { grid-template-columns: 1fr; }
+  .sprint-cols { grid-template-columns: 1fr !important; }
 }
+
+/* Sprint v1 status card */
+.sprint-status { border-left: 4px solid var(--green); }
+.sprint-tagline { font-size: 12px; margin: 6px 0 12px 0; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.sprint-tagline .from { color: var(--red); }
+.sprint-tagline .to   { color: var(--green); }
+.sprint-tagline .arrow{ color: var(--dim); margin: 0 4px; }
+.phase-pills { display: flex; gap: 4px; margin: 8px 0 12px 0; flex-wrap: wrap; }
+.phase-pills .pill {
+  padding: 3px 8px; border-radius: 4px; font-size: 11px;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  background: var(--card2); border: 1px solid var(--border);
+  color: var(--dim);
+}
+.phase-pills .pill.done    { background: rgba(63,185,80,0.15);  color: var(--green);  border-color: rgba(63,185,80,0.3); }
+.phase-pills .pill.current { background: var(--yellow);         color: #000;          border-color: var(--yellow); font-weight: 600; }
+.phase-pills .pill.pending { background: var(--card2);          color: var(--dim); }
+.phase-pills .pill.tripped { background: rgba(248,81,73,0.2);   color: var(--red);    border-color: rgba(248,81,73,0.4); font-weight: 600; }
+.sprint-status-line { font-size: 12px; color: var(--text); margin: 8px 0; }
+.sprint-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+.sprint-cols .col h4 { font-size: 11px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.sprint-cols .col.promoted h4 { color: var(--green); }
+.sprint-cols .col.rejected h4 { color: var(--red); }
+.sprint-cols .col ul { font-size: 12px; list-style: none; padding: 0; margin: 0; }
+.sprint-cols .col ul li { padding: 2px 0; }
+.sprint-cols .col.rejected ul li { opacity: 0.55; text-decoration: line-through; }
+.live-state-note { font-size: 11px; color: var(--dim); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -167,6 +195,56 @@ details > *:not(summary) { padding: 0 14px 14px; }
 <div class="topbar">
   <h1>Entropy Trader · ETH</h1>
   <span class="pill"><span class="dot" id="liveDot"></span><span id="lastUpdate">–</span></span>
+</div>
+
+<!-- SPRINT v1 STATUS -->
+<div class="card sprint-status">
+  <h2>Sprint v1 · Status</h2>
+  <div class="sprint-tagline">
+    <span class="from">Before: 29% WR · −22% compound · knife 35%</span>
+    <span class="arrow">→</span>
+    <span class="to">Shadow OOS: +103% @5× · DD 15% · knife 26%</span>
+  </div>
+
+  <div class="phase-pills" id="sprintPhasePills">
+    <span class="pill done">1 direction</span>
+    <span class="pill done">2 entry</span>
+    <span class="pill done">3 exits</span>
+    <span class="pill done">4 sizing</span>
+    <span class="pill done">5 docs</span>
+    <span class="pill current">6a observer ← now</span>
+    <span class="pill pending">6b promote</span>
+  </div>
+
+  <div class="sprint-status-line" id="sprintStatusLine">
+    Awaiting: explicit "promote 6a" → observer-only deploy (3–7 days)
+  </div>
+
+  <div class="sprint-cols">
+    <div class="col promoted">
+      <h4>Shipping (flags off in live)</h4>
+      <ul>
+        <li>F3c entry gate (regime alignment)</li>
+        <li>timeout_trail exit</li>
+        <li>E3 time-decay SL</li>
+        <li>Leverage 5× (was 10×)</li>
+      </ul>
+    </div>
+    <div class="col rejected">
+      <h4>Rejected (measurement-checked)</h4>
+      <ul>
+        <li>E1 lower trail</li>
+        <li>E2 partial TP (artifact)</li>
+        <li>E4 ATR SL</li>
+        <li>E5 entropy-decay exit</li>
+        <li>Entropy-weighted sizing</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="live-state-note" id="sprintLiveNote">
+    Live: 10× at pre-sprint config. No behavior changes deployed.
+  </div>
 </div>
 
 <!-- STATUS / EQUITY ROW -->
