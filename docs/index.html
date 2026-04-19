@@ -121,6 +121,16 @@ input[type=text] {
 .tr .top { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
 .tr .bot { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; color: var(--dim); margin-top: 2px; }
 .tr .pnl { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tr.open { border-color: var(--blue); }
+.tr-expand {
+  margin: -2px 0 6px 0; padding: 12px; border-radius: 0 0 8px 8px;
+  background: var(--card2); border: 1px solid var(--blue); border-top: none;
+  font-size: 12px;
+}
+.tr-expand .zstats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; margin-bottom: 10px; }
+.tr-expand .zstat { display: flex; justify-content: space-between; padding: 2px 0; }
+.tr-expand .zstat .k { color: var(--dim); }
+.tr-expand .close-row { display: flex; justify-content: flex-end; margin-top: 8px; }
 
 /* Chart shells */
 .chart { width: 100%; min-height: 280px; }
@@ -231,16 +241,6 @@ details > *:not(summary) { padding: 0 14px 14px; }
   <div id="tradesList" class="trades">
     <div class="dim" style="padding:8px 0;">No trades yet</div>
   </div>
-</div>
-
-<!-- Trade zoom drawer -->
-<div class="card" id="zoomCard" style="display:none;">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-    <h2 id="zoomTitle" style="margin:0;">Trade detail</h2>
-    <button onclick="closeZoom()">Close</button>
-  </div>
-  <div class="stat-grid" id="zoomStats" style="margin-bottom:10px;"></div>
-  <div id="zoomChart" class="chart-sm"><div class="chart-loading">loading…</div></div>
 </div>
 
 <!-- EQUITY CURVE -->
@@ -471,7 +471,8 @@ function renderEntropy(eth) {
   else { el.innerHTML = `<span class="down">blocked (${(h-th).toFixed(3)})</span>`; }
 }
 
-// ---- Trade list ----
+// ---- Trade list (inline-expandable) ----
+let _openTradeIdx = null;
 function renderTrades(trades) {
   const list = $('tradesList');
   if (!trades.length) {
@@ -488,32 +489,162 @@ function renderTrades(trades) {
     const timeStr = time.toLocaleString([], { month: 'short', day: 'numeric',
                                               hour: '2-digit', minute: '2-digit' });
     const pnl = t.pnl_bps_leveraged || 0;
-    return `<div class="tr ${win?'win':'loss'}" onclick="openZoom(${idx})">
-      <div class="bar"></div>
-      <div class="mid">
-        <div class="top">
-          <span><strong>${d}</strong> ${t.pair} @ $${(t.entry_price||0).toFixed(2)}</span>
-          <span class="dim">${t.reason}</span>
+    return `<div>
+      <div class="tr ${win?'win':'loss'}" id="tr-${idx}" onclick="toggleZoom(${idx})">
+        <div class="bar"></div>
+        <div class="mid">
+          <div class="top">
+            <span><strong>${d}</strong> ${t.pair} @ $${(t.entry_price||0).toFixed(2)}</span>
+            <span class="dim">${t.reason}</span>
+          </div>
+          <div class="bot">
+            <span>${timeStr}</span>
+            <span>→ $${(t.exit_price||0).toFixed(2)} · ${(t.hold_min||0).toFixed(0)}m</span>
+          </div>
         </div>
-        <div class="bot">
-          <span>${timeStr}</span>
-          <span>→ $${(t.exit_price||0).toFixed(2)} · ${(t.hold_min||0).toFixed(0)}m</span>
-        </div>
+        <div class="pnl ${win?'up':'down'}">${pnl>=0?'+':''}${pnl.toFixed(0)}</div>
       </div>
-      <div class="pnl ${win?'up':'down'}">${pnl>=0?'+':''}${pnl.toFixed(0)}</div>
+      <div class="tr-expand" id="exp-${idx}" style="display:none;"></div>
     </div>`;
   }).join('');
+  // Re-apply open state after a re-render
+  if (_openTradeIdx != null && trades[_openTradeIdx]) {
+    const i = _openTradeIdx; _openTradeIdx = null;
+    toggleZoom(i);
+  }
 }
 
-// ---- ETH 24h data + ranges ----
-let _ethCache = null;
+function toggleZoom(idx) {
+  const t = cachedTrades[idx];
+  if (!t) return;
+  const exp = document.getElementById(`exp-${idx}`);
+  const row = document.getElementById(`tr-${idx}`);
+  // Close any other open row
+  if (_openTradeIdx != null && _openTradeIdx !== idx) {
+    const prevExp = document.getElementById(`exp-${_openTradeIdx}`);
+    const prevRow = document.getElementById(`tr-${_openTradeIdx}`);
+    if (prevExp) { prevExp.style.display = 'none'; prevExp.innerHTML = ''; }
+    if (prevRow) prevRow.classList.remove('open');
+  }
+  // Toggle this row
+  if (exp.style.display === 'block') {
+    exp.style.display = 'none';
+    exp.innerHTML = '';
+    row.classList.remove('open');
+    _openTradeIdx = null;
+    return;
+  }
+  _openTradeIdx = idx;
+  row.classList.add('open');
+  const win = (t.pnl_bps_leveraged||0) >= 0;
+  const chartId = `zchart-${idx}`;
+  exp.innerHTML = `
+    <div class="zstats">
+      <div class="zstat"><span class="k">Entry</span><span class="num">$${t.entry_price.toFixed(2)}</span></div>
+      <div class="zstat"><span class="k">Exit</span><span class="num">$${t.exit_price.toFixed(2)}</span></div>
+      <div class="zstat"><span class="k">PnL (gross)</span><span class="num ${win?'up':'down'}">${(t.pnl_bps||0).toFixed(1)} bps</span></div>
+      <div class="zstat"><span class="k">PnL @10x</span><span class="num ${win?'up':'down'}">${(t.pnl_bps_leveraged||0).toFixed(0)} bps</span></div>
+      <div class="zstat"><span class="k">Hold</span><span class="num">${(t.hold_min||0).toFixed(0)}m</span></div>
+      <div class="zstat"><span class="k">Reason</span><span>${t.reason}</span></div>
+    </div>
+    <div id="${chartId}" class="chart-sm"><div class="chart-loading">loading…</div></div>
+    <div class="close-row"><button onclick="toggleZoom(${idx})">Close</button></div>`;
+  exp.style.display = 'block';
+  row.scrollIntoView({ behavior:'smooth', block:'start' });
+  loadZoomChart(t, chartId);
+}
+
+async function loadZoomChart(t, chartId) {
+  const target = document.getElementById(chartId);
+  const exitTs = new Date(t.time).getTime();
+  const entryTs = exitTs - (t.hold_min||0)*60000;
+  const startTs = entryTs - 60*60*1000;
+  const endTs = exitTs + 60*60*1000;
+
+  let kl = null;
+  let src = 'kraken';
+  try {
+    kl = await fetchKrakenOHLC(1, Math.floor(startTs/1000));
+    // Filter to our window and convert to Binance-compatible tuple shape
+    kl = kl.filter(k => k[0]*1000 >= startTs - 60000 && k[0]*1000 <= endTs + 60000);
+    if (kl.length < 3) throw new Error('sparse');
+    kl = kl.map(k => [k[0]*1000, k[1], k[2], k[3], k[4], k[6]]); // ts, o, h, l, c, vol
+  } catch (e1) {
+    try {
+      const r = await fetch(
+        `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=${startTs}&endTime=${endTs}&limit=1000`,
+        { cache:'no-store' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const raw = await r.json();
+      kl = raw.map(k => [k[0], k[1], k[2], k[3], k[4], k[5]]);
+      src = 'binance';
+    } catch (e2) {
+      target.innerHTML = `<div class="chart-loading">no data (kraken: ${e1.message}, binance: ${e2.message})</div>`;
+      return;
+    }
+  }
+
+  const x = kl.map(k => new Date(k[0]).toISOString());
+  const open = kl.map(k => parseFloat(k[1]));
+  const high = kl.map(k => parseFloat(k[2]));
+  const low = kl.map(k => parseFloat(k[3]));
+  const close = kl.map(k => parseFloat(k[4]));
+  const vol = kl.map(k => parseFloat(k[5]));
+  const entryIso = new Date(entryTs).toISOString();
+  const exitIso = new Date(exitTs).toISOString();
+  const d = t.direction;
+  const tp = t.entry_price * (1 + d*CFG.tp/10000);
+  const sl = t.entry_price * (1 - d*CFG.sl/10000);
+  const trail = t.entry_price * (1 + d*CFG.trail_after/10000);
+  const yMin = Math.min(...low, sl) * 0.9995;
+  const yMax = Math.max(...high, tp) * 1.0005;
+  const win = (t.pnl_bps_leveraged||0) >= 0;
+  const traces = [
+    { type:'candlestick', x, open, high, low, close,
+      increasing:{line:{color:'#3fb950'}}, decreasing:{line:{color:'#f85149'}},
+      name:'', showlegend:false, yaxis:'y' },
+    { type:'bar', x, y:vol, marker:{color:'rgba(188,140,255,0.35)'},
+      name:'vol', yaxis:'y2', showlegend:false, hoverinfo:'skip' },
+    { type:'scatter', mode:'lines', x:[entryIso,entryIso], y:[yMin,yMax],
+      line:{color:'#d29922',width:2,dash:'dash'}, name:'Entry', hoverinfo:'name' },
+    { type:'scatter', mode:'lines', x:[exitIso,exitIso], y:[yMin,yMax],
+      line:{color: win?'#3fb950':'#f85149', width:2, dash:'dash'}, name:'Exit', hoverinfo:'name' },
+    { type:'scatter', mode:'lines', x:[entryIso,exitIso], y:[tp,tp],
+      line:{color:'#3fb950',width:1,dash:'dot'}, name:'TP', hoverinfo:'name' },
+    { type:'scatter', mode:'lines', x:[entryIso,exitIso], y:[trail,trail],
+      line:{color:'#79c0ff',width:1,dash:'dot'}, name:'Trail', hoverinfo:'name' },
+    { type:'scatter', mode:'lines', x:[entryIso,exitIso], y:[sl,sl],
+      line:{color:'#f85149',width:1,dash:'dot'}, name:'SL', hoverinfo:'name' },
+  ];
+  Plotly.newPlot(chartId, traces, chartLayout({ split:true, yRange:[yMin,yMax] }),
+                 { displaylogo:false, responsive:true });
+  const note = document.createElement('div');
+  note.className = 'sub dim';
+  note.style.marginTop = '4px';
+  note.textContent = `source: ${src}`;
+  target.appendChild(note);
+}
+
+// ---- Kraken OHLC helper (CORS-enabled) ----
+async function fetchKrakenOHLC(intervalMin, sinceSec) {
+  const url = `https://api.kraken.com/0/public/OHLC?pair=ETHUSD&interval=${intervalMin}`
+            + (sinceSec ? `&since=${sinceSec}` : '');
+  const r = await fetch(url, { cache:'no-store' });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const data = await r.json();
+  if (data.error && data.error.length) throw new Error(data.error.join(','));
+  const k = Object.keys(data.result).find(k => k !== 'last');
+  if (!k) throw new Error('no pair in response');
+  return data.result[k]; // [ts, o, h, l, c, vwap, vol, count]
+}
+
+// ---- ETH 24h data + ranges (Kraken 5m, ~24h) ----
 async function updateRecent() {
   try {
-    const r = await fetch('https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=5m&limit=288',
-                          { cache: 'no-store' });
-    if (!r.ok) return;
-    const kl = await r.json();
-    _ethCache = kl;
+    const since = Math.floor((Date.now() - 25*3600*1000) / 1000);
+    const raw = await fetchKrakenOHLC(5, since);
+    // Normalize to [ts_ms, o, h, l, c]
+    const kl = raw.map(k => [k[0]*1000, k[1], k[2], k[3], k[4]]);
     const now = Date.now();
     const cur = parseFloat(kl[kl.length-1][4]);
     const open24 = parseFloat(kl[0][1]);
@@ -539,11 +670,17 @@ async function renderPosChart(p, currentMid) {
   try {
     const entryTs = (p.entry_time || 0) * 1000;
     const startTs = entryTs - 60*60*1000;
-    const r = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=${startTs}&limit=720`,
-      { cache: 'no-store' });
-    if (!r.ok) throw new Error('fetch');
-    const kl = await r.json();
+    let kl;
+    try {
+      const raw = await fetchKrakenOHLC(1, Math.floor(startTs/1000));
+      kl = raw.map(k => [k[0]*1000, k[1], k[2], k[3], k[4]]);
+    } catch(e1) {
+      const r = await fetch(
+        `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=${startTs}&limit=720`,
+        { cache: 'no-store' });
+      if (!r.ok) throw new Error('no price source');
+      kl = await r.json();
+    }
     const x = kl.map(k => new Date(k[0]).toISOString());
     const close = kl.map(k => parseFloat(k[4]));
     const tp = p.entry_price * (1 + p.direction*CFG.tp/10000);
@@ -572,75 +709,6 @@ async function renderPosChart(p, currentMid) {
     c.innerHTML = `<div class="chart-loading">chart err: ${e.message}</div>`;
   }
 }
-
-// ---- Per-trade zoom ----
-async function openZoom(idx) {
-  const t = cachedTrades[idx];
-  if (!t) return;
-  $('zoomCard').style.display = 'block';
-  const exitTs = new Date(t.time).getTime();
-  const entryTs = exitTs - (t.hold_min||0)*60000;
-  const pnl = t.pnl_bps_leveraged || 0;
-  const win = pnl >= 0;
-  $('zoomTitle').innerHTML = `#${idx+1} · ${t.direction===1?'LONG':'SHORT'} · ` +
-    `<span class="${win?'up':'down'}">${pnl>=0?'+':''}${pnl.toFixed(0)} bps@10x</span>`;
-  $('zoomStats').innerHTML = `
-    <div class="stat"><span class="k">Entry</span><span class="v num">$${t.entry_price.toFixed(2)}</span></div>
-    <div class="stat"><span class="k">Exit</span><span class="v num">$${t.exit_price.toFixed(2)}</span></div>
-    <div class="stat"><span class="k">PnL bps</span><span class="v num ${win?'up':'down'}">${(t.pnl_bps||0).toFixed(1)}</span></div>
-    <div class="stat"><span class="k">Hold</span><span class="v num">${(t.hold_min||0).toFixed(0)}m</span></div>
-    <div class="stat"><span class="k">Reason</span><span class="v">${t.reason}</span></div>
-    <div class="stat"><span class="k">Time</span><span class="v num">${new Date(t.time).toLocaleString()}</span></div>`;
-
-  const chart = $('zoomChart');
-  chart.innerHTML = '<div class="chart-loading">loading…</div>';
-  try {
-    const startTs = entryTs - 60*60*1000;
-    const endTs = exitTs + 60*60*1000;
-    const r = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=${startTs}&endTime=${endTs}&limit=1000`,
-      { cache: 'no-store' });
-    const kl = await r.json();
-    const x = kl.map(k => new Date(k[0]).toISOString());
-    const open = kl.map(k => parseFloat(k[1]));
-    const high = kl.map(k => parseFloat(k[2]));
-    const low = kl.map(k => parseFloat(k[3]));
-    const close = kl.map(k => parseFloat(k[4]));
-    const vol = kl.map(k => parseFloat(k[5]));
-    const entryIso = new Date(entryTs).toISOString();
-    const exitIso = new Date(exitTs).toISOString();
-    const d = t.direction;
-    const tp = t.entry_price * (1 + d*CFG.tp/10000);
-    const sl = t.entry_price * (1 - d*CFG.sl/10000);
-    const trail = t.entry_price * (1 + d*CFG.trail_after/10000);
-    const yMin = Math.min(...low, sl) * 0.9995;
-    const yMax = Math.max(...high, tp) * 1.0005;
-    const traces = [
-      { type:'candlestick', x, open, high, low, close,
-        increasing:{line:{color:'#3fb950'}}, decreasing:{line:{color:'#f85149'}},
-        name:'', showlegend:false, yaxis:'y' },
-      { type:'bar', x, y:vol, marker:{color:'rgba(188,140,255,0.35)'},
-        name:'vol', yaxis:'y2', showlegend:false },
-      { type:'scatter', mode:'lines', x:[entryIso,entryIso], y:[yMin,yMax],
-        line:{color:'#d29922',width:2,dash:'dash'}, name:'Entry', hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[exitIso,exitIso], y:[yMin,yMax],
-        line:{color: win?'#3fb950':'#f85149', width:2, dash:'dash'}, name:'Exit', hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[entryIso,exitIso], y:[tp,tp],
-        line:{color:'#3fb950',width:1,dash:'dot'}, name:`TP`, hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[entryIso,exitIso], y:[trail,trail],
-        line:{color:'#79c0ff',width:1,dash:'dot'}, name:`Trail`, hoverinfo:'name' },
-      { type:'scatter', mode:'lines', x:[entryIso,exitIso], y:[sl,sl],
-        line:{color:'#f85149',width:1,dash:'dot'}, name:`SL`, hoverinfo:'name' },
-    ];
-    Plotly.newPlot('zoomChart', traces,
-      chartLayout({ split:true, yRange:[yMin,yMax] }),
-      { displaylogo:false, responsive:true });
-    $('zoomCard').scrollIntoView({ behavior:'smooth', block:'start' });
-  } catch(e) {
-    chart.innerHTML = `<div class="chart-loading">err: ${e.message}</div>`;
-  }
-}
-function closeZoom() { $('zoomCard').style.display = 'none'; }
 
 // ---- Equity curve ----
 function updateEquity(trades) {
@@ -676,27 +744,34 @@ async function renderPriceChart() {
   const c = $('priceChart');
   c.innerHTML = '<div class="chart-loading">loading…</div>';
   try {
-    let interval, limit, startMs;
+    let intervalMin, sinceSec;
     const now = Date.now();
     switch(chartState.range) {
-      case '1d':  interval='5m';  limit=288; break;
-      case '7d':  interval='30m'; limit=336; break;
-      case '1mo': interval='2h';  limit=360; break;
+      case '1d':  intervalMin=5;   sinceSec=Math.floor((now-25*3600*1000)/1000); break;
+      case '7d':  intervalMin=30;  sinceSec=Math.floor((now-8*86400*1000)/1000); break;
+      case '1mo': intervalMin=240; sinceSec=Math.floor((now-31*86400*1000)/1000); break;
       case 'all': {
         const firstT = cachedTrades.length ? new Date(cachedTrades[0].time).getTime() : now-7*86400*1000;
         const days = (now-firstT)/86400000;
-        if (days<=7) interval='15m';
-        else if (days<=30) interval='1h';
-        else interval='4h';
-        startMs = firstT - 3600*1000;
-        limit = 1000;
+        if (days<=7) intervalMin=15;
+        else if (days<=30) intervalMin=60;
+        else intervalMin=240;
+        sinceSec = Math.floor((firstT-3600*1000)/1000);
         break;
       }
     }
-    let url = `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=${interval}&limit=${limit}`;
-    if (startMs) url += `&startTime=${startMs}`;
-    const r = await fetch(url, {cache:'no-store'});
-    const kl = await r.json();
+    let kl;
+    try {
+      const raw = await fetchKrakenOHLC(intervalMin, sinceSec);
+      kl = raw.map(k => [k[0]*1000, k[1], k[2], k[3], k[4]]);
+    } catch(e1) {
+      const intMap = {1:'1m',5:'5m',15:'15m',30:'30m',60:'1h',240:'4h',1440:'1d'};
+      const url = `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=${intMap[intervalMin]||'5m'}`
+                + `&startTime=${sinceSec*1000}&limit=1000`;
+      const r = await fetch(url, {cache:'no-store'});
+      if (!r.ok) throw new Error('no price source');
+      kl = await r.json();
+    }
     const x = kl.map(k => new Date(k[0]).toISOString());
     const open = kl.map(k=>parseFloat(k[1]));
     const high = kl.map(k=>parseFloat(k[2]));
