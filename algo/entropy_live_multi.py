@@ -64,6 +64,27 @@ PAIRS = {
         "trail_tp_bps": 50,
         "extended_move_lookback": 150,
         "extended_move_cap_bps": 100,
+        # --- Sprint v1 additions (flags default False; Phase 6 flips them) ---
+        # F3c: entry-side EMA regime gate (Phase 2 promoted)
+        # Block LONG if (EMA_fast - EMA_slow) / ATR_30 < threshold (symmetric SHORT).
+        "f3c_enabled": False,
+        "f3c_ema_fast": 30,
+        "f3c_ema_slow": 150,
+        "f3c_atr_window": 30,
+        "f3c_threshold": 0.3,
+        # timeout_trail: on timeout-at-loss, transition to post_signal_trail
+        # instead of force-exit. Phase 3 promoted.
+        "timeout_trail_enabled": False,
+        "timeout_trail_width_bps": 20,
+        "timeout_trail_hard_floor_bps": -60,
+        "timeout_trail_max_wait_bars": 30,
+        # E3: time-decayed SL. At `e3_tighten_after_bars` into the trade,
+        # if peak_pnl_bps < e3_peak_threshold_bps, tighten SL from the
+        # configured stop_loss_bps to e3_tightened_sl_bps. Phase 4 promoted.
+        "e3_time_decay_sl_enabled": False,
+        "e3_tighten_after_bars": 60,
+        "e3_peak_threshold_bps": 50,
+        "e3_tightened_sl_bps": 25,
     },
 }
 
@@ -75,8 +96,12 @@ SHARED_CONFIG = {
     "return_low_bps": 20,
     "return_high_bps": 80,
     "entropy_window": 30,
-    "leverage": 10,
+    "leverage": 10,                   # Phase 6 flips this to 5 when promoted
     "equity_fraction": 0.90,
+    # Audit writer (Phase 5): appends one JSON line per candidate bar
+    # (passed or blocked) to state/daily_filter_audit.jsonl. Safe diagnostic,
+    # no effect on trading behavior.
+    "audit_writer_enabled": True,
 }
 
 LOG_DIR = Path(__file__).parent / "logs"
@@ -313,6 +338,45 @@ class EntropyEngine:
         if past <= 0:
             return None
         return (current / past - 1.0) * 10000
+
+    def _ema(self, values, n):
+        """EMA of a sequence, returning the final value. O(n) recompute."""
+        if not values:
+            return None
+        alpha = 2.0 / (n + 1.0)
+        e = values[0]
+        for v in values[1:]:
+            e = alpha * v + (1 - alpha) * e
+        return e
+
+    def get_f3c_regime_normalized(self, n_fast=30, n_slow=150, n_atr=30):
+        """Return (ema_fast - ema_slow) / ATR_30 at the most recent bar, or
+        None if insufficient history. Matches Phase 2 F3c definition."""
+        mids_list = list(self.mids)
+        if len(mids_list) < max(n_slow, n_atr) + 1:
+            return None
+        ef = self._ema(mids_list[-n_slow * 3:], n_fast)
+        es = self._ema(mids_list[-n_slow * 3:], n_slow)
+        # Wilder ATR on last n_atr+1 bars using high/low if available
+        hi = list(self.bar_highs)[-n_atr - 1:]
+        lo = list(self.bar_lows)[-n_atr - 1:]
+        closes = mids_list[-n_atr - 1:]
+        if len(hi) < n_atr + 1 or len(lo) < n_atr + 1 or len(closes) < n_atr + 1:
+            return None
+        trs = []
+        for i in range(1, len(hi)):
+            tr = max(hi[i] - lo[i],
+                     abs(hi[i] - closes[i-1]),
+                     abs(lo[i] - closes[i-1]))
+            trs.append(tr)
+        if not trs:
+            return None
+        atr_v = sum(trs[:n_atr]) / n_atr
+        for tr in trs[n_atr:]:
+            atr_v = (atr_v * (n_atr - 1) + tr) / n_atr
+        if atr_v <= 0:
+            return None
+        return (ef - es) / atr_v
 
     def get_dH(self, lookback=5):
         """Return H_now - H_{lookback bars ago}. Negative = entropy falling."""
@@ -647,6 +711,15 @@ class MultiPairManager:
 
         self.position = None
         self._save_state()
+        # Auto-flip safety valve (sprint v1 item B): compare this trade's
+        # realized pnl_bps against the shadow expectation for its bucket;
+        # if cumulative z over last 10 trades falls below -2*sqrt(10),
+        # disable sprint flags + revert leverage. Runs synchronously
+        # because the flip must be in place before any subsequent entry.
+        try:
+            self._check_shadow_drift(trade)
+        except Exception as e:
+            logger.warning(f"shadow drift check failed: {e}")
         # Snapshot 1-min price bars around this trade while they are still
         # available from Kraken (the 1-min window only goes back ~12 h).
         # Non-blocking: wrap in try/except; any fetch failure is logged.
@@ -656,6 +729,112 @@ class MultiPairManager:
         except Exception as e:
             logger.warning(f"chart capture thread failed to start: {e}")
         return trade
+
+    # -------- Auto-flip safety valve --------
+
+    @staticmethod
+    def _bucket_for_trade(trade):
+        """Return (primary_bucket, fallback_bucket) for a trade dict."""
+        d = "long" if trade.get("direction") == 1 else "short"
+        try:
+            dt = datetime.fromisoformat(trade["time"])
+            h = dt.astimezone(timezone.utc).hour
+        except Exception:
+            h = 0
+        if   0 <= h < 8:   sess = "asia"
+        elif 8 <= h < 16:  sess = "europe"
+        else:              sess = "americas"
+        return f"{d}_{sess}", d
+
+    def _check_shadow_drift(self, trade):
+        """Compare realized pnl_bps to shadow expectation; append z to the
+        rolling 10-trade window; trigger auto-disable if cumulative z falls
+        below the -2*sqrt(10) threshold."""
+        state_dir = self.state_file.parent
+        shadow_file = state_dir / "shadow_expectation.json"
+        drift_file  = state_dir / "live_drift_monitor.json"
+        valve_file  = state_dir / "safety_valve.json"
+
+        # If the valve already tripped, skip further monitoring.
+        if valve_file.exists():
+            return
+        if not shadow_file.exists():
+            # No shadow expectation loaded; monitor is dormant.
+            return
+        try:
+            shadow = json.load(open(shadow_file))
+        except Exception as e:
+            logger.warning(f"shadow expectation unreadable: {e}"); return
+
+        primary, fallback = self._bucket_for_trade(trade)
+        stats = shadow.get("buckets", {}).get(primary)
+        if not stats or stats.get("count", 0) < 5:
+            stats = shadow.get("fallback_by_direction", {}).get(fallback)
+        if not stats or (stats.get("std_bps") or 0) <= 0:
+            return  # can't compute z without a valid std
+
+        realized = trade.get("pnl_bps", 0.0)
+        z = (realized - stats["mean_pnl_bps"]) / stats["std_bps"]
+
+        # Append to rolling window
+        win = {"z_scores": [], "trade_order_ids": []}
+        if drift_file.exists():
+            try: win = json.load(open(drift_file))
+            except Exception: pass
+        win.setdefault("z_scores", []).append(z)
+        win.setdefault("trade_order_ids", []).append(trade.get("order_id"))
+        if len(win["z_scores"]) > 10:
+            win["z_scores"] = win["z_scores"][-10:]
+            win["trade_order_ids"] = win["trade_order_ids"][-10:]
+        win["last_bucket"] = primary
+        win["last_z"] = z
+        win["last_realized_pnl_bps"] = realized
+        win["last_expected_mean_bps"] = stats["mean_pnl_bps"]
+        win["last_expected_std_bps"]  = stats["std_bps"]
+        win["updated_at"] = datetime.now(timezone.utc).isoformat()
+        tmp = str(drift_file) + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(win, f, indent=2)
+        os.replace(tmp, str(drift_file))
+
+        logger.info(f"[LIVE-MONITOR] trade {trade.get('order_id','?')[:8]} "
+                    f"bucket={primary} realized={realized:+.1f}bps "
+                    f"expected={stats['mean_pnl_bps']:+.1f}+/-{stats['std_bps']:.1f} "
+                    f"z={z:+.2f}")
+
+        # Trigger check
+        if len(win["z_scores"]) < 10:
+            return
+        cum_z = sum(win["z_scores"])
+        threshold = -2.0 * (10 ** 0.5)  # ~= -6.32
+        if cum_z < threshold:
+            self._trigger_safety_valve(cum_z, threshold, valve_file)
+
+    def _trigger_safety_valve(self, cum_z, threshold, valve_file):
+        """Flip sprint-v1 flags to False, revert leverage, persist marker."""
+        marker = {
+            "auto_disabled_at": datetime.now(timezone.utc).isoformat(),
+            "cumulative_z": cum_z,
+            "threshold": threshold,
+            "reason": (f"cumulative z over last 10 trades ({cum_z:+.2f}) "
+                       f"is below adverse threshold ({threshold:+.2f})"),
+            "disabled_flags": ["f3c_enabled", "timeout_trail_enabled",
+                               "e3_time_decay_sl_enabled"],
+            "leverage_reverted_to": 10,
+        }
+        with open(valve_file, "w") as f:
+            json.dump(marker, f, indent=2)
+        # In-memory flip
+        for p in PAIRS:
+            PAIRS[p]["f3c_enabled"] = False
+            PAIRS[p]["timeout_trail_enabled"] = False
+            PAIRS[p]["e3_time_decay_sl_enabled"] = False
+        SHARED_CONFIG["leverage"] = 10
+        logger.warning(
+            f"[LIVE-MONITOR] !!! SAFETY VALVE TRIPPED !!! "
+            f"cumulative z = {cum_z:+.2f} < threshold {threshold:+.2f}. "
+            f"Sprint v1 flags disabled; leverage reverted to 10x. "
+            f"Manual review required. Delete {valve_file} to clear.")
 
     def _capture_trade_chart(self, trade):
         """Fetch ±1h 1-min OHLC around the trade and append to
@@ -755,6 +934,23 @@ class MultiPairManager:
         sl_bps = pair_cfg["stop_loss_bps"]
         tp_bps = pair_cfg["take_profit_bps"]
 
+        # --- E3 time-decayed SL (Phase 4 promoted; default OFF for live) ---
+        if (pair_cfg.get("e3_time_decay_sl_enabled")
+                and not pos.get("e3_tightened", False)):
+            after_bars = pair_cfg.get("e3_tighten_after_bars", 60)
+            peak_thresh = pair_cfg.get("e3_peak_threshold_bps", 50)
+            tightened_sl = pair_cfg.get("e3_tightened_sl_bps", 25)
+            if elapsed >= after_bars and peak_pnl < peak_thresh:
+                # Effective SL becomes -tightened_sl from entry
+                pos["e3_tightened"] = True
+                pos["e3_sl_bps"] = tightened_sl
+                logger.info(
+                    f"[{pos['pair']}] E3: elapsed={elapsed:.0f}m, peak={peak_pnl:.1f} "
+                    f"< {peak_thresh} -- tightening SL to -{tightened_sl} bps")
+                self._save_state()
+        effective_sl_bps = (pos.get("e3_sl_bps", sl_bps)
+                            if pos.get("e3_tightened") else sl_bps)
+
         # --- Fix: activate tp_trailing BEFORE SL check when peak has
         # already crossed the trigger on this bar. Prevents the race where
         # a volatile bar hits both +trigger and -SL and SL wins.
@@ -772,7 +968,7 @@ class MultiPairManager:
         # --- ATR-trail after timeout (T5) ---
         if trailing_active and trail_mult and atr_bps and atr_bps > 0:
             trail_width_bps = trail_mult * atr_bps
-            floor_bps = max(peak_pnl - trail_width_bps, -sl_bps)
+            floor_bps = max(peak_pnl - trail_width_bps, -effective_sl_bps)
             if worst_bps <= floor_bps:
                 pos["_trail_floor_bps"] = floor_bps
                 pos["_trail_peak_bps"] = peak_pnl
@@ -781,9 +977,33 @@ class MultiPairManager:
                 return "tp"
             return None
 
+        # --- post_signal_trail mode (Phase 3 promoted; active after timeout-at-loss
+        #     transitioned into trail state instead of force-exit) ---
+        if pos.get("pst_active"):
+            w = pair_cfg.get("timeout_trail_width_bps", 20)
+            hf = pair_cfg.get("timeout_trail_hard_floor_bps", -60)
+            mw = pair_cfg.get("timeout_trail_max_wait_bars", 30)
+            # update pst_peak in bps of entry
+            pst_peak = pos.get("pst_peak_bps", best_bps)
+            if best_bps > pst_peak:
+                pos["pst_peak_bps"] = best_bps
+                pst_peak = best_bps
+            bars_in_trail = elapsed - pos.get("pst_entry_minutes", elapsed)
+            floor_bps = max(pst_peak - w, -effective_sl_bps)
+            if worst_bps <= floor_bps:
+                pos["_trail_floor_bps"] = floor_bps
+                pos["_trail_peak_bps"] = pst_peak
+                return "pst_trail"
+            if worst_bps <= hf:
+                pos["_trail_floor_bps"] = hf
+                return "pst_floored"
+            if bars_in_trail >= mw:
+                return "pst_timeout"
+            return None
+
         # --- TP-trail mode (active after peak crossed trigger) ---
         if tp_trailing:
-            floor = max(peak_pnl - trail_tp_bps, -sl_bps)
+            floor = max(peak_pnl - trail_tp_bps, -effective_sl_bps)
             if worst_bps <= floor:
                 pos["_trail_floor_bps"] = floor
                 pos["_trail_peak_bps"] = peak_pnl
@@ -791,14 +1011,17 @@ class MultiPairManager:
             return None
 
         # --- Standard logic (no trail phase active) ---
-        if worst_bps <= -sl_bps:
+        if worst_bps <= -effective_sl_bps:
             return "sl"
 
         # Fixed TP only when no TP-trail configured for this pair
         if trail_tp_after is None and best_bps >= tp_bps:
             return "tp"
 
-        # Timeout: if in profit AND ATR trailing configured, switch to ATR trail
+        # Timeout handling:
+        #   in profit AND ATR trail configured -> ATR-trail (existing T5)
+        #   not in profit AND timeout_trail_enabled -> post_signal_trail (Phase 3)
+        #   else -> force exit at current PnL
         if elapsed >= pair_cfg["timeout_minutes"]:
             if trail_mult and pnl_bps > 0 and atr_bps and atr_bps > 0:
                 pos["trailing_active"] = True
@@ -806,6 +1029,16 @@ class MultiPairManager:
                     f"[{pos['pair']}] TIMEOUT reached in profit ({pnl_bps:.1f} bps) "
                     f"-- switching to {trail_mult}x ATR trailing stop "
                     f"(ATR={atr_bps:.1f} bps, trail_width={trail_mult*atr_bps:.1f} bps)")
+                self._save_state()
+                return None
+            if pair_cfg.get("timeout_trail_enabled") and pnl_bps <= 0:
+                pos["pst_active"] = True
+                pos["pst_peak_bps"] = best_bps
+                pos["pst_entry_minutes"] = elapsed
+                logger.info(
+                    f"[{pos['pair']}] TIMEOUT at loss ({pnl_bps:.1f} bps) -- "
+                    f"switching to post_signal_trail "
+                    f"(width={pair_cfg.get('timeout_trail_width_bps', 20)} bps)")
                 self._save_state()
                 return None
             return "timeout"
@@ -817,6 +1050,14 @@ class MultiPairManager:
 def main():
     global RUNNING
 
+    import argparse
+    argp = argparse.ArgumentParser()
+    argp.add_argument("--dry-run", action="store_true",
+                      help="startup-only: load config + state, apply safety-valve "
+                           "check, print resulting config, exit. No Kraken "
+                           "connection, no WebSocket.")
+    cli = argp.parse_args()
+
     from dotenv import load_dotenv
     env_path = Path(__file__).parent.parent / ".env"
     if env_path.exists():
@@ -824,14 +1065,45 @@ def main():
     else:
         load_dotenv()
 
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+
+    if cli.dry_run:
+        logger.info("=== DRY RUN: no Kraken connection, no WebSocket ===")
+        # Run the startup safety-valve check here (copied from below so
+        # dry-run exercises the exact same code path before exiting).
+        valve_file = STATE_DIR / "safety_valve.json"
+        if valve_file.exists():
+            try:
+                marker = json.load(open(valve_file))
+                for p in PAIRS:
+                    PAIRS[p]["f3c_enabled"] = False
+                    PAIRS[p]["timeout_trail_enabled"] = False
+                    PAIRS[p]["e3_time_decay_sl_enabled"] = False
+                SHARED_CONFIG["leverage"] = marker.get("leverage_reverted_to", 10)
+                logger.warning(
+                    f"[LIVE-MONITOR] Safety valve ACTIVE "
+                    f"(tripped at {marker.get('auto_disabled_at','?')}): "
+                    f"{marker.get('reason','?')}. "
+                    f"Sprint v1 flags forced False on startup; "
+                    f"leverage = {SHARED_CONFIG['leverage']}x. "
+                    f"Delete {valve_file} to clear.")
+            except Exception as e:
+                logger.warning(f"safety_valve.json unreadable: {e}")
+        logger.info(f"Config (post-valve check): "
+                    f"leverage={SHARED_CONFIG['leverage']}x")
+        for p, cfg in PAIRS.items():
+            logger.info(f"  {p}: f3c_enabled={cfg.get('f3c_enabled')} "
+                        f"timeout_trail_enabled={cfg.get('timeout_trail_enabled')} "
+                        f"e3_time_decay_sl_enabled={cfg.get('e3_time_decay_sl_enabled')}")
+        logger.info("dry-run complete; exiting.")
+        return
+
     api_key = os.getenv("KRAKEN_API_FUTURES_KEY", "")
     api_secret = os.getenv("KRAKEN_API_FUTURES_SECRET", "")
     if not api_key:
         logger.error("KRAKEN_API_FUTURES_KEY not set")
         sys.exit(1)
-
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
 
     api = KrakenFuturesAPI(api_key, api_secret)
     mgr = MultiPairManager(api, STATE_DIR / "multi_trader_state.json")
@@ -856,6 +1128,58 @@ def main():
     rejected_cooldown = {p: 0 for p in PAIRS}
     rejected_knife = {p: 0 for p in PAIRS}
     rejected_extended = {p: 0 for p in PAIRS}
+    rejected_f3c = {p: 0 for p in PAIRS}
+    # Rolling buffers for the direction-audit dashboard panel (last 7 days
+    # of signals that actually fired, and last 30 days of candidate bars
+    # and their imbalance values).
+    recent_signals = []   # list of {ts, direction}
+    recent_imb = []       # list of {ts, imbalance} -- sampled at candidate bars
+
+    # ---- Daily filter audit writer (Phase 5) ----
+    audit_file = STATE_DIR / "daily_filter_audit.jsonl"
+
+    def _audit_candidate(pair, mid, H, imbalance, spread_bps, ret_5bar,
+                         direction, decision, cfg, **extra):
+        """Append one JSON line for every candidate bar (passed or blocked).
+        Non-blocking; any IO failure just logs a warning."""
+        if not SHARED_CONFIG.get("audit_writer_enabled"):
+            return
+        try:
+            ret_60 = engines[pair].get_trailing_return_bps(60)
+            ret_150 = engines[pair].get_trailing_return_bps(150)
+            dH_5 = engines[pair].get_dH(5)
+            row = {
+                "ts": time.time(),
+                "pair": pair,
+                "mid": mid,
+                "H": H, "imbalance": imbalance, "spread_bps": spread_bps,
+                "ret_5bar": ret_5bar,
+                "ret_60": ret_60, "ret_150": ret_150, "dH_5": dH_5,
+                "knife_threshold": cfg.get("knife_threshold_bps"),
+                "extended_cap": cfg.get("extended_move_cap_bps"),
+                "f3c_enabled": cfg.get("f3c_enabled", False),
+                "f3c_threshold": cfg.get("f3c_threshold"),
+                "direction": direction,
+                "decision": decision,
+            }
+            row.update(extra)
+            with open(audit_file, "a") as f:
+                f.write(json.dumps(row) + "\n")
+        except Exception as e:
+            logger.warning(f"audit writer failed: {e}")
+
+    def _trim_rolling(buf, window_s):
+        """Drop entries older than window_s seconds from the front of buf."""
+        if not buf: return
+        cutoff = time.time() - window_s
+        # list is in insertion order; trim the oldest
+        i = 0
+        for i, row in enumerate(buf):
+            if row.get("ts", 0) >= cutoff: break
+        else:
+            i = len(buf)
+        if i > 0:
+            del buf[:i]
 
     # ---- Engine state persistence (avoids cold-start warmup on restart) ----
     engine_state_file = STATE_DIR / "engine_state.json"
@@ -896,6 +1220,28 @@ def main():
                             f"{ENGINE_STATE_MAX_AGE_SEC}s) -- cold start")
         except Exception as e:
             logger.warning(f"engine state restore failed: {e}")
+
+    # ---- Safety valve startup check ----
+    # If a previous session tripped the auto-flip, re-apply the overrides
+    # on startup so the bot doesn't silently re-enable sprint flags.
+    valve_file = STATE_DIR / "safety_valve.json"
+    if valve_file.exists():
+        try:
+            marker = json.load(open(valve_file))
+            for p in PAIRS:
+                PAIRS[p]["f3c_enabled"] = False
+                PAIRS[p]["timeout_trail_enabled"] = False
+                PAIRS[p]["e3_time_decay_sl_enabled"] = False
+            SHARED_CONFIG["leverage"] = marker.get("leverage_reverted_to", 10)
+            logger.warning(
+                f"[LIVE-MONITOR] Safety valve ACTIVE "
+                f"(tripped at {marker.get('auto_disabled_at','?')}): "
+                f"{marker.get('reason','?')}. "
+                f"Sprint v1 flags forced False on startup; "
+                f"leverage = {SHARED_CONFIG['leverage']}x. "
+                f"Delete {valve_file} to clear.")
+        except Exception as e:
+            logger.warning(f"safety_valve.json unreadable: {e}")
 
     logger.info(f"Config: {json.dumps(SHARED_CONFIG, indent=2)}")
     for p, cfg in PAIRS.items():
@@ -976,6 +1322,8 @@ def main():
                 logger.debug(
                     f"[{pair}] signal blocked by cooldown "
                     f"({cooldown_until_bar[pair] - current_bar} bars left)")
+                _audit_candidate(pair, bar_mid, H, bar_imb, bar_spread, ret,
+                                  direction, "blocked_cooldown", cfg)
                 return None
 
         # --- Upgrade 2: per-pair no-falling-knife filter (60-bar return) ---
@@ -988,33 +1336,68 @@ def main():
                     logger.info(
                         f"[{pair}] LONG signal blocked: ret_60={ret_60:.1f} bps "
                         f"< -{knife_bps} (falling knife)")
+                    _audit_candidate(pair, bar_mid, H, bar_imb, bar_spread,
+                                      ret, direction, "blocked_knife", cfg)
                     return None
                 if direction == -1 and ret_60 > knife_bps:
                     rejected_knife[pair] += 1
                     logger.info(
                         f"[{pair}] SHORT signal blocked: ret_60={ret_60:.1f} bps "
                         f"> +{knife_bps} (rising knife)")
+                    _audit_candidate(pair, bar_mid, H, bar_imb, bar_spread,
+                                      ret, direction, "blocked_knife", cfg)
                     return None
 
         # --- Upgrade 3: extended-move filter (skip chasing exhausted trends) ---
         # Don't enter in the direction the market has already moved strongly.
         ext_cap = cfg.get("extended_move_cap_bps")
         ext_lb = cfg.get("extended_move_lookback", 150)
+        ext_blocked = False
         if ext_cap is not None:
             ret_ext = engines[pair].get_trailing_return_bps(ext_lb)
             if ret_ext is not None:
                 if direction == 1 and ret_ext > ext_cap:
                     rejected_extended[pair] += 1
-                    logger.info(
-                        f"[{pair}] LONG signal blocked: ret_{ext_lb}={ret_ext:.1f} bps "
-                        f"> +{ext_cap} (extended up-move; don't chase)")
-                    return None
+                    ext_blocked = True
                 if direction == -1 and ret_ext < -ext_cap:
                     rejected_extended[pair] += 1
-                    logger.info(
-                        f"[{pair}] SHORT signal blocked: ret_{ext_lb}={ret_ext:.1f} bps "
-                        f"< -{ext_cap} (extended down-move; don't chase)")
-                    return None
+                    ext_blocked = True
+        if ext_blocked:
+            logger.info(f"[{pair}] signal blocked by extended-move filter")
+            _audit_candidate(pair, bar_mid, H, bar_imb, bar_spread, ret,
+                              direction, "blocked_ext_move", cfg)
+            return None
+
+        # --- Sprint v1: F3c regime gate (Phase 2 promoted, default OFF for live) ---
+        f3c_blocked = False
+        if cfg.get("f3c_enabled"):
+            n_fast = cfg.get("f3c_ema_fast", 30)
+            n_slow = cfg.get("f3c_ema_slow", 150)
+            n_atr  = cfg.get("f3c_atr_window", 30)
+            thr    = cfg.get("f3c_threshold", 0.3)
+            norm = engines[pair].get_f3c_regime_normalized(n_fast, n_slow, n_atr)
+            if norm is not None:
+                if direction == 1 and norm < thr:
+                    rejected_f3c[pair] += 1
+                    f3c_blocked = True
+                elif direction == -1 and norm > -thr:
+                    rejected_f3c[pair] += 1
+                    f3c_blocked = True
+            if f3c_blocked:
+                logger.info(f"[{pair}] signal blocked by F3c regime gate "
+                            f"(norm={norm:.2f}, thr={thr})")
+                _audit_candidate(pair, bar_mid, H, bar_imb, bar_spread, ret,
+                                  direction, "blocked_f3c", cfg,
+                                  f3c_norm=norm)
+                return None
+
+        _audit_candidate(pair, bar_mid, H, bar_imb, bar_spread, ret,
+                          direction, "passed", cfg)
+        # Record on dashboard rolling buffers
+        recent_signals.append({"ts": time.time(), "direction": direction})
+        _trim_rolling(recent_signals, window_s=7*86400)
+        recent_imb.append({"ts": time.time(), "imbalance": bar_imb})
+        _trim_rolling(recent_imb, window_s=7*86400)
 
         return {
             "pair": pair,

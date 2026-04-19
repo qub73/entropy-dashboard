@@ -1,0 +1,374 @@
+{
+  "config": {
+    "entry_gate": "F3c always on",
+    "timeout_trail": "always on (Phase 3 promoted)",
+    "pi_params": {
+      "sl": 50,
+      "tp": 200,
+      "knife_bps": 50,
+      "ext_cap_bps": 100
+    },
+    "kaggle_params": {
+      "sl": 50,
+      "tp": 150,
+      "knife_bps": 100,
+      "ext_cap_bps": null
+    },
+    "entropy_weight_formula": "size_mult = clamp(0.5 + 1.5*(H_thresh - H_at_entry)/H_thresh, 0.5, 1.5)"
+  },
+  "baseline_cell": "lev10x_ewoff_e3off",
+  "cells": [
+    {
+      "name": "lev5x_ewoff_e3off",
+      "leverage": 5,
+      "entropy_weighted": false,
+      "e3_overlay": false,
+      "in_sample": {
+        "trades": 26,
+        "wins": 15,
+        "win_rate": 0.5769230769230769,
+        "compound_ret_pct": 73.76198130806281,
+        "max_dd": 14.473192341936954,
+        "pf": 3.440009147447589,
+        "knife_rate": 0.3076923076923077,
+        "knife_catchers": 8,
+        "sharpe_daily": 13.143551928126078,
+        "kelly_f": 0.4370288792575256,
+        "avg_size_mult": 1.0,
+        "trades_long": 11,
+        "trades_short": 15
+      },
+      "oos": {
+        "trades": 76,
+        "wins": 34,
+        "win_rate": 0.4473684210526316,
+        "compound_ret_pct": 90.64402411550374,
+        "max_dd": 15.66429473632997,
+        "pf": 1.892308007168739,
+        "knife_rate": 0.27631578947368424,
+        "knife_catchers": 21,
+        "sharpe_daily": 4.161992252911052,
+        "kelly_f": 0.1840819967965832,
+        "avg_size_mult": 1.0,
+        "trades_long": 36,
+        "trades_short": 40
+      }
+    },
+    {
+      "name": "lev5x_ewoff_e3on",
+      "leverage": 5,
+      "entropy_weighted": false,
+      "e3_overlay": true,
+      "in_sample": {
+        "trades": 27,
+        "wins": 13,
+        "win_rate": 0.48148148148148145,
+        "compound_ret_pct": 61.3911665480639,
+        "max_dd": 12.484006288432392,
+        "pf": 3.028402134143736,
+        "knife_rate": 0.2962962962962963,
+        "knife_catchers": 8,
+        "sharpe_daily": 11.944207594380973,
+        "kelly_f": 0.3364605121792436,
+        "avg_size_mult": 1.0,
+        "trades_long": 12,
+        "trades_short": 15
+      },
+      "oos": {
+        "trades": 76,
+        "wins": 31,
+        "win_rate": 0.40789473684210525,
+        "compound_ret_pct": 102.6206496270208,
+        "max_dd": 14.83933092375442,
+        "pf": 2.060831115871194,
+        "knife_rate": 0.2631578947368421,
+        "knife_catchers": 20,
+        "sharpe_daily": 4.608667221848383,
+        "kelly_f": 0.18600812403807732,
+        "avg_size_mult": 1.0,
+        "trades_long": 36,
+        "trades_short": 40
+      }
+    },
+    {
+      "name": "lev5x_ewon_e3off",
+      "leverage": 5,
+      "entropy_weighted": true,
+      "e3_overlay": false,
+      "in_sample": {
+        "trades": 26,
+        "wins": 15,
+        "win_rate": 0.5769230769230769,
+        "compound_ret_pct": 35.25337033513289,
+        "max_dd": 9.6382936123748,
+        "pf": 3.440009147447589,
+        "knife_rate": 0.3076923076923077,
+        "knife_catchers": 8,
+        "sharpe_daily": 13.221802403204773,
+        "kelly_f": 0.41456104867256505,
+        "avg_size_mult": 0.5727736560660769,
+        "trades_long": 11,
+        "trades_short": 15
+      },
+      "oos": {
+        "trades": 76,
+        "wins": 34,
+        "win_rate": 0.4473684210526316,
+        "compound_ret_pct": 43.254829074217795,
+        "max_dd": 8.245406679732339,
+        "pf": 1.892308007168739,
+        "knife_rate": 0.27631578947368424,
+        "knife_catchers": 21,
+        "sharpe_daily": 4.178509453133312,
+        "kelly_f": 0.19518040223095284,
+        "avg_size_mult": 0.5354678634672572,
+        "trades_long": 36,
+        "trades_short": 40
+      }
+    },
+    {
+      "name": "lev5x_ewon_e3on",
+      "leverage": 5,
+      "entropy_weighted": true,
+      "e3_overlay": true,
+      "in_sample": {
+        "trades": 27,
+        "wins": 13,
+        "win_rate": 0.48148148148148145,
+        "compound_ret_pct": 30.376799258016852,
+        "max_dd": 8.421715131635994,
+        "pf": 3.028402134143735,
+        "knife_rate": 0.2962962962962963,
+        "knife_catchers": 8,
+        "sharpe_daily": 12.12391532160606,
+        "kelly_f": 0.3240086877757958,
+        "avg_size_mult": 0.5716262074604966,
+        "trades_long": 12,
+        "trades_short": 15
+      },
+      "oos": {
+        "trades": 76,
+        "wins": 31,
+        "win_rate": 0.40789473684210525,
+        "compound_ret_pct": 48.380485600108,
+        "max_dd": 7.838578363873768,
+        "pf": 2.0608311158711934,
+        "knife_rate": 0.2631578947368421,
+        "knife_catchers": 20,
+        "sharpe_daily": 4.658775927236894,
+        "kelly_f": 0.19663419345117616,
+        "avg_size_mult": 0.5342962928144158,
+        "trades_long": 36,
+        "trades_short": 40
+      }
+    },
+    {
+      "name": "lev10x_ewoff_e3off",
+      "leverage": 10,
+      "entropy_weighted": false,
+      "e3_overlay": false,
+      "in_sample": {
+        "trades": 26,
+        "wins": 15,
+        "win_rate": 0.5769230769230769,
+        "compound_ret_pct": 183.25523584660255,
+        "max_dd": 27.458926900665304,
+        "pf": 3.440009147447589,
+        "knife_rate": 0.3076923076923077,
+        "knife_catchers": 8,
+        "sharpe_daily": 13.0863893630425,
+        "kelly_f": 0.4607059737403024,
+        "avg_size_mult": 1.0,
+        "trades_long": 11,
+        "trades_short": 15
+      },
+      "oos": {
+        "trades": 76,
+        "wins": 34,
+        "win_rate": 0.4473684210526316,
+        "compound_ret_pct": 213.5119582266781,
+        "max_dd": 30.71288775301646,
+        "pf": 1.8923080071687395,
+        "knife_rate": 0.27631578947368424,
+        "knife_catchers": 21,
+        "sharpe_daily": 4.04766500419661,
+        "kelly_f": 0.16005035986457886,
+        "avg_size_mult": 1.0,
+        "trades_long": 36,
+        "trades_short": 40
+      }
+    },
+    {
+      "name": "lev10x_ewoff_e3on",
+      "leverage": 10,
+      "entropy_weighted": false,
+      "e3_overlay": true,
+      "in_sample": {
+        "trades": 27,
+        "wins": 13,
+        "win_rate": 0.48148148148148145,
+        "compound_ret_pct": 144.7601440724761,
+        "max_dd": 23.967205442902532,
+        "pf": 3.0284021341437355,
+        "knife_rate": 0.2962962962962963,
+        "knife_catchers": 8,
+        "sharpe_daily": 11.87507308113476,
+        "kelly_f": 0.3479427512952612,
+        "avg_size_mult": 1.0,
+        "trades_long": 12,
+        "trades_short": 15
+      },
+      "oos": {
+        "trades": 76,
+        "wins": 31,
+        "win_rate": 0.40789473684210525,
+        "compound_ret_pct": 256.81108650222785,
+        "max_dd": 28.197724233545518,
+        "pf": 2.0608311158711934,
+        "knife_rate": 0.2631578947368421,
+        "knife_catchers": 20,
+        "sharpe_daily": 4.512554598642171,
+        "kelly_f": 0.16479491536065333,
+        "avg_size_mult": 1.0,
+        "trades_long": 36,
+        "trades_short": 40
+      }
+    },
+    {
+      "name": "lev10x_ewon_e3off",
+      "leverage": 10,
+      "entropy_weighted": true,
+      "e3_overlay": false,
+      "in_sample": {
+        "trades": 26,
+        "wins": 15,
+        "win_rate": 0.5769230769230769,
+        "compound_ret_pct": 79.14230643680094,
+        "max_dd": 18.588878739079593,
+        "pf": 3.440009147447589,
+        "knife_rate": 0.3076923076923077,
+        "knife_catchers": 8,
+        "sharpe_daily": 13.18957773780413,
+        "kelly_f": 0.4300817942903485,
+        "avg_size_mult": 0.5727736560660769,
+        "trades_long": 11,
+        "trades_short": 15
+      },
+      "oos": {
+        "trades": 76,
+        "wins": 34,
+        "win_rate": 0.4473684210526316,
+        "compound_ret_pct": 96.28772351057083,
+        "max_dd": 16.437524185329274,
+        "pf": 1.892308007168739,
+        "knife_rate": 0.27631578947368424,
+        "knife_catchers": 21,
+        "sharpe_daily": 4.116598367726235,
+        "kelly_f": 0.18122480489730503,
+        "avg_size_mult": 0.5354678634672572,
+        "trades_long": 36,
+        "trades_short": 40
+      }
+    },
+    {
+      "name": "lev10x_ewon_e3on",
+      "leverage": 10,
+      "entropy_weighted": true,
+      "e3_overlay": true,
+      "in_sample": {
+        "trades": 27,
+        "wins": 13,
+        "win_rate": 0.48148148148148145,
+        "compound_ret_pct": 66.54172479225207,
+        "max_dd": 16.353137850180975,
+        "pf": 3.0284021341437355,
+        "knife_rate": 0.2962962962962963,
+        "knife_catchers": 8,
+        "sharpe_daily": 12.084874209036714,
+        "kelly_f": 0.33200101089569556,
+        "avg_size_mult": 0.5716262074604966,
+        "trades_long": 12,
+        "trades_short": 15
+      },
+      "oos": {
+        "trades": 76,
+        "wins": 31,
+        "win_rate": 0.40789473684210525,
+        "compound_ret_pct": 111.04402260911077,
+        "max_dd": 15.286347394807013,
+        "pf": 2.0608311158711934,
+        "knife_rate": 0.2631578947368421,
+        "knife_catchers": 20,
+        "sharpe_daily": 4.609614543743362,
+        "kelly_f": 0.18393465121404837,
+        "avg_size_mult": 0.5342962928144158,
+        "trades_long": 36,
+        "trades_short": 40
+      }
+    }
+  ],
+  "evaluations": [
+    {
+      "name": "lev5x_ewoff_e3off",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement -2.3468125070955353e-14% < 15%"
+      ],
+      "oos_pf_imp": -2.3468125070955353e-14
+    },
+    {
+      "name": "lev5x_ewon_e3off",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement -2.3468125070955353e-14% < 15%"
+      ],
+      "oos_pf_imp": -2.3468125070955353e-14
+    },
+    {
+      "name": "lev10x_ewon_e3off",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement -2.3468125070955353e-14% < 15%"
+      ],
+      "oos_pf_imp": -2.3468125070955353e-14
+    },
+    {
+      "name": "lev5x_ewoff_e3on",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement 8.905691254490735% < 15%",
+        "IS win_rate 0.481 vs 0.577 worse >15%"
+      ],
+      "oos_pf_imp": 8.905691254490735
+    },
+    {
+      "name": "lev5x_ewon_e3on",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement 8.905691254490712% < 15%",
+        "IS win_rate 0.481 vs 0.577 worse >15%"
+      ],
+      "oos_pf_imp": 8.905691254490712
+    },
+    {
+      "name": "lev10x_ewoff_e3on",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement 8.905691254490712% < 15%",
+        "IS win_rate 0.481 vs 0.577 worse >15%"
+      ],
+      "oos_pf_imp": 8.905691254490712
+    },
+    {
+      "name": "lev10x_ewon_e3on",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement 8.905691254490712% < 15%",
+        "IS win_rate 0.481 vs 0.577 worse >15%"
+      ],
+      "oos_pf_imp": 8.905691254490712
+    }
+  ],
+  "passing": [],
+  "decision": "NO_PROMOTE"
+}

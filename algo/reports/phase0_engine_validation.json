@@ -1,0 +1,89 @@
+{
+  "n_bars": 30644,
+  "n_days": 21.28,
+  "reference_from_param_sweep": {
+    "config": {
+      "sl": 50,
+      "tp": 150,
+      "trail_after": 150,
+      "trail_bps": 50,
+      "knife_bps": 50,
+      "ext_cap": null
+    },
+    "stored": {
+      "trades": 49,
+      "wins": 24,
+      "win_rate": 0.4897959183673469,
+      "ret_pct": 448.19971326149914,
+      "max_dd": 13.473627929150872,
+      "calmar": 33.26496142080608,
+      "pf": 3.377709843908432
+    },
+    "re_run": {
+      "trades": 51,
+      "wins": 24,
+      "win_rate": 0.47058823529411764,
+      "ret_pct": 421.77054369950196,
+      "max_dd": 13.473627929150872,
+      "calmar": 31.30341329872856,
+      "pf": 3.1616594719858733,
+      "reasons": {
+        "sl": 24,
+        "tp_trail": 18,
+        "trail_stop": 6,
+        "timeout": 3
+      }
+    },
+    "reproduces_within_tolerance": false
+  },
+  "current_live_config": {
+    "config": {
+      "sl": 50,
+      "tp": 200,
+      "trail_after": 150,
+      "trail_bps": 50,
+      "knife_bps": 50,
+      "ext_cap": 100
+    },
+    "result": {
+      "trades": 44,
+      "wins": 23,
+      "win_rate": 0.5227272727272727,
+      "ret_pct": 541.1403311084341,
+      "max_dd": 13.473627929150872,
+      "calmar": 40.162926715354054,
+      "pf": 4.011325995047816,
+      "reasons": {
+        "sl": 18,
+        "tp_trail": 17,
+        "trail_stop": 6,
+        "timeout": 3
+      }
+    }
+  },
+  "tp200_no_ext": {
+    "config": {
+      "sl": 50,
+      "tp": 200,
+      "trail_after": 150,
+      "trail_bps": 50,
+      "knife_bps": 50,
+      "ext_cap": null
+    },
+    "result": {
+      "trades": 51,
+      "wins": 24,
+      "win_rate": 0.47058823529411764,
+      "ret_pct": 421.77054369950196,
+      "max_dd": 13.473627929150872,
+      "calmar": 31.30341329872856,
+      "pf": 3.1616594719858733,
+      "reasons": {
+        "sl": 24,
+        "tp_trail": 18,
+        "trail_stop": 6,
+        "timeout": 3
+      }
+    }
+  }
+}
