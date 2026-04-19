@@ -1,0 +1,126 @@
+{
+  "data": {
+    "source": "Pi Kraken Futures L2 orderbook",
+    "date_range_utc": [
+      "0",
+      "30643"
+    ],
+    "n_bars_1min": 30644,
+    "n_days": 21.28
+  },
+  "all_bars": {
+    "imbalance_dist": {
+      "n": 30644,
+      "mean": -0.006656876578274603,
+      "median": -0.01076217151718065,
+      "std": 0.4790988549826114,
+      "p5": -0.7741809139551489,
+      "p25": -0.390611284449519,
+      "p75": 0.37193740261268765,
+      "p95": 0.7758877249714121,
+      "min": -0.9964744775639001,
+      "max": 0.9931613911684253,
+      "frac_positive": 0.4924944524213549,
+      "frac_negative": 0.5075055475786451,
+      "frac_abs_above_0_05": 0.9277835791672105
+    },
+    "H_dist_when_imb_pos": {
+      "n": 15076,
+      "mean": 0.49209588630176465,
+      "median": 0.48999473315630415,
+      "std": 0.0320343136268113,
+      "p5": 0.4438862559065886,
+      "p25": 0.46915519322782195,
+      "p75": 0.5133665819030344,
+      "p95": 0.5469272309152549,
+      "min": 0.3107542955208018,
+      "max": 0.6169835604483219,
+      "frac_positive": 1.0,
+      "frac_negative": 0.0,
+      "frac_abs_above_0_05": 1.0
+    },
+    "H_dist_when_imb_neg": {
+      "n": 15537,
+      "mean": 0.4920824619014924,
+      "median": 0.4904905886869949,
+      "std": 0.03221690159848549,
+      "p5": 0.44297590844678214,
+      "p25": 0.4697217646308346,
+      "p75": 0.5130481933152696,
+      "p95": 0.5473218265582275,
+      "min": 0.256996819675687,
+      "max": 0.6084768460111124,
+      "frac_positive": 1.0,
+      "frac_negative": 0.0,
+      "frac_abs_above_0_05": 1.0
+    }
+  },
+  "filter_pass_except_direction": {
+    "n_candidates": 85,
+    "blocked_by_dH": 31,
+    "blocked_by_knife_long": 4,
+    "blocked_by_knife_short": 4,
+    "blocked_by_ext_long": 7,
+    "blocked_by_ext_short": 14,
+    "imbalance_dist": {
+      "n": 85,
+      "mean": -0.06979467200498717,
+      "median": -0.17060247268921297,
+      "std": 0.5446761218491029,
+      "p5": -0.8479937957112562,
+      "p25": -0.48160700416578417,
+      "p75": 0.35864115930461676,
+      "p95": 0.8539024464742027,
+      "min": -0.9299536818466014,
+      "max": 0.942811887791255,
+      "frac_positive": 0.4235294117647059,
+      "frac_negative": 0.5764705882352941,
+      "frac_abs_above_0_05": 1.0
+    },
+    "signal_candidates_long": 36,
+    "signal_candidates_short": 49,
+    "long_to_short_ratio": 0.7346938775510204
+  },
+  "entropy_crossings": {
+    "n_below_thresh_total": 766,
+    "n_below_thresh_when_imb_pos": 344,
+    "n_below_thresh_when_imb_neg": 422,
+    "long_to_short_ratio_below_thresh": 0.8151658767772512
+  },
+  "combined_h_and_imb_signal": {
+    "n_long": 317,
+    "n_short": 399,
+    "long_to_short_ratio": 0.7944862155388471
+  },
+  "trade_flow_prototype": {
+    "window_hours": 24,
+    "n_trades": 19933,
+    "n_5min_buckets": 289,
+    "first_ts": 1776512448.4053273,
+    "last_ts": 1776598863.4610116,
+    "dist": {
+      "n": 289,
+      "mean": -0.09270575038693253,
+      "median": -0.13002994114216354,
+      "std": 0.5800038143560378,
+      "p5": -0.9105056216570753,
+      "p25": -0.6139184041310822,
+      "p75": 0.4026630506240718,
+      "p95": 0.8743615878162754,
+      "min": -0.9900580928796862,
+      "max": 0.9990488543186605,
+      "frac_positive": 0.4186851211072664,
+      "frac_negative": 0.5813148788927336,
+      "frac_abs_above_0_05": 0.9619377162629758
+    }
+  },
+  "headline_metrics": {
+    "imbalance_mean": -0.006656876578274603,
+    "imbalance_median": -0.01076217151718065,
+    "frac_positive": 0.4924944524213549,
+    "signal_candidates_long": 36,
+    "signal_candidates_short": 49,
+    "H_p50_when_imb_pos": 0.48999473315630415,
+    "H_p50_when_imb_neg": 0.4904905886869949
+  }
+}
