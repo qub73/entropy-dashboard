@@ -1,0 +1,535 @@
+{
+  "config": {
+    "entry_gate": "F3c always on",
+    "pi_params": {
+      "sl": 50,
+      "tp": 200,
+      "knife_bps": 50,
+      "ext_cap_bps": 100
+    },
+    "kaggle_params": {
+      "sl": 50,
+      "tp": 150,
+      "knife_bps": 100,
+      "ext_cap_bps": null
+    },
+    "post_signal_trail": {
+      "width_bps": 20,
+      "hard_floor": -60,
+      "max_wait_bars": 30
+    },
+    "e5_long_only": {
+      "min_hold": 20,
+      "h_exit": 0.4852,
+      "mfe_guard": 20,
+      "width": 20
+    }
+  },
+  "promotion_rule": {
+    "primary": [
+      "IS return > 0",
+      "OOS return > 0",
+      "OOS PF improvement >= 15%",
+      "OOS max_dd <= baseline max_dd",
+      "IS trades >= 15",
+      "OOS trades >= 30"
+    ],
+    "secondary": "no single metric (PF / knife_rate / win_rate) worse by >15% on either dataset"
+  },
+  "runs": [
+    {
+      "name": "a_baseline_F3c",
+      "variant": {},
+      "in_sample": {
+        "trades": 26,
+        "n_full_closes": 26,
+        "wins": 14,
+        "win_rate": 0.5384615384615384,
+        "compound_ret_pct": 174.91132044405572,
+        "max_dd": 23.45786909844335,
+        "pf": 3.3938257165826426,
+        "knife_catchers": 8,
+        "knife_rate": 0.3076923076923077,
+        "trades_long": 11,
+        "trades_short": 15,
+        "reasons": {
+          "sl": 10,
+          "trail_stop": 4,
+          "tp_trail": 9,
+          "timeout": 2,
+          "end": 1
+        }
+      },
+      "oos": {
+        "trades": 76,
+        "n_full_closes": 76,
+        "wins": 32,
+        "win_rate": 0.42105263157894735,
+        "compound_ret_pct": 199.59040040589014,
+        "max_dd": 20.796519202204315,
+        "pf": 1.8577838255639847,
+        "knife_catchers": 21,
+        "knife_rate": 0.27631578947368424,
+        "trades_long": 36,
+        "trades_short": 40,
+        "reasons": {
+          "trail_stop": 15,
+          "tp_trail": 17,
+          "sl": 40,
+          "timeout": 4
+        }
+      }
+    },
+    {
+      "name": "b_timeout_trail",
+      "variant": {
+        "timeout_trail": true
+      },
+      "in_sample": {
+        "trades": 26,
+        "n_full_closes": 26,
+        "wins": 15,
+        "win_rate": 0.5769230769230769,
+        "compound_ret_pct": 183.25523584660255,
+        "max_dd": 23.45786909844335,
+        "pf": 3.440009147447589,
+        "knife_catchers": 8,
+        "knife_rate": 0.3076923076923077,
+        "trades_long": 11,
+        "trades_short": 15,
+        "reasons": {
+          "sl": 10,
+          "trail_stop": 4,
+          "tp_trail": 9,
+          "pst_trail": 1,
+          "pst_timeout": 1,
+          "end": 1
+        }
+      },
+      "oos": {
+        "trades": 76,
+        "n_full_closes": 76,
+        "wins": 34,
+        "win_rate": 0.4473684210526316,
+        "compound_ret_pct": 213.5119582266781,
+        "max_dd": 19.792833772091512,
+        "pf": 1.8923080071687395,
+        "knife_catchers": 21,
+        "knife_rate": 0.27631578947368424,
+        "trades_long": 36,
+        "trades_short": 40,
+        "reasons": {
+          "trail_stop": 15,
+          "tp_trail": 17,
+          "sl": 40,
+          "pst_trail": 3,
+          "pst_timeout": 1
+        }
+      }
+    },
+    {
+      "name": "c_E5_long_only",
+      "variant": {
+        "e5_long_only": true
+      },
+      "in_sample": {
+        "trades": 26,
+        "n_full_closes": 26,
+        "wins": 14,
+        "win_rate": 0.5384615384615384,
+        "compound_ret_pct": 149.48926821711302,
+        "max_dd": 20.25699097018137,
+        "pf": 3.368959428131632,
+        "knife_catchers": 8,
+        "knife_rate": 0.3076923076923077,
+        "trades_long": 11,
+        "trades_short": 15,
+        "reasons": {
+          "sl": 9,
+          "pst_trail": 2,
+          "trail_stop": 4,
+          "tp_trail": 8,
+          "timeout": 2,
+          "end": 1
+        }
+      },
+      "oos": {
+        "trades": 77,
+        "n_full_closes": 77,
+        "wins": 34,
+        "win_rate": 0.44155844155844154,
+        "compound_ret_pct": 159.01684593615676,
+        "max_dd": 21.117843349900202,
+        "pf": 1.8590656615961498,
+        "knife_catchers": 22,
+        "knife_rate": 0.2857142857142857,
+        "trades_long": 37,
+        "trades_short": 40,
+        "reasons": {
+          "trail_stop": 12,
+          "tp_trail": 15,
+          "sl": 33,
+          "pst_trail": 11,
+          "pst_timeout": 4,
+          "timeout": 2
+        }
+      }
+    },
+    {
+      "name": "d_E1_lower_trail",
+      "variant": {
+        "e1_lower_trail": true
+      },
+      "in_sample": {
+        "trades": 26,
+        "n_full_closes": 26,
+        "wins": 15,
+        "win_rate": 0.5769230769230769,
+        "compound_ret_pct": 124.19467013895871,
+        "max_dd": 26.250943400392746,
+        "pf": 3.0237956858314714,
+        "knife_catchers": 8,
+        "knife_rate": 0.3076923076923077,
+        "trades_long": 11,
+        "trades_short": 15,
+        "reasons": {
+          "sl": 10,
+          "tp_trail": 14,
+          "trail_stop": 1,
+          "timeout": 1
+        }
+      },
+      "oos": {
+        "trades": 79,
+        "n_full_closes": 79,
+        "wins": 38,
+        "win_rate": 0.4810126582278481,
+        "compound_ret_pct": 140.38948189867136,
+        "max_dd": 26.80358569769043,
+        "pf": 1.7786493469914686,
+        "knife_catchers": 23,
+        "knife_rate": 0.2911392405063291,
+        "trades_long": 37,
+        "trades_short": 42,
+        "reasons": {
+          "trail_stop": 4,
+          "tp_trail": 34,
+          "sl": 37,
+          "timeout": 4
+        }
+      }
+    },
+    {
+      "name": "e_E2_partial_tp",
+      "variant": {
+        "e2_partial_tp": true
+      },
+      "in_sample": {
+        "trades": 26,
+        "n_full_closes": 26,
+        "wins": 14,
+        "win_rate": 0.5384615384615384,
+        "compound_ret_pct": 109.55754992437087,
+        "max_dd": 23.543388482253178,
+        "pf": 2.7928277162676163,
+        "knife_catchers": 8,
+        "knife_rate": 0.3076923076923077,
+        "trades_long": 11,
+        "trades_short": 15,
+        "reasons": {
+          "sl": 10,
+          "trail_stop": 4,
+          "tp_trail": 9,
+          "timeout": 2,
+          "end": 1
+        }
+      },
+      "oos": {
+        "trades": 76,
+        "n_full_closes": 76,
+        "wins": 35,
+        "win_rate": 0.4605263157894737,
+        "compound_ret_pct": 125.00091172469969,
+        "max_dd": 24.791907107971674,
+        "pf": 1.721725189094372,
+        "knife_catchers": 21,
+        "knife_rate": 0.27631578947368424,
+        "trades_long": 36,
+        "trades_short": 40,
+        "reasons": {
+          "trail_stop": 15,
+          "tp_trail": 17,
+          "sl": 40,
+          "timeout": 4
+        }
+      }
+    },
+    {
+      "name": "f_E3_time_decay_sl",
+      "variant": {
+        "e3_time_decayed_sl": true
+      },
+      "in_sample": {
+        "trades": 27,
+        "n_full_closes": 27,
+        "wins": 13,
+        "win_rate": 0.48148148148148145,
+        "compound_ret_pct": 149.28904370352254,
+        "max_dd": 20.415518900251207,
+        "pf": 3.1267482266563054,
+        "knife_catchers": 8,
+        "knife_rate": 0.2962962962962963,
+        "trades_long": 12,
+        "trades_short": 15,
+        "reasons": {
+          "sl": 13,
+          "trail_stop": 3,
+          "tp_trail": 9,
+          "timeout": 1,
+          "end": 1
+        }
+      },
+      "oos": {
+        "trades": 76,
+        "n_full_closes": 76,
+        "wins": 31,
+        "win_rate": 0.40789473684210525,
+        "compound_ret_pct": 256.81108650222785,
+        "max_dd": 21.352385518666985,
+        "pf": 2.0608311158711934,
+        "knife_catchers": 20,
+        "knife_rate": 0.2631578947368421,
+        "trades_long": 36,
+        "trades_short": 40,
+        "reasons": {
+          "trail_stop": 14,
+          "tp_trail": 17,
+          "sl": 45
+        }
+      }
+    },
+    {
+      "name": "g_E4_atr_initial_sl",
+      "variant": {
+        "e4_atr_initial_sl": true
+      },
+      "in_sample": {
+        "trades": 28,
+        "n_full_closes": 28,
+        "wins": 13,
+        "win_rate": 0.4642857142857143,
+        "compound_ret_pct": 150.62235371388996,
+        "max_dd": 19.527568494060116,
+        "pf": 3.1708518266278065,
+        "knife_catchers": 10,
+        "knife_rate": 0.35714285714285715,
+        "trades_long": 13,
+        "trades_short": 15,
+        "reasons": {
+          "sl": 15,
+          "trail_stop": 3,
+          "tp_trail": 9,
+          "end": 1
+        }
+      },
+      "oos": {
+        "trades": 77,
+        "n_full_closes": 77,
+        "wins": 24,
+        "win_rate": 0.3116883116883117,
+        "compound_ret_pct": 47.81912530962729,
+        "max_dd": 23.934550099949426,
+        "pf": 1.5217037179082844,
+        "knife_catchers": 25,
+        "knife_rate": 0.3246753246753247,
+        "trades_long": 36,
+        "trades_short": 41,
+        "reasons": {
+          "trail_stop": 12,
+          "sl": 51,
+          "tp_trail": 12,
+          "timeout": 2
+        }
+      }
+    },
+    {
+      "name": "h_best_cg_stack_b_f_E3_time_decay_sl",
+      "variant": {
+        "e3_time_decayed_sl": true,
+        "timeout_trail": true
+      },
+      "in_sample": {
+        "trades": 27,
+        "n_full_closes": 27,
+        "wins": 13,
+        "win_rate": 0.48148148148148145,
+        "compound_ret_pct": 144.7601440724761,
+        "max_dd": 20.415518900251207,
+        "pf": 3.0284021341437355,
+        "knife_catchers": 8,
+        "knife_rate": 0.2962962962962963,
+        "trades_long": 12,
+        "trades_short": 15,
+        "reasons": {
+          "sl": 13,
+          "trail_stop": 3,
+          "tp_trail": 9,
+          "pst_trail": 1,
+          "end": 1
+        }
+      },
+      "oos": {
+        "trades": 76,
+        "n_full_closes": 76,
+        "wins": 31,
+        "win_rate": 0.40789473684210525,
+        "compound_ret_pct": 256.81108650222785,
+        "max_dd": 21.352385518666985,
+        "pf": 2.0608311158711934,
+        "knife_catchers": 20,
+        "knife_rate": 0.2631578947368421,
+        "trades_long": 36,
+        "trades_short": 40,
+        "reasons": {
+          "trail_stop": 14,
+          "tp_trail": 17,
+          "sl": 45
+        }
+      }
+    },
+    {
+      "name": "i_all_stacked",
+      "variant": {
+        "timeout_trail": true,
+        "e5_long_only": true,
+        "e1_lower_trail": true,
+        "e2_partial_tp": true,
+        "e3_time_decayed_sl": true,
+        "e4_atr_initial_sl": true
+      },
+      "in_sample": {
+        "trades": 28,
+        "n_full_closes": 28,
+        "wins": 13,
+        "win_rate": 0.4642857142857143,
+        "compound_ret_pct": 62.438519348600565,
+        "max_dd": 18.71295483686267,
+        "pf": 2.3925125017038047,
+        "knife_catchers": 10,
+        "knife_rate": 0.35714285714285715,
+        "trades_long": 13,
+        "trades_short": 15,
+        "reasons": {
+          "sl": 14,
+          "pst_trail": 2,
+          "tp_trail": 11,
+          "trail_stop": 1
+        }
+      },
+      "oos": {
+        "trades": 81,
+        "n_full_closes": 81,
+        "wins": 32,
+        "win_rate": 0.3950617283950617,
+        "compound_ret_pct": 25.47888754101321,
+        "max_dd": 15.90237362257956,
+        "pf": 1.4617543321480173,
+        "knife_catchers": 27,
+        "knife_rate": 0.3333333333333333,
+        "trades_long": 38,
+        "trades_short": 43,
+        "reasons": {
+          "trail_stop": 1,
+          "sl": 41,
+          "pst_trail": 11,
+          "tp_trail": 25,
+          "pst_timeout": 3
+        }
+      }
+    }
+  ],
+  "evaluations": [
+    {
+      "name": "b_timeout_trail",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement 1.8583530080134036% < 15%"
+      ],
+      "oos_pf_improvement_pct": 1.8583530080134036
+    },
+    {
+      "name": "f_E3_time_decay_sl",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement 10.92954344381633% < 15%",
+        "OOS max_dd 21.35% > baseline 20.80%"
+      ],
+      "oos_pf_improvement_pct": 10.92954344381633
+    },
+    {
+      "name": "h_best_cg_stack_b_f_E3_time_decay_sl",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement 10.92954344381633% < 15%",
+        "OOS max_dd 21.35% > baseline 20.80%"
+      ],
+      "oos_pf_improvement_pct": 10.92954344381633
+    },
+    {
+      "name": "c_E5_long_only",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement 0.06899812639804856% < 15%",
+        "OOS max_dd 21.12% > baseline 20.80%"
+      ],
+      "oos_pf_improvement_pct": 0.06899812639804856
+    },
+    {
+      "name": "d_E1_lower_trail",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement -4.259617156936573% < 15%",
+        "OOS max_dd 26.80% > baseline 20.80%"
+      ],
+      "oos_pf_improvement_pct": -4.259617156936573
+    },
+    {
+      "name": "e_E2_partial_tp",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement -7.32370659047524% < 15%",
+        "OOS max_dd 24.79% > baseline 20.80%",
+        "IS pf 2.793 vs baseline 3.394 (>15% worse)"
+      ],
+      "oos_pf_improvement_pct": -7.32370659047524
+    },
+    {
+      "name": "i_all_stacked",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement -21.317307641847997% < 15%",
+        "IS pf 2.393 vs baseline 3.394 (>15% worse)",
+        "IS knife_rate 0.357 vs baseline 0.308 (>15% worse)",
+        "OOS pf 1.462 vs baseline 1.858 (>15% worse)",
+        "OOS knife_rate 0.333 vs baseline 0.276 (>15% worse)"
+      ],
+      "oos_pf_improvement_pct": -21.317307641847997
+    },
+    {
+      "name": "g_E4_atr_initial_sl",
+      "passes": false,
+      "fails": [
+        "OOS PF improvement -18.090377525688346% < 15%",
+        "OOS max_dd 23.93% > baseline 20.80%",
+        "IS knife_rate 0.357 vs baseline 0.308 (>15% worse)",
+        "OOS pf 1.522 vs baseline 1.858 (>15% worse)",
+        "OOS win_rate 0.312 vs baseline 0.421 (>15% worse)",
+        "OOS knife_rate 0.325 vs baseline 0.276 (>15% worse)"
+      ],
+      "oos_pf_improvement_pct": -18.090377525688346
+    }
+  ],
+  "passing": [],
+  "decision": "NO_PROMOTE",
+  "best_single_cg": "f_E3_time_decay_sl"
+}

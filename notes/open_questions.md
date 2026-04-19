@@ -50,6 +50,37 @@ it's load-bearing and not obviously wrong; flagging per guardrail 6.
 
 ---
 
+## 2026-04-19 — E2 partial_tp aggregation bug
+
+**Issue:** in `phase3_exit_ablation.py` the partial_tp fill and the
+subsequent full-close were appended as SEPARATE rows to `trades[]`.
+PF, WR, and knife-rate summaries iterated these rows one-for-one, so a
+position that partialled at +100 bps and then stopped out at −50 bps
+contributed two rows: one guaranteed-win (+100) + one loser (−50).
+This inflated E2's reported PF (OOS 2.14 → 3.70) and WR. Compound
+return is correct because both realized USDs are added to equity.
+
+**Resolution (applied 2026-04-19 in the same patch):** position-level
+aggregation. Partial_tp fills no longer append to `trades[]`; they
+accumulate into the open position's realized USD and flag
+`had_partial=True`. At full close, one row is appended combining both
+fills. `pnl_bps` on that row is total USD P&L divided by the *initial*
+notional (the notional at entry, before any partial close). `peak_bps`
+is the max peak observed across the position's lifetime. Knife-rate
+excludes positions with partial_tp fills (peak was at least +100 bps
+by definition). `phase3_exit_ablation.json` regenerated. Phase 4 sim
+uses the same position-level aggregation from the start.
+
+## 2026-04-19 — F3 variants for Phase 2
+
+User expanded F3 into three variants (per-message after D1):
+- F3-a: block LONG if `ema_diff_norm < -0.5` (original spec)
+- F3-b: block LONG if `ema_diff_norm < -0.3`
+- F3-c: block LONG if `ema_diff_norm <  +0.3` (requires positive alignment)
+
+All symmetric for SHORT. Each tested independently and in combination
+with F1/F2/F4. Will implement when Phase 2 starts.
+
 ## 2026-04-19 — 60-day shadow data
 
 **Issue:** Sprint phases 2–4 specify a "≥60 days of 1-min ETH data"

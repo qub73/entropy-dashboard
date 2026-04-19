@@ -151,6 +151,78 @@ def compute_cumulative(history):
     }
 
 
+def compute_direction_audit_panel(window_days=7, audit_hist_buckets=21):
+    """Read state/daily_filter_audit.jsonl and produce the dashboard panel data:
+      - rolling `window_days` count of fired signals, split long/short
+      - imbalance distribution at candidate bars (across the same window)
+    Returns a dict; returns zeros/empty if no audit file yet.
+    """
+    audit_file = STATE_DIR / "daily_filter_audit.jsonl"
+    panel = {
+        "window_days": window_days,
+        "n_candidates": 0,
+        "n_passed": 0,
+        "n_blocked": 0,
+        "fired_long": 0,
+        "fired_short": 0,
+        "blocked_by": {},
+        "imb_histogram": [],  # list of (bin_lo, bin_hi, count)
+        "f3c_blocks": 0,
+    }
+    if not audit_file.exists():
+        return panel
+    cutoff = time.time() - window_days * 86400
+    imb_vals = []
+    blocked_reasons = {}
+    try:
+        with open(audit_file) as f:
+            for line in f:
+                line = line.strip()
+                if not line: continue
+                try:
+                    row = json.loads(line)
+                except Exception:
+                    continue
+                if row.get("ts", 0) < cutoff: continue
+                panel["n_candidates"] += 1
+                decision = row.get("decision", "")
+                if decision == "passed":
+                    panel["n_passed"] += 1
+                    if row.get("direction") == 1:
+                        panel["fired_long"] += 1
+                    elif row.get("direction") == -1:
+                        panel["fired_short"] += 1
+                else:
+                    panel["n_blocked"] += 1
+                    blocked_reasons[decision] = blocked_reasons.get(decision, 0) + 1
+                    if decision == "blocked_f3c":
+                        panel["f3c_blocks"] += 1
+                imb = row.get("imbalance")
+                if imb is not None:
+                    imb_vals.append(float(imb))
+    except Exception:
+        pass
+    panel["blocked_by"] = blocked_reasons
+    # Imbalance histogram: 21 bins from -1 to +1
+    if imb_vals:
+        import math
+        bins = [0] * audit_hist_buckets
+        for v in imb_vals:
+            idx = int((max(-1.0, min(1.0, v)) + 1.0) / 2.0 * (audit_hist_buckets - 1))
+            idx = max(0, min(audit_hist_buckets - 1, idx))
+            bins[idx] += 1
+        step = 2.0 / audit_hist_buckets
+        panel["imb_histogram"] = [
+            {"lo": round(-1.0 + i*step, 3),
+             "hi": round(-1.0 + (i+1)*step, 3),
+             "count": bins[i]}
+            for i in range(audit_hist_buckets)
+        ]
+        panel["imb_mean"] = sum(imb_vals) / len(imb_vals)
+        panel["imb_median"] = sorted(imb_vals)[len(imb_vals)//2]
+    return panel
+
+
 def build_status():
     """Build full status JSON."""
     # Read state file
@@ -163,6 +235,9 @@ def build_status():
     # Full history (cumulative, never truncated)
     full_history = load_full_history()
     cumulative = compute_cumulative(full_history)
+
+    # Direction-audit panel (Phase 5)
+    direction_audit = compute_direction_audit_panel(window_days=7)
 
     # Get latest STATUS from log
     log_status = get_latest_status_from_log()
@@ -180,6 +255,7 @@ def build_status():
         "signals": log_status.get("signals", {}),
         # BTC field intentionally omitted (BTC pair disabled)
         "ETH": log_status.get("ETH", {}),
+        "direction_audit": direction_audit,  # Phase 5 dashboard panel
     }
 
     # Get equity from account if possible

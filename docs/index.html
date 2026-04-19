@@ -235,6 +235,21 @@ details > *:not(summary) { padding: 0 14px 14px; }
   </div>
 </div>
 
+<!-- DIRECTION AUDIT PANEL (Phase 5) -->
+<div class="card">
+  <h2>Direction Audit <span class="sub" id="daMeta">(7-day rolling)</span></h2>
+  <div class="stat-grid">
+    <div class="stat"><span class="k">Signals fired</span><span class="v num" id="daFired">–</span></div>
+    <div class="stat"><span class="k">Long / Short</span><span class="v num" id="daLS">–</span></div>
+    <div class="stat"><span class="k">Candidates</span><span class="v num" id="daCands">–</span></div>
+    <div class="stat"><span class="k">Blocked</span><span class="v num" id="daBlocked">–</span></div>
+    <div class="stat"><span class="k">Imbalance mean</span><span class="v num" id="daImbMean">–</span></div>
+    <div class="stat"><span class="k">Imbalance median</span><span class="v num" id="daImbMed">–</span></div>
+  </div>
+  <div id="daHist" class="chart-sm" style="margin-top:10px;"></div>
+  <div class="sub" id="daBlockBreakdown" style="margin-top:6px;"></div>
+</div>
+
 <!-- TRADES -->
 <div class="card">
   <h2>Recent Trades <span class="sub" id="tradesMeta"></span></h2>
@@ -425,6 +440,55 @@ function render(data) {
   // Recent range card + equity curve update from 24h data
   updateRecent();
   updateEquity(cachedTrades);
+  updateDirectionAudit(data.direction_audit || {});
+}
+
+// ---- Direction Audit panel (Phase 5) ----
+function updateDirectionAudit(da) {
+  if (!da || !Object.keys(da).length) {
+    $('daFired').textContent = '–';
+    $('daLS').textContent = '–';
+    $('daCands').textContent = '–';
+    $('daBlocked').textContent = '–';
+    $('daImbMean').textContent = '–';
+    $('daImbMed').textContent = '–';
+    $('daBlockBreakdown').textContent = '(no audit data yet — bot is running pre-Phase-5 code)';
+    return;
+  }
+  $('daMeta').textContent = `(${da.window_days || 7}-day rolling)`;
+  $('daFired').textContent = da.n_passed ?? 0;
+  const L = da.fired_long ?? 0, S = da.fired_short ?? 0;
+  $('daLS').innerHTML = `<span class="up">${L}</span> / <span class="down">${S}</span>`;
+  $('daCands').textContent = da.n_candidates ?? 0;
+  $('daBlocked').textContent = da.n_blocked ?? 0;
+  if (da.imb_mean != null)
+    $('daImbMean').textContent = (da.imb_mean >= 0 ? '+' : '') + da.imb_mean.toFixed(3);
+  if (da.imb_median != null)
+    $('daImbMed').textContent = (da.imb_median >= 0 ? '+' : '') + da.imb_median.toFixed(3);
+  // block breakdown
+  const bb = da.blocked_by || {};
+  const parts = Object.keys(bb).sort().map(k => `${k}:${bb[k]}`);
+  $('daBlockBreakdown').textContent = parts.length
+    ? 'Block reasons: ' + parts.join(' · ')
+    : '';
+  // histogram
+  const hist = da.imb_histogram || [];
+  if (hist.length) {
+    const x = hist.map(b => (b.lo + b.hi) / 2);
+    const y = hist.map(b => b.count);
+    Plotly.newPlot('daHist', [
+      { type: 'bar', x, y,
+        marker: { color: x.map(v => v >= 0 ? '#3fb950' : '#f85149') },
+        hovertemplate: 'imb %{x:.2f}<br>count %{y}<extra></extra>',
+        showlegend: false },
+      { type: 'scatter', mode: 'lines', x: [0, 0], y: [0, Math.max(...y, 1)],
+        line: { color: '#d29922', width: 1, dash: 'dash' },
+        showlegend: false, hoverinfo: 'skip' },
+    ], chartLayout({ height: 180, yTitle: 'count' }),
+    { displaylogo: false, responsive: true });
+  } else {
+    $('daHist').innerHTML = '';
+  }
 }
 
 // ---- Position ----
