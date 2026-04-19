@@ -711,6 +711,15 @@ class MultiPairManager:
 
         self.position = None
         self._save_state()
+        # Auto-flip safety valve (sprint v1 item B): compare this trade's
+        # realized pnl_bps against the shadow expectation for its bucket;
+        # if cumulative z over last 10 trades falls below -2*sqrt(10),
+        # disable sprint flags + revert leverage. Runs synchronously
+        # because the flip must be in place before any subsequent entry.
+        try:
+            self._check_shadow_drift(trade)
+        except Exception as e:
+            logger.warning(f"shadow drift check failed: {e}")
         # Snapshot 1-min price bars around this trade while they are still
         # available from Kraken (the 1-min window only goes back ~12 h).
         # Non-blocking: wrap in try/except; any fetch failure is logged.
@@ -720,6 +729,112 @@ class MultiPairManager:
         except Exception as e:
             logger.warning(f"chart capture thread failed to start: {e}")
         return trade
+
+    # -------- Auto-flip safety valve --------
+
+    @staticmethod
+    def _bucket_for_trade(trade):
+        """Return (primary_bucket, fallback_bucket) for a trade dict."""
+        d = "long" if trade.get("direction") == 1 else "short"
+        try:
+            dt = datetime.fromisoformat(trade["time"])
+            h = dt.astimezone(timezone.utc).hour
+        except Exception:
+            h = 0
+        if   0 <= h < 8:   sess = "asia"
+        elif 8 <= h < 16:  sess = "europe"
+        else:              sess = "americas"
+        return f"{d}_{sess}", d
+
+    def _check_shadow_drift(self, trade):
+        """Compare realized pnl_bps to shadow expectation; append z to the
+        rolling 10-trade window; trigger auto-disable if cumulative z falls
+        below the -2*sqrt(10) threshold."""
+        state_dir = self.state_file.parent
+        shadow_file = state_dir / "shadow_expectation.json"
+        drift_file  = state_dir / "live_drift_monitor.json"
+        valve_file  = state_dir / "safety_valve.json"
+
+        # If the valve already tripped, skip further monitoring.
+        if valve_file.exists():
+            return
+        if not shadow_file.exists():
+            # No shadow expectation loaded; monitor is dormant.
+            return
+        try:
+            shadow = json.load(open(shadow_file))
+        except Exception as e:
+            logger.warning(f"shadow expectation unreadable: {e}"); return
+
+        primary, fallback = self._bucket_for_trade(trade)
+        stats = shadow.get("buckets", {}).get(primary)
+        if not stats or stats.get("count", 0) < 5:
+            stats = shadow.get("fallback_by_direction", {}).get(fallback)
+        if not stats or (stats.get("std_bps") or 0) <= 0:
+            return  # can't compute z without a valid std
+
+        realized = trade.get("pnl_bps", 0.0)
+        z = (realized - stats["mean_pnl_bps"]) / stats["std_bps"]
+
+        # Append to rolling window
+        win = {"z_scores": [], "trade_order_ids": []}
+        if drift_file.exists():
+            try: win = json.load(open(drift_file))
+            except Exception: pass
+        win.setdefault("z_scores", []).append(z)
+        win.setdefault("trade_order_ids", []).append(trade.get("order_id"))
+        if len(win["z_scores"]) > 10:
+            win["z_scores"] = win["z_scores"][-10:]
+            win["trade_order_ids"] = win["trade_order_ids"][-10:]
+        win["last_bucket"] = primary
+        win["last_z"] = z
+        win["last_realized_pnl_bps"] = realized
+        win["last_expected_mean_bps"] = stats["mean_pnl_bps"]
+        win["last_expected_std_bps"]  = stats["std_bps"]
+        win["updated_at"] = datetime.now(timezone.utc).isoformat()
+        tmp = str(drift_file) + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(win, f, indent=2)
+        os.replace(tmp, str(drift_file))
+
+        logger.info(f"[LIVE-MONITOR] trade {trade.get('order_id','?')[:8]} "
+                    f"bucket={primary} realized={realized:+.1f}bps "
+                    f"expected={stats['mean_pnl_bps']:+.1f}+/-{stats['std_bps']:.1f} "
+                    f"z={z:+.2f}")
+
+        # Trigger check
+        if len(win["z_scores"]) < 10:
+            return
+        cum_z = sum(win["z_scores"])
+        threshold = -2.0 * (10 ** 0.5)  # ~= -6.32
+        if cum_z < threshold:
+            self._trigger_safety_valve(cum_z, threshold, valve_file)
+
+    def _trigger_safety_valve(self, cum_z, threshold, valve_file):
+        """Flip sprint-v1 flags to False, revert leverage, persist marker."""
+        marker = {
+            "auto_disabled_at": datetime.now(timezone.utc).isoformat(),
+            "cumulative_z": cum_z,
+            "threshold": threshold,
+            "reason": (f"cumulative z over last 10 trades ({cum_z:+.2f}) "
+                       f"is below adverse threshold ({threshold:+.2f})"),
+            "disabled_flags": ["f3c_enabled", "timeout_trail_enabled",
+                               "e3_time_decay_sl_enabled"],
+            "leverage_reverted_to": 10,
+        }
+        with open(valve_file, "w") as f:
+            json.dump(marker, f, indent=2)
+        # In-memory flip
+        for p in PAIRS:
+            PAIRS[p]["f3c_enabled"] = False
+            PAIRS[p]["timeout_trail_enabled"] = False
+            PAIRS[p]["e3_time_decay_sl_enabled"] = False
+        SHARED_CONFIG["leverage"] = 10
+        logger.warning(
+            f"[LIVE-MONITOR] !!! SAFETY VALVE TRIPPED !!! "
+            f"cumulative z = {cum_z:+.2f} < threshold {threshold:+.2f}. "
+            f"Sprint v1 flags disabled; leverage reverted to 10x. "
+            f"Manual review required. Delete {valve_file} to clear.")
 
     def _capture_trade_chart(self, trade):
         """Fetch ±1h 1-min OHLC around the trade and append to
@@ -1066,6 +1181,28 @@ def main():
                             f"{ENGINE_STATE_MAX_AGE_SEC}s) -- cold start")
         except Exception as e:
             logger.warning(f"engine state restore failed: {e}")
+
+    # ---- Safety valve startup check ----
+    # If a previous session tripped the auto-flip, re-apply the overrides
+    # on startup so the bot doesn't silently re-enable sprint flags.
+    valve_file = STATE_DIR / "safety_valve.json"
+    if valve_file.exists():
+        try:
+            marker = json.load(open(valve_file))
+            for p in PAIRS:
+                PAIRS[p]["f3c_enabled"] = False
+                PAIRS[p]["timeout_trail_enabled"] = False
+                PAIRS[p]["e3_time_decay_sl_enabled"] = False
+            SHARED_CONFIG["leverage"] = marker.get("leverage_reverted_to", 10)
+            logger.warning(
+                f"[LIVE-MONITOR] Safety valve ACTIVE "
+                f"(tripped at {marker.get('auto_disabled_at','?')}): "
+                f"{marker.get('reason','?')}. "
+                f"Sprint v1 flags forced False on startup; "
+                f"leverage = {SHARED_CONFIG['leverage']}x. "
+                f"Delete {valve_file} to clear.")
+        except Exception as e:
+            logger.warning(f"safety_valve.json unreadable: {e}")
 
     logger.info(f"Config: {json.dumps(SHARED_CONFIG, indent=2)}")
     for p, cfg in PAIRS.items():

@@ -108,19 +108,106 @@ Artifacts: `algo/reports/phase4_sizing_sim.json`.
 
 ---
 
-## Phase 6 live-promotion checklist
+## Phase 6 live-promotion checklist (STAGED)
 
-Do **not** merge/deploy without each of these checked:
+Promotion is **two-stage**. Stage 6a deploys only the observer
+(filter-audit writer + auto-flip monitor infrastructure). Stage 6b
+flips the strategy flags after 3–7 days of clean observer data.
 
-### Pre-deploy (manual verification)
+### Pre-deploy (manual verification, before any stage)
 
-- [ ] Merge `sprint/direction-and-exit-v1` → `main` with approved config diff below
+- [ ] `state/shadow_expectation.json` regenerated against the
+      promoted config (run `algo/diagnostics/shadow_expectation_generator.py`)
 - [ ] `state/multi_trader_state.json` shows `"position": None` on Pi
 - [ ] Current Pi service running cleanly (no active trade to interrupt)
 - [ ] Backup current `entropy_live_multi.py` on Pi as `entropy_live_multi.py.pre_sprint_v1`
-- [ ] Backup `state/engine_state.json` (optional — will regenerate from 30-min restore window)
+- [ ] Backup `state/engine_state.json` (optional — regenerates from 30-min restore)
 
-### Config diff to apply on Phase 6 deploy
+### Stage 6a — observer-only deploy (low risk)
+
+- [ ] Merge `sprint/direction-and-exit-v1` → `main` (no config diff yet)
+- [ ] Deploy to Pi — all sprint flags still default **False**, leverage stays **10×**
+- [ ] Only behavior change: `state/daily_filter_audit.jsonl` starts appending,
+      `state/shadow_expectation.json` is present, and `_check_shadow_drift` is
+      invoked on each trade close but in dormant mode (the safety valve file
+      hasn't been created; monitor just accumulates z scores to
+      `state/live_drift_monitor.json`)
+- [ ] Verify for 3–7 days:
+      - Audit JSONL file is appending one row per candidate bar
+      - Candidate-bar stats (direction split, imbalance distribution) match
+        the Phase-4 shadow distributions within rough bounds
+      - No unexpected IO, memory, or CPU growth on the Pi
+      - `live_drift_monitor.json` shows z-scores within the expected range
+        given baseline parameters and current live config
+      - Dashboard `direction_audit` panel renders with real data
+
+### Stage 6b — strategy promotion (after clean 6a window)
+
+Config diff to apply in `PAIRS["ETH"]`:
+
+```python
+"f3c_enabled": True,
+"f3c_ema_fast": 30,
+"f3c_ema_slow": 150,
+"f3c_atr_window": 30,
+"f3c_threshold": 0.3,
+"timeout_trail_enabled": True,
+"timeout_trail_width_bps": 20,
+"timeout_trail_hard_floor_bps": -60,
+"timeout_trail_max_wait_bars": 30,
+"e3_time_decay_sl_enabled": True,
+"e3_tighten_after_bars": 60,
+"e3_peak_threshold_bps": 50,
+"e3_tightened_sl_bps": 25,
+```
+
+And in `SHARED_CONFIG`: `"leverage": 5` (from 10).
+
+- [ ] Deploy to Pi (push + restart)
+- [ ] First live trade under new config closes → verify `[LIVE-MONITOR]` line prints
+- [ ] First trade's z-score is recorded in `state/live_drift_monitor.json`
+- [ ] Delete `state/live_drift_monitor.json` **before** this stage starts so
+      the 10-trade rolling window begins fresh under the new config
+      (otherwise observer-period z scores carry over, which they shouldn't
+      because they were computed against unflipped-config realized PnL)
+
+### Auto-flip safety valve (Phase 6 ships with this)
+
+On each trade close in `close_position`:
+
+1. Look up shadow expectation for the trade's bucket `(direction, UTC session)`
+   in `state/shadow_expectation.json`. Falls back to direction-only if the
+   primary cell has `count < 5`.
+2. Compute `z = (realized_pnl_bps - expected_mean) / expected_std`.
+3. Append `z` to the rolling 10-trade window at `state/live_drift_monitor.json`.
+4. If the window is full AND `sum(last 10 z) < −2·√10 ≈ −6.32`, trigger:
+   - Write `state/safety_valve.json` marker
+   - Flip in-memory: `f3c_enabled`, `timeout_trail_enabled`,
+     `e3_time_decay_sl_enabled` = False across all pairs
+   - Revert `SHARED_CONFIG["leverage"]` to 10
+   - Emit a prominent `[LIVE-MONITOR] !!! SAFETY VALVE TRIPPED !!!` log line
+
+On every startup: if `safety_valve.json` exists, re-apply the in-memory
+overrides before the WebSocket loop starts. Clearing the valve is a manual
+operation (delete the file) — no auto-recovery.
+
+**Design note:** only ADVERSE drift disables. Positive drift (doing better
+than shadow expectation) is logged but not acted on. This prevents
+over-performance from triggering a protective rollback that wasn't needed.
+
+### First 30 live days (post-6b)
+
+- [ ] Cumulative realized return within 1 σ of shadow expectation
+- [ ] DD under 15 % (shadow OOS DD was 14.8 %)
+- [ ] Knife-catcher rate ≤ 30 % (baseline was 27–30 %)
+
+### Step-up plan (post clean 30-day window)
+
+- 5× → 7.5× leverage at +30 days if shadow-live alignment holds
+- 7.5× → 10× at +60 days on continued alignment
+- Each step gated on trailing 10 trades' cumulative z ≥ −6.32 (safety-valve condition not near-tripping)
+
+### Config diff to apply on Phase 6 deploy (reference only — see Stage 6b above)
 
 ```python
 # PAIRS["ETH"] changes:
@@ -154,13 +241,17 @@ Do **not** merge/deploy without each of these checked:
 "leverage": 5,   # was 10
 ```
 
-### First 7 live days monitoring (automated)
+### First 7 live days monitoring (automated — ships with 6b)
 
-Per original prompt: every trade close produces a `[LIVE-MONITOR]` stdout line showing H at entry, imbalance, filter decisions, exit reason, realized PnL vs shadow expectation.
-
-- [ ] `[LIVE-MONITOR]` messages appearing after each trade
+- [ ] `[LIVE-MONITOR]` messages printing per trade (emitted by
+      `_check_shadow_drift`)
 - [ ] `state/daily_filter_audit.jsonl` appending (one line per candidate bar)
-- [ ] If realized PnL drift from shadow expectation exceeds **2 σ over 10 trades**, auto-flip feature flag off (code change needed in entropy_live_multi.py shutdown path — tracked as next-sprint item)
+- [ ] `state/live_drift_monitor.json` z-score window updating per trade
+- [ ] Auto-flip safety valve ready: trigger condition is `sum(last 10 z) <
+      −2·√10 ≈ −6.32`. If the valve trips, `state/safety_valve.json` is
+      written and all sprint-v1 flags are disabled in memory and on
+      restart — see "Auto-flip safety valve" section above for full
+      behavior.
 
 ### First 30 live days
 
