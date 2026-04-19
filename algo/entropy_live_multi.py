@@ -32,29 +32,24 @@ except ImportError:
 # ---- Configuration ----
 
 PAIRS = {
-    "BTC": {
-        "futures_symbol": "PF_XBTUSD",
-        "ws_symbol": "PI_XBTUSD",
-        "stop_loss_bps": 65,
-        "take_profit_bps": 200,
-        "timeout_minutes": 240,
-        "h_thresh": 0.3500,
-        # Upgrade 1: cooldown 30 bars after a losing trade (BTC backtest +2.19 Calmar)
-        "cooldown_bars_after_loss": 30,
-        # No-falling-knife not used on BTC (backtest showed slight loss)
-        "knife_threshold_bps": None,
-        # T5: at timeout, if in profit, switch to 2x ATR trailing stop.
-        "trailing_atr_mult": 2.0,
-        # TP-trail: once profit reaches +150 bps, replace fixed TP with 50 bps trail.
-        # Cross-pair winner: BTC Cal 13.54->15.58, ETH Cal 9.03->12.69. Combined +618% vs +500%.
-        "trail_tp_after": 150,
-        "trail_tp_bps": 50,
-        # Skip entry if 2.5h (150-bar) move in trade direction already exceeds this.
-        # Rationale: strategy is mean-reverting; entries after extended moves in the
-        # same direction are chasing exhaustion. Backtest (ETH) Cal 31.30 -> 40.16.
-        "extended_move_lookback": 150,
-        "extended_move_cap_bps": 100,
-    },
+    # BTC disabled: H threshold too tight vs Kraken Futures entropy distribution;
+    # over the full Pi backtest period it produced only 1 trade. Keeping the
+    # config block commented for quick re-enable if the regime changes.
+    # "BTC": {
+    #     "futures_symbol": "PF_XBTUSD",
+    #     "ws_symbol": "PI_XBTUSD",
+    #     "stop_loss_bps": 65,
+    #     "take_profit_bps": 200,
+    #     "timeout_minutes": 240,
+    #     "h_thresh": 0.3500,
+    #     "cooldown_bars_after_loss": 30,
+    #     "knife_threshold_bps": None,
+    #     "trailing_atr_mult": 2.0,
+    #     "trail_tp_after": 150,
+    #     "trail_tp_bps": 50,
+    #     "extended_move_lookback": 150,
+    #     "extended_move_cap_bps": 100,
+    # },
     "ETH": {
         "futures_symbol": "PF_ETHUSD",
         "ws_symbol": "PI_ETHUSD",

@@ -143,32 +143,6 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
 <!-- Entropy -->
 <div class="grid" style="margin-top: 12px;">
   <div class="card">
-    <h2>BTC Entropy</h2>
-    <div class="metric">
-      <span class="label">H</span>
-      <span class="value" id="btcH">--</span>
-    </div>
-    <div class="metric">
-      <span class="label">Threshold</span>
-      <span class="value" id="btcThresh">0.3500</span>
-    </div>
-    <div class="metric">
-      <span class="label">Mid</span>
-      <span class="value" id="btcMid">--</span>
-    </div>
-    <div class="metric">
-      <span class="label">Bars</span>
-      <span class="value" id="btcBars">--</span>
-    </div>
-    <div style="margin-top: 8px;">
-      <div class="bar-container">
-        <div class="bar-fill" id="btcBar" style="width: 0%; background: var(--green);"></div>
-        <span class="bar-label" id="btcBarLabel">--</span>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
     <h2>ETH Entropy</h2>
     <div class="metric">
       <span class="label">H</span>
@@ -210,19 +184,40 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
 
 <!-- Signal Log -->
 <div class="card wide" style="margin-top: 12px;">
-  <h2>Signal Counts</h2>
+  <h2>Signals</h2>
   <div class="grid" style="margin-bottom: 0;">
-    <div class="metric"><span class="label">BTC Signals</span><span class="value" id="btcSignals">0</span></div>
     <div class="metric"><span class="label">ETH Signals</span><span class="value" id="ethSignals">0</span></div>
   </div>
 </div>
 
+<!-- ETH high/low marks (6h/12h/24h) -->
+<div class="card wide" style="margin-top: 12px;">
+  <h2>ETH Recent Range</h2>
+  <div class="grid" style="margin-bottom: 0;">
+    <div>
+      <div class="metric"><span class="label">6h High / Low</span><span class="value" id="eth6hHL">--</span></div>
+      <div class="metric"><span class="label">6h Range</span><span class="value" id="eth6hRange">--</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="label">12h High / Low</span><span class="value" id="eth12hHL">--</span></div>
+      <div class="metric"><span class="label">12h Range</span><span class="value" id="eth12hRange">--</span></div>
+    </div>
+    <div>
+      <div class="metric"><span class="label">24h High / Low</span><span class="value" id="eth24hHL">--</span></div>
+      <div class="metric"><span class="label">24h Range</span><span class="value" id="eth24hRange">--</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Open position chart -->
+<div class="chart-container" id="openPosChartContainer" style="display:none;">
+  <h2 style="margin-top:0;">Open Position — 1h pre-entry to now</h2>
+  <div id="openPosChart"><div class="chart-loading">Loading…</div></div>
+</div>
+
 <!-- Price chart with trade markers -->
 <div class="chart-container">
-  <div class="chart-tabs">
-    <button id="tabBTC" class="active" onclick="switchPair('BTC')">BTC</button>
-    <button id="tabETH" onclick="switchPair('ETH')">ETH</button>
-  </div>
+  <h2 style="margin-top:0;">ETH Price with Trade Markers</h2>
   <div class="range-selector">
     <button data-range="1d" class="active" onclick="setRange('1d')">1D</button>
     <button data-range="7d" onclick="setRange('7d')">7D</button>
@@ -233,6 +228,21 @@ td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
   <div id="priceChart">
     <div class="chart-loading">Loading chart…</div>
   </div>
+</div>
+
+<!-- Per-trade zoom chart (opens when a trade row is clicked) -->
+<div class="chart-container" id="tradeZoomContainer" style="display:none;">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h2 style="margin-top:0;" id="tradeZoomTitle">Trade detail</h2>
+    <button onclick="closeTradeZoom()" style="background:transparent; color:#aab; border:1px solid #333; border-radius:4px; padding:4px 10px; cursor:pointer;">Close</button>
+  </div>
+  <div id="tradeZoomChart"><div class="chart-loading">Loading…</div></div>
+</div>
+
+<!-- Equity curve -->
+<div class="chart-container">
+  <h2 style="margin-top:0;">Equity Curve (compound)</h2>
+  <div id="equityChart"><div class="chart-loading">Loading…</div></div>
 </div>
 
 <div class="refresh-info" id="refreshInfo">Paste your status URL above to connect</div>
@@ -324,14 +334,9 @@ function updateDashboard(data) {
     $('cumSince').textContent = new Date(c.since).toLocaleDateString();
   }
 
-  // Signals
+  // Signals (ETH only now)
   const sigs = data.signals || {};
-  $('btcSignals').textContent = sigs.BTC || 0;
   $('ethSignals').textContent = sigs.ETH || 0;
-
-  // BTC entropy
-  const btc = data.BTC || {};
-  updateEntropy('btc', btc, 0.35);
 
   // ETH entropy
   const eth = data.ETH || {};
@@ -340,15 +345,21 @@ function updateDashboard(data) {
   // Position
   const posCard = $('positionCard');
   const posContent = $('positionContent');
+  const posChartContainer = $('openPosChartContainer');
   if (data.position) {
     const p = data.position;
     const dir = p.direction === 1 ? 'LONG' : 'SHORT';
     const dirClass = p.direction === 1 ? 'long' : 'short';
     posCard.className = `card position-card ${dirClass} wide`;
     const elapsed = data.last_update ? Math.floor((data.last_update - p.entry_time) / 60) : 0;
-    const mid = (p.pair === 'BTC' ? btc.mid : eth.mid) || p.entry_price;
+    const mid = eth.mid || p.entry_price;
     const pnl = p.direction * (mid / p.entry_price - 1) * 10000;
     const pnlClass = pnl >= 0 ? 'up' : 'down';
+    // TP / SL targets (ETH config currently)
+    const tpBps = 200, slBps = 50, trailAfter = 150;
+    const tpPrice = p.entry_price * (1 + p.direction * tpBps / 10000);
+    const slPrice = p.entry_price * (1 - p.direction * slBps / 10000);
+    const trailPrice = p.entry_price * (1 + p.direction * trailAfter / 10000);
     posContent.innerHTML = `
       <div class="metric"><span class="label">Pair</span><span class="value">${p.pair}</span></div>
       <div class="metric"><span class="label">Direction</span><span class="value ${dirClass === 'long' ? 'up' : 'down'}">${dir}</span></div>
@@ -356,10 +367,15 @@ function updateDashboard(data) {
       <div class="metric"><span class="label">Current</span><span class="value">$${mid.toFixed(2)}</span></div>
       <div class="metric"><span class="label">Unrealized</span><span class="value ${pnlClass}">${pnl >= 0 ? '+' : ''}${pnl.toFixed(1)} bps (${(pnl*10).toFixed(0)} @10x)</span></div>
       <div class="metric"><span class="label">Held</span><span class="value">${elapsed}m</span></div>
+      <div class="metric"><span class="label">TP / SL</span><span class="value">$${tpPrice.toFixed(2)} / $${slPrice.toFixed(2)}</span></div>
+      <div class="metric"><span class="label">Trail trigger</span><span class="value">$${trailPrice.toFixed(2)}</span></div>
       <div class="metric"><span class="label">Size</span><span class="value">${p.size}</span></div>`;
+    posChartContainer.style.display = 'block';
+    renderOpenPositionChart(p, mid);
   } else {
     posCard.className = 'card position-card none wide';
     posContent.innerHTML = `<div class="metric"><span class="label">Status</span><span class="value neutral">No Position</span></div>`;
+    posChartContainer.style.display = 'none';
   }
 
   // Trades
@@ -368,12 +384,13 @@ function updateDashboard(data) {
   if (trades.length === 0) {
     tbody.innerHTML = '<tr><td colspan="8" style="color:#484f58;text-align:center">No trades yet</td></tr>';
   } else {
-    tbody.innerHTML = trades.slice().reverse().map(t => {
+    tbody.innerHTML = trades.slice().reverse().map((t, idx) => {
+      const realIdx = trades.length - 1 - idx;
       const dir = t.direction === 1 ? 'LONG' : 'SHORT';
       const dirClass = t.direction === 1 ? 'up' : 'down';
       const pnlClass = t.pnl_bps_leveraged >= 0 ? 'up' : 'down';
       const time = t.time ? new Date(t.time).toLocaleString() : '--';
-      return `<tr>
+      return `<tr class="trade-row" style="cursor:pointer" onclick="openTradeZoom(${realIdx})">
         <td>${time}</td>
         <td>${t.pair}</td>
         <td class="${dirClass}">${dir}</td>
@@ -385,6 +402,10 @@ function updateDashboard(data) {
       </tr>`;
     }).join('');
   }
+
+  // Recent range marks (6h/12h/24h) + equity curve
+  updateRecentRange();
+  updateEquityCurve(trades);
 }
 
 function updateEntropy(prefix, data, threshold) {
@@ -424,13 +445,12 @@ setInterval(() => {
 }, 60000);
 
 // =====================================================
-// Price chart with trade markers
+// Price chart with trade markers (ETH only now)
 // =====================================================
 const SYMBOL_MAP = {
-  'BTC': { binance: 'BTCUSDT', kraken: 'PF_XBTUSD' },
   'ETH': { binance: 'ETHUSDT', kraken: 'PF_ETHUSD' },
 };
-let chartState = { pair: 'BTC', range: '1d' };
+let chartState = { pair: 'ETH', range: '1d' };
 let cachedTrades = [];
 
 async function fetchKlines(pair, range) {
@@ -582,19 +602,250 @@ async function renderChart() {
   }
 }
 
-function switchPair(pair) {
-  chartState.pair = pair;
-  document.getElementById('tabBTC').classList.toggle('active', pair === 'BTC');
-  document.getElementById('tabETH').classList.toggle('active', pair === 'ETH');
-  renderChart();
-}
-
 function setRange(range) {
   chartState.range = range;
   document.querySelectorAll('.range-selector button').forEach(b => {
     b.classList.toggle('active', b.dataset.range === range);
   });
   renderChart();
+}
+
+// =====================================================
+// Recent range (6h / 12h / 24h high/low)
+// =====================================================
+async function updateRecentRange() {
+  try {
+    const r = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=5m&limit=288`,
+      { cache: 'no-store' });
+    if (!r.ok) return;
+    const kl = await r.json();
+    const now = Date.now();
+    const buckets = [
+      { h: 6,  el: 'eth6hHL',  re: 'eth6hRange'  },
+      { h: 12, el: 'eth12hHL', re: 'eth12hRange' },
+      { h: 24, el: 'eth24hHL', re: 'eth24hRange' },
+    ];
+    const currentPrice = parseFloat(kl[kl.length-1][4]);
+    for (const b of buckets) {
+      const cutoff = now - b.h * 3600 * 1000;
+      const segment = kl.filter(k => k[0] >= cutoff);
+      if (!segment.length) continue;
+      const highs = segment.map(k => parseFloat(k[2]));
+      const lows = segment.map(k => parseFloat(k[3]));
+      const hi = Math.max(...highs), lo = Math.min(...lows);
+      const rangeBps = ((hi - lo) / lo) * 10000;
+      // Distance from current to each extreme
+      const distHi = ((hi - currentPrice) / currentPrice) * 10000;
+      const distLo = ((currentPrice - lo) / currentPrice) * 10000;
+      $(b.el).textContent = `$${hi.toFixed(2)} / $${lo.toFixed(2)}`;
+      $(b.re).textContent = `${rangeBps.toFixed(0)} bps  (to hi: +${distHi.toFixed(0)}, to lo: +${distLo.toFixed(0)})`;
+    }
+  } catch (e) { /* ignore */ }
+}
+
+// =====================================================
+// Open position chart (1h pre-entry to now, with TP/SL lines)
+// =====================================================
+async function renderOpenPositionChart(p, currentMid) {
+  const container = $('openPosChart');
+  try {
+    const sym = SYMBOL_MAP[p.pair]?.binance || 'ETHUSDT';
+    const entryTs = (p.entry_time || 0) * 1000;
+    const startTs = entryTs - 60 * 60 * 1000; // 1h pre-entry
+    const r = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1m&startTime=${startTs}&limit=720`,
+      { cache: 'no-store' });
+    if (!r.ok) { container.innerHTML = 'fetch error'; return; }
+    const kl = await r.json();
+    const x = kl.map(k => new Date(k[0]).toISOString());
+    const close = kl.map(k => parseFloat(k[4]));
+    const high = kl.map(k => parseFloat(k[2]));
+    const low = kl.map(k => parseFloat(k[3]));
+    const volume = kl.map(k => parseFloat(k[5]));
+
+    const tpBps = 200, slBps = 50, trailAfter = 150;
+    const tpPrice = p.entry_price * (1 + p.direction * tpBps / 10000);
+    const slPrice = p.entry_price * (1 - p.direction * slBps / 10000);
+    const trailPrice = p.entry_price * (1 + p.direction * trailAfter / 10000);
+
+    const entryTsIso = new Date(entryTs).toISOString();
+    const nowIso = new Date().toISOString();
+
+    const traces = [
+      { type:'scatter', mode:'lines', x, y: close, name:'Price',
+        line:{ color:'#58a6ff', width:1.5 }, yaxis:'y' },
+      { type:'bar', x, y: volume, name:'Volume',
+        marker:{ color:'rgba(201,141,246,0.4)' }, yaxis:'y2' },
+      // Entry vertical
+      { type:'scatter', mode:'lines', x:[entryTsIso, entryTsIso],
+        y:[Math.min(...low, slPrice), Math.max(...high, tpPrice)],
+        line:{ color:'#d29922', width:2, dash:'dash' },
+        name:`Entry $${p.entry_price.toFixed(2)}`, hoverinfo:'name' },
+      // TP/SL/Trail horizontals
+      { type:'scatter', mode:'lines', x:[entryTsIso, nowIso],
+        y:[tpPrice, tpPrice], line:{ color:'#3fb950', width:1, dash:'dot' },
+        name:`TP $${tpPrice.toFixed(2)}`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryTsIso, nowIso],
+        y:[trailPrice, trailPrice], line:{ color:'#79c0ff', width:1, dash:'dot' },
+        name:`Trail trigger $${trailPrice.toFixed(2)}`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryTsIso, nowIso],
+        y:[slPrice, slPrice], line:{ color:'#f85149', width:1, dash:'dot' },
+        name:`SL $${slPrice.toFixed(2)}`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryTsIso, nowIso],
+        y:[p.entry_price, p.entry_price], line:{ color:'#d29922', width:1, dash:'dot' },
+        name:'Entry price', hoverinfo:'name' },
+    ];
+
+    const layout = {
+      paper_bgcolor:'#161b22', plot_bgcolor:'#161b22',
+      font:{ color:'#c9d1d9', family:'monospace', size:11 },
+      xaxis:{ gridcolor:'#30363d' },
+      yaxis:{ gridcolor:'#30363d', title:'Price', domain:[0.25, 1] },
+      yaxis2:{ gridcolor:'#30363d', title:'Vol', domain:[0, 0.2], showgrid:false },
+      margin:{ l:60, r:30, t:20, b:40 },
+      legend:{ orientation:'h', x:0, y:1.06, bgcolor:'rgba(0,0,0,0)' },
+      height: 400,
+    };
+    Plotly.newPlot('openPosChart', traces, layout,
+                   { displaylogo:false, responsive:true });
+  } catch (e) {
+    container.innerHTML = `<div class="chart-loading">Error: ${e.message}</div>`;
+  }
+}
+
+// =====================================================
+// Per-trade zoom chart (±1h around entry/exit, with volume)
+// =====================================================
+async function openTradeZoom(idx) {
+  const t = cachedTrades[idx];
+  if (!t) return;
+  $('tradeZoomContainer').style.display = 'block';
+  const exitTs = new Date(t.time).getTime();
+  const entryTs = exitTs - (t.hold_min || 0) * 60000;
+  const pnl = t.pnl_bps_leveraged || 0;
+  const pnlClass = pnl >= 0 ? 'up' : 'down';
+  $('tradeZoomTitle').innerHTML =
+    `Trade #${idx + 1} · ${t.pair} ${t.direction === 1 ? 'LONG' : 'SHORT'} · `
+    + `entry $${t.entry_price.toFixed(2)} -> exit $${t.exit_price.toFixed(2)} · `
+    + `<span class="${pnlClass}">${pnl >= 0 ? '+' : ''}${pnl.toFixed(0)} bps@10x</span>`
+    + ` · ${t.reason} · ${t.hold_min?.toFixed(0)}m hold`;
+
+  const container = $('tradeZoomChart');
+  container.innerHTML = '<div class="chart-loading">Loading…</div>';
+  try {
+    const sym = SYMBOL_MAP[t.pair]?.binance || 'ETHUSDT';
+    const startTs = entryTs - 60 * 60 * 1000; // 1h before entry
+    const endTs = exitTs + 60 * 60 * 1000; // 1h after exit
+    const r = await fetch(
+      `https://api.binance.com/api/v3/klines?symbol=${sym}&interval=1m&startTime=${startTs}&endTime=${endTs}&limit=1000`,
+      { cache: 'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const kl = await r.json();
+    const x = kl.map(k => new Date(k[0]).toISOString());
+    const open = kl.map(k => parseFloat(k[1]));
+    const high = kl.map(k => parseFloat(k[2]));
+    const low = kl.map(k => parseFloat(k[3]));
+    const close = kl.map(k => parseFloat(k[4]));
+    const vol = kl.map(k => parseFloat(k[5]));
+
+    const entryTsIso = new Date(entryTs).toISOString();
+    const exitTsIso = new Date(exitTs).toISOString();
+
+    const priceSpan = [Math.min(...low), Math.max(...high)];
+    // TP / SL / trail lines based on entry price and standard ETH config
+    const d = t.direction;
+    const tp = t.entry_price * (1 + d * 200 / 10000);
+    const sl = t.entry_price * (1 - d * 50 / 10000);
+    const trail = t.entry_price * (1 + d * 150 / 10000);
+    priceSpan[0] = Math.min(priceSpan[0], sl);
+    priceSpan[1] = Math.max(priceSpan[1], tp);
+
+    const traces = [
+      { type:'candlestick', x, open, high, low, close,
+        increasing:{ line:{ color:'#3fb950' } },
+        decreasing:{ line:{ color:'#f85149' } },
+        name:'', showlegend:false, yaxis:'y' },
+      { type:'bar', x, y: vol, name:'Volume',
+        marker:{ color:'rgba(201,141,246,0.4)' }, yaxis:'y2' },
+      // Entry/exit verticals
+      { type:'scatter', mode:'lines', x:[entryTsIso, entryTsIso],
+        y: priceSpan, line:{ color:'#d29922', width:2, dash:'dash' },
+        name:'Entry', hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[exitTsIso, exitTsIso],
+        y: priceSpan, line:{ color: pnl>=0 ? '#3fb950' : '#f85149', width:2, dash:'dash' },
+        name:'Exit', hoverinfo:'name' },
+      // TP / SL / trail horizontals over trade span
+      { type:'scatter', mode:'lines', x:[entryTsIso, exitTsIso],
+        y:[tp, tp], line:{ color:'#3fb950', width:1, dash:'dot' },
+        name:`TP $${tp.toFixed(2)}`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryTsIso, exitTsIso],
+        y:[trail, trail], line:{ color:'#79c0ff', width:1, dash:'dot' },
+        name:`Trail trigger $${trail.toFixed(2)}`, hoverinfo:'name' },
+      { type:'scatter', mode:'lines', x:[entryTsIso, exitTsIso],
+        y:[sl, sl], line:{ color:'#f85149', width:1, dash:'dot' },
+        name:`SL $${sl.toFixed(2)}`, hoverinfo:'name' },
+    ];
+    const layout = {
+      paper_bgcolor:'#161b22', plot_bgcolor:'#161b22',
+      font:{ color:'#c9d1d9', family:'monospace', size:11 },
+      xaxis:{ gridcolor:'#30363d', rangeslider:{ visible:false } },
+      yaxis:{ gridcolor:'#30363d', domain:[0.25, 1], title:'Price' },
+      yaxis2:{ gridcolor:'#30363d', domain:[0, 0.2], title:'Vol', showgrid:false },
+      margin:{ l:60, r:30, t:20, b:40 },
+      legend:{ orientation:'h', x:0, y:1.08, bgcolor:'rgba(0,0,0,0)' },
+      height: 460,
+    };
+    Plotly.newPlot('tradeZoomChart', traces, layout,
+                   { displaylogo:false, responsive:true });
+    // Scroll into view
+    $('tradeZoomContainer').scrollIntoView({ behavior:'smooth', block:'center' });
+  } catch (e) {
+    container.innerHTML = `<div class="chart-loading">Error: ${e.message}</div>`;
+  }
+}
+
+function closeTradeZoom() {
+  $('tradeZoomContainer').style.display = 'none';
+}
+
+// =====================================================
+// Equity curve (compound)
+// =====================================================
+function updateEquityCurve(trades) {
+  if (!trades || !trades.length) return;
+  let eq = 1.0;
+  const x = [new Date(trades[0].time).toISOString()];
+  const y = [eq];
+  for (const t of trades) {
+    const pnlLev = t.pnl_bps_leveraged || 0;
+    eq *= (1.0 + pnlLev / 10000);
+    x.push(new Date(t.time).toISOString());
+    y.push(eq);
+  }
+  const returnPct = (eq - 1) * 100;
+  const color = returnPct >= 0 ? '#3fb950' : '#f85149';
+  const traces = [{
+    type:'scatter', mode:'lines+markers', x, y,
+    line:{ color, width:2 },
+    marker:{ size:5, color },
+    hovertemplate: '%{x}<br>Equity: %{y:.4f}x<extra></extra>',
+    showlegend:false,
+  }, {
+    type:'scatter', mode:'lines', x:[x[0], x[x.length-1]], y:[1.0, 1.0],
+    line:{ color:'#6e7681', width:1, dash:'dot' },
+    hoverinfo:'skip', showlegend:false,
+  }];
+  const layout = {
+    paper_bgcolor:'#161b22', plot_bgcolor:'#161b22',
+    font:{ color:'#c9d1d9', family:'monospace', size:11 },
+    xaxis:{ gridcolor:'#30363d' },
+    yaxis:{ gridcolor:'#30363d', title:`Equity mult (${returnPct >= 0 ? '+' : ''}${returnPct.toFixed(2)}% compound)` },
+    margin:{ l:80, r:30, t:20, b:40 },
+    height: 300,
+  };
+  Plotly.newPlot('equityChart', traces, layout,
+                 { displaylogo:false, responsive:true });
 }
 
 // Hook into status fetch to refresh trade list, then re-render chart
