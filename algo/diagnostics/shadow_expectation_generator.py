@@ -243,6 +243,12 @@ def summarize_bucket(trades_in_bucket):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dry-run", action="store_true",
+                        help="print bucket table without writing shadow_expectation.json")
+    args = parser.parse_args()
+
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     print("Loading ETH Pi orderbook (Feb 18 - Apr 7)...", flush=True)
     df = load_orderbook_range("data/orderbook_pi", "ob_PF_ETHUSD")
@@ -295,18 +301,32 @@ def main():
             "direction-only fallback_by_direction entry."
         ),
     }
-    OUT.write_text(json.dumps(out, indent=2, default=str))
+    if args.dry_run:
+        print(f"\n[DRY RUN] skipping write to {OUT}")
+    else:
+        OUT.write_text(json.dumps(out, indent=2, default=str))
 
-    print("\nBucket summary:")
-    print(f"  {'bucket':<18} {'n':>3} {'mean':>9} {'std':>8}")
+    print(f"\nTotal trades processed: {len(trades)}")
+    if skipped_no_session:
+        print(f"Skipped (no session): {skipped_no_session}")
+    print("\nBucket summary (n<5 -> fallback):")
+    print(f"  {'bucket':<18} {'n':>3} {'mean':>9} {'std':>8}  use")
+    fallback_buckets = []
     for k, s in sorted(bucket_summaries.items()):
+        uses_fallback = s['count'] < 5
+        if uses_fallback: fallback_buckets.append(k)
         print(f"  {k:<18} {s['count']:>3} {s['mean_pnl_bps']:>+8.1f} "
-              f"{s['std_bps']:>7.1f}")
-    print("\nFallback (direction only):")
+              f"{s['std_bps']:>7.1f}  {'FALLBACK' if uses_fallback else 'primary'}")
+    print("\nDirection-only fallback:")
     for k, s in sorted(fallback.items()):
         print(f"  {k:<18} {s['count']:>3} {s['mean_pnl_bps']:>+8.1f} "
               f"{s['std_bps']:>7.1f}")
-    print(f"\nWrote {OUT}")
+    if fallback_buckets:
+        print(f"\n{len(fallback_buckets)} of {len(bucket_summaries)} primary "
+              f"buckets below n=5 threshold and will use fallback: "
+              f"{', '.join(fallback_buckets)}")
+    if not args.dry_run:
+        print(f"\nWrote {OUT}")
 
 
 if __name__ == "__main__":

@@ -1050,6 +1050,14 @@ class MultiPairManager:
 def main():
     global RUNNING
 
+    import argparse
+    argp = argparse.ArgumentParser()
+    argp.add_argument("--dry-run", action="store_true",
+                      help="startup-only: load config + state, apply safety-valve "
+                           "check, print resulting config, exit. No Kraken "
+                           "connection, no WebSocket.")
+    cli = argp.parse_args()
+
     from dotenv import load_dotenv
     env_path = Path(__file__).parent.parent / ".env"
     if env_path.exists():
@@ -1057,14 +1065,45 @@ def main():
     else:
         load_dotenv()
 
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    STATE_DIR.mkdir(parents=True, exist_ok=True)
+
+    if cli.dry_run:
+        logger.info("=== DRY RUN: no Kraken connection, no WebSocket ===")
+        # Run the startup safety-valve check here (copied from below so
+        # dry-run exercises the exact same code path before exiting).
+        valve_file = STATE_DIR / "safety_valve.json"
+        if valve_file.exists():
+            try:
+                marker = json.load(open(valve_file))
+                for p in PAIRS:
+                    PAIRS[p]["f3c_enabled"] = False
+                    PAIRS[p]["timeout_trail_enabled"] = False
+                    PAIRS[p]["e3_time_decay_sl_enabled"] = False
+                SHARED_CONFIG["leverage"] = marker.get("leverage_reverted_to", 10)
+                logger.warning(
+                    f"[LIVE-MONITOR] Safety valve ACTIVE "
+                    f"(tripped at {marker.get('auto_disabled_at','?')}): "
+                    f"{marker.get('reason','?')}. "
+                    f"Sprint v1 flags forced False on startup; "
+                    f"leverage = {SHARED_CONFIG['leverage']}x. "
+                    f"Delete {valve_file} to clear.")
+            except Exception as e:
+                logger.warning(f"safety_valve.json unreadable: {e}")
+        logger.info(f"Config (post-valve check): "
+                    f"leverage={SHARED_CONFIG['leverage']}x")
+        for p, cfg in PAIRS.items():
+            logger.info(f"  {p}: f3c_enabled={cfg.get('f3c_enabled')} "
+                        f"timeout_trail_enabled={cfg.get('timeout_trail_enabled')} "
+                        f"e3_time_decay_sl_enabled={cfg.get('e3_time_decay_sl_enabled')}")
+        logger.info("dry-run complete; exiting.")
+        return
+
     api_key = os.getenv("KRAKEN_API_FUTURES_KEY", "")
     api_secret = os.getenv("KRAKEN_API_FUTURES_SECRET", "")
     if not api_key:
         logger.error("KRAKEN_API_FUTURES_KEY not set")
         sys.exit(1)
-
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-    STATE_DIR.mkdir(parents=True, exist_ok=True)
 
     api = KrakenFuturesAPI(api_key, api_secret)
     mgr = MultiPairManager(api, STATE_DIR / "multi_trader_state.json")
