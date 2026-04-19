@@ -1,0 +1,8 @@
+.env
+*.env.local
+*.pyc
+__pycache__/
+algo/__pycache__/
+algo/logs/
+algo/state/
+.claude/

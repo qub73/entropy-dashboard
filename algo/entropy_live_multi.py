@@ -647,7 +647,68 @@ class MultiPairManager:
 
         self.position = None
         self._save_state()
+        # Snapshot 1-min price bars around this trade while they are still
+        # available from Kraken (the 1-min window only goes back ~12 h).
+        # Non-blocking: wrap in try/except; any fetch failure is logged.
+        try:
+            threading.Thread(target=self._capture_trade_chart,
+                             args=(trade,), daemon=True).start()
+        except Exception as e:
+            logger.warning(f"chart capture thread failed to start: {e}")
         return trade
+
+    def _capture_trade_chart(self, trade):
+        """Fetch ±1h 1-min OHLC around the trade and append to
+        state/trade_charts.json. Runs in a background thread so it doesn't
+        delay trade processing."""
+        import urllib.request
+        order_id = trade.get("order_id")
+        if not order_id:
+            return
+        try:
+            exit_ts = datetime.fromisoformat(trade["time"]).timestamp()
+            entry_ts = exit_ts - (trade.get("hold_min", 0) * 60)
+            w_start, w_end = entry_ts - 3600, exit_ts + 3600
+            since = int(max(w_start, time.time() - 720 * 60))
+            url = (f"https://api.kraken.com/0/public/OHLC?"
+                   f"pair=ETHUSD&interval=1&since={since}")
+            req = urllib.request.Request(url, headers={"User-Agent": "entropy-trader"})
+            resp = urllib.request.urlopen(req, timeout=15)
+            data = json.loads(resp.read())
+            if data.get("error"):
+                logger.warning(f"chart capture kraken error: {data['error']}")
+                return
+            raw = []
+            for k, v in data["result"].items():
+                if k != "last":
+                    raw = v; break
+            bars = []
+            for row in raw:
+                ts = int(row[0]) * 1000
+                if w_start * 1000 <= ts <= w_end * 1000:
+                    bars.append([ts, float(row[1]), float(row[2]),
+                                 float(row[3]), float(row[4]), float(row[6])])
+            charts_file = self.state_file.parent / "trade_charts.json"
+            existing = {}
+            if charts_file.exists():
+                try:
+                    existing = json.load(open(charts_file))
+                except Exception:
+                    existing = {}
+            existing[order_id] = {
+                "entry_ts": int(entry_ts * 1000),
+                "exit_ts":  int(exit_ts * 1000),
+                "interval_min": 1,
+                "source": "kraken",
+                "bars": bars,
+            }
+            tmp = str(charts_file) + ".tmp"
+            with open(tmp, "w") as f:
+                json.dump(existing, f, separators=(",", ":"))
+            os.replace(tmp, str(charts_file))
+            logger.info(f"Captured chart for trade {order_id}: {len(bars)} 1m bars")
+        except Exception as e:
+            logger.warning(f"chart capture failed for {order_id}: {e}")
 
     def check_exit(self, mid_price, atr_bps=None, bar_high=None, bar_low=None):
         """Evaluate exit conditions for the current bar.

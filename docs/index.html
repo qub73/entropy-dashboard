@@ -307,6 +307,7 @@ details > *:not(summary) { padding: 0 14px 14px; }
 <script>
 const $ = id => document.getElementById(id);
 let cachedTrades = [];
+let _storedCharts = null;    // per-trade stored price bars (by order_id)
 let chartState = { range: '1d' };
 const CFG = { tp: 200, sl: 50, trail_after: 150, trail_bps: 50 };
 
@@ -335,6 +336,8 @@ async function fetchStatus() {
     const data = await r.json();
     cachedTrades = data.trades || [];
     render(data);
+    // Fetch sibling trade_charts.json (gist co-hosts it)
+    fetchStoredCharts(url);
     if (!window._initialized) {
       window._initialized = true;
       renderPriceChart();
@@ -343,6 +346,18 @@ async function fetchStatus() {
     $('error').textContent = 'Fetch error: ' + e.message;
     $('error').style.display = 'block';
   }
+}
+
+async function fetchStoredCharts(statusUrl) {
+  // Gist raw URL ends in /status.json ; sibling file is /trade_charts.json
+  const chartsUrl = statusUrl.replace(/status\.json(\?.*)?$/, 'trade_charts.json');
+  if (chartsUrl === statusUrl) return;
+  try {
+    const bust = chartsUrl + (chartsUrl.includes('?') ? '&' : '?') + '_t=' + Date.now();
+    const r = await fetch(bust, { cache: 'no-store' });
+    if (!r.ok) return;
+    _storedCharts = await r.json();
+  } catch (e) { /* silently ignore */ }
 }
 
 // ---- Main render ----
@@ -562,25 +577,38 @@ async function loadZoomChart(t, chartId) {
   const endTs = exitTs + 60*60*1000;
 
   let kl = null;
-  let src = 'kraken';
-  try {
-    kl = await fetchKrakenOHLC(1, Math.floor(startTs/1000));
-    // Filter to our window and convert to Binance-compatible tuple shape
-    kl = kl.filter(k => k[0]*1000 >= startTs - 60000 && k[0]*1000 <= endTs + 60000);
-    if (kl.length < 3) throw new Error('sparse');
-    kl = kl.map(k => [k[0]*1000, k[1], k[2], k[3], k[4], k[6]]); // ts, o, h, l, c, vol
-  } catch (e1) {
+  let src = null;
+
+  // 1) Prefer stored chart data (captured by the bot at trade time)
+  if (_storedCharts && t.order_id && _storedCharts[t.order_id]
+      && _storedCharts[t.order_id].bars && _storedCharts[t.order_id].bars.length) {
+    kl = _storedCharts[t.order_id].bars;  // already [ts_ms, o, h, l, c, v]
+    src = `stored ${_storedCharts[t.order_id].interval_min || 1}m`;
+  }
+
+  // 2) Live Kraken fetch if not stored
+  if (!kl) {
     try {
-      const r = await fetch(
-        `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=${startTs}&endTime=${endTs}&limit=1000`,
-        { cache:'no-store' });
-      if (!r.ok) throw new Error('HTTP ' + r.status);
-      const raw = await r.json();
-      kl = raw.map(k => [k[0], k[1], k[2], k[3], k[4], k[5]]);
-      src = 'binance';
-    } catch (e2) {
-      target.innerHTML = `<div class="chart-loading">no data (kraken: ${e1.message}, binance: ${e2.message})</div>`;
-      return;
+      const raw = await fetchKrakenOHLC(1, Math.floor(startTs/1000));
+      kl = raw.filter(k => k[0]*1000 >= startTs - 60000 && k[0]*1000 <= endTs + 60000)
+              .map(k => [k[0]*1000, k[1], k[2], k[3], k[4], k[6]]);
+      if (kl.length < 3) throw new Error('sparse (trade too old for 1m)');
+      src = 'kraken 1m (live)';
+    } catch (e1) {
+      try {
+        const r = await fetch(
+          `https://api.binance.com/api/v3/klines?symbol=ETHUSDT&interval=1m&startTime=${startTs}&endTime=${endTs}&limit=1000`,
+          { cache:'no-store' });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const raw = await r.json();
+        kl = raw.map(k => [k[0], k[1], k[2], k[3], k[4], k[5]]);
+        src = 'binance 1m (live)';
+      } catch (e2) {
+        target.innerHTML =
+          `<div class="chart-loading">no chart data available for this trade<br>` +
+          `<span class="sub">(not stored in gist; live 1m only covers last ~12h)</span></div>`;
+        return;
+      }
     }
   }
 
