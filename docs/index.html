@@ -187,7 +187,24 @@ details > *:not(summary) { padding: 0 14px 14px; }
 .sprint-cols .col ul { font-size: 12px; list-style: none; padding: 0; margin: 0; }
 .sprint-cols .col ul li { padding: 2px 0; }
 .sprint-cols .col.rejected ul li { opacity: 0.55; text-decoration: line-through; }
-.live-state-note { font-size: 11px; color: var(--dim); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 10px; }
+.live-state-note {
+  font-size: 0.88em;
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+  margin-top: 12px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.live-state-note::before {
+  content: "●";
+  color: var(--green);
+  font-size: 0.9em;
+  line-height: 1;
+}
+.live-state-note.warn::before  { color: var(--yellow); }
+.live-state-note.alert::before { color: var(--red); }
 </style>
 </head>
 <body>
