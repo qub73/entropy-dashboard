@@ -349,15 +349,21 @@ async function fetchStatus() {
 }
 
 async function fetchStoredCharts(statusUrl) {
-  // Gist raw URL ends in /status.json ; sibling file is /trade_charts.json
-  const chartsUrl = statusUrl.replace(/status\.json(\?.*)?$/, 'trade_charts.json');
-  if (chartsUrl === statusUrl) return;
-  try {
-    const bust = chartsUrl + (chartsUrl.includes('?') ? '&' : '?') + '_t=' + Date.now();
-    const r = await fetch(bust, { cache: 'no-store' });
-    if (!r.ok) return;
-    _storedCharts = await r.json();
-  } catch (e) { /* silently ignore */ }
+  // Derive trade_charts.json URL from status URL, handling both gist raw
+  // patterns:  /raw/status.json   and   /raw/<sha>/status.json
+  const base = statusUrl.split('?')[0];
+  const candidates = [
+    base.replace(/\/raw(\/[0-9a-f]+)?\/status\.json$/, '/raw/trade_charts.json'),
+    base.replace(/status\.json$/, 'trade_charts.json'),
+  ];
+  for (const u of candidates) {
+    if (u === base) continue;
+    try {
+      const bust = u + '?_t=' + Date.now();
+      const r = await fetch(bust, { cache: 'no-store' });
+      if (r.ok) { _storedCharts = await r.json(); return; }
+    } catch (e) { /* try next */ }
+  }
 }
 
 // ---- Main render ----
