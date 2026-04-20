@@ -6,3 +6,4 @@ algo/__pycache__/
 algo/logs/
 algo/state/
 .claude/
+data/kraken_hf_sample/

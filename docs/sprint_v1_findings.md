@@ -297,6 +297,7 @@ over-performance from triggering a protective rollback that wasn't needed.
 - **Pi orderbook (in-sample):** Feb 18 – Mar 11 contiguous (21 days), plus isolated days Apr 7 / 16 / 17. 13 of 17 live-trade dates have no orderbook coverage, so live trades were never a reproduction target.
 - **Kaggle Binance ETH/USDT (out-of-sample):** 2023-10-07 to 2024-10-09. Used last 60 days for eval; first 60 days (with 230-day gap) for refit baseline. Cross-venue, so conclusions transfer modulo different fee/spread structure.
 - **Fees assumed:** 5 bps per side (10 bps round-trip) on notional. Matches Kraken Futures taker. Binance fees differ slightly — all OOS numbers are estimates at Kraken fee level.
+- **Pi baseline closes spot-checked (2026-04-20):** Cross-validated the Pi 1-min close series against an independent Kraken spot ETH/USD feed (HF dataset `Abraxasccs/kraken-market-data`) over the 16-day overlap Feb 18 – Mar 5 2026. 21,581 overlapping bars; mean |delta| = 2.5 bps, p99 = 11.4 bps, drift flat (−0.008 bps/day), no structural breaks. Data integrity check: **GREEN**.
 
 ---
 
