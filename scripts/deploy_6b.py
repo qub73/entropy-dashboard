@@ -31,6 +31,7 @@ Design
 """
 import argparse
 import datetime as dt
+import importlib.util
 import json
 import os
 import shutil
@@ -38,8 +39,9 @@ import signal
 import subprocess
 import sys
 import time
+import traceback
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 # ------------ constants / paths ------------
 
@@ -114,6 +116,81 @@ def _atomic_write(path: Path, data: str) -> None:
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(data)
     os.replace(tmp, path)
+
+
+# ------------ health-check (no state reads, no mutations) ------------
+
+def health_check() -> Tuple[int, List[str], List[str]]:
+    """Answer 'could this script be invoked right now?' Returns
+    (exit_code, ok_messages, issue_messages). Exit 0 if all green.
+
+    Checks:
+      - ENTROPY_SERVICE_NAME env var set + non-empty
+      - git available in PATH
+      - Python >= 3.8
+      - This script imports cleanly (no syntax regression)
+      - state dir resolves and is writable
+      - tests/test_deploy_6b.py present
+    """
+    ok: List[str] = []
+    issues: List[str] = []
+
+    # 1. env var
+    svc = os.environ.get("ENTROPY_SERVICE_NAME", "")
+    if svc:
+        ok.append(f"ENTROPY_SERVICE_NAME={svc}")
+    else:
+        issues.append(
+            f"ENTROPY_SERVICE_NAME not set (script would default to "
+            f"{SERVICE_NAME_DEFAULT!r} which may not match the Pi's "
+            f"actual unit name)"
+        )
+
+    # 2. git in PATH
+    if shutil.which("git"):
+        ok.append("git available in PATH")
+    else:
+        issues.append("git not found in PATH")
+
+    # 3. python version
+    if sys.version_info >= (3, 8):
+        ok.append(f"python {sys.version.split()[0]} (>= 3.8)")
+    else:
+        issues.append(
+            f"python {sys.version.split()[0]} is below required 3.8"
+        )
+
+    # 4. self-import (syntax)
+    try:
+        spec = importlib.util.spec_from_file_location(
+            "deploy_6b_self", Path(__file__).resolve())
+        if spec is None or spec.loader is None:
+            issues.append("could not build import spec for self")
+        else:
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)  # type: ignore[union-attr]
+            ok.append("self-import clean (no syntax errors)")
+    except Exception as e:
+        issues.append(f"self-import raised {type(e).__name__}: {e}")
+
+    # 5. state dir resolves and is writable
+    try:
+        state_dir = _resolve_state_dir()
+        probe = state_dir / ".healthcheck_probe"
+        probe.write_text("ok")
+        probe.unlink()
+        ok.append(f"state dir writable: {state_dir}")
+    except Exception as e:
+        issues.append(f"state dir not usable: {e}")
+
+    # 6. tests file exists
+    tests = REPO_ROOT / "tests" / "test_deploy_6b.py"
+    if tests.exists():
+        ok.append(f"tests present: {tests.relative_to(REPO_ROOT)}")
+    else:
+        issues.append(f"tests missing: {tests.relative_to(REPO_ROOT)}")
+
+    return (0 if not issues else 1), ok, issues
 
 
 # ------------ phase 1: pre-flight ------------
@@ -424,6 +501,73 @@ def write_deploy_record(state_dir: Path, facts: dict,
     return out
 
 
+# ------------ lineage append (Deliverable 2 integration) ------------
+
+PATH_A_LINEAGE_ENTRY = {
+    "version_label": "6b PATH A",
+    "key_changes": [
+        "leverage 10x -> 5x",
+        "timeout_trail_enabled True",
+        "e3_time_decay_sl_enabled True",
+        "f3c_enabled stays False (substrate disagreement per sprint v1.5 RED)",
+    ],
+    "notes": (
+        "Live post PATH A promote. F3c stays off pending sprint v2 "
+        "native-L2 confirmation."
+    ),
+}
+
+
+def append_lineage_on_success(state_dir: Path, facts: dict) -> Tuple[bool, str]:
+    """Call config_lineage_init.append_deploy_entry() after a successful
+    deploy. Non-fatal: if the append fails for any reason, write a LOUD
+    error file and return (False, message). Caller decides to still exit 0.
+    """
+    try:
+        # Import the init module from the repo without polluting sys.path
+        # long-term.
+        init_path = REPO_ROOT / "algo" / "dashboard" / "config_lineage_init.py"
+        if not init_path.exists():
+            raise FileNotFoundError(f"{init_path} not found")
+        spec = importlib.util.spec_from_file_location(
+            "config_lineage_init", init_path)
+        if spec is None or spec.loader is None:
+            raise ImportError("cannot build import spec for lineage init")
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)  # type: ignore[union-attr]
+        mod.append_deploy_entry(
+            version_label=PATH_A_LINEAGE_ENTRY["version_label"],
+            deployed_sha=facts.get("head_sha", "")[:7],
+            key_changes=PATH_A_LINEAGE_ENTRY["key_changes"],
+            notes=PATH_A_LINEAGE_ENTRY["notes"],
+        )
+        return True, "lineage appended"
+    except Exception as e:
+        # Write the intended entry + traceback for operator recovery.
+        fail = {
+            "failed_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+            "exception": f"{type(e).__name__}: {e}",
+            "traceback": traceback.format_exc(),
+            "intended_entry": {
+                **PATH_A_LINEAGE_ENTRY,
+                "deployed_sha": facts.get("head_sha", "")[:7],
+                "status": "live",
+            },
+            "recovery": (
+                "Run: python -c 'import sys; sys.path.insert(0, "
+                "\"algo/dashboard\"); import config_lineage_init as L; "
+                "L.append_deploy_entry(**{intended fields})'"
+            ),
+        }
+        out = state_dir / "lineage_append_failed.json"
+        try:
+            _atomic_write(out, json.dumps(fail, indent=2))
+        except Exception:
+            # Best effort; don't raise here.
+            pass
+        return False, f"{type(e).__name__}: {e}"
+
+
 # ------------ rollback ------------
 
 def rollback(state_dir: Path) -> dict:
@@ -479,9 +623,19 @@ def main(argv: Optional[List[str]] = None) -> int:
                       help="full deploy; requires --confirm")
     mode.add_argument("--rollback", action="store_true",
                       help="restore from last backup; requires --confirm")
+    mode.add_argument("--health-check", action="store_true",
+                      help="env + syntax + state-dir sanity check; no reads")
     ap.add_argument("--confirm", default="",
                     help="exact confirmation phrase")
     args = ap.parse_args(argv)
+
+    # Health-check runs stand-alone and exits before any pre-flight.
+    if args.health_check:
+        code, ok, issues = health_check()
+        _log(f"HEALTH CHECK: {len(ok)} ok, {len(issues)} issues")
+        for m in ok:     _log(f"  OK  - {m}")
+        for m in issues: _log(f"  !!  - {m}", "ERROR")
+        return code
 
     try:
         state_dir = _resolve_state_dir()
@@ -544,6 +698,21 @@ def main(argv: Optional[List[str]] = None) -> int:
         return 6
 
     record = write_deploy_record(state_dir, facts, banner, audit, backup)
+
+    # Lineage append. Non-fatal: deploy already succeeded; a stale
+    # dashboard is a cosmetic issue, not a rollback trigger.
+    lineage_ok, lineage_msg = append_lineage_on_success(state_dir, facts)
+    if not lineage_ok:
+        _log("=" * 60, "ERROR")
+        _log("!!! DEPLOY SUCCEEDED BUT LINEAGE APPEND FAILED !!!", "ERROR")
+        _log(f"    reason: {lineage_msg}", "ERROR")
+        _log("    Dashboard will show stale 'queued' state.", "ERROR")
+        _log(f"    See {state_dir / 'lineage_append_failed.json'} for intended "
+             "entry and traceback.", "ERROR")
+        _log("    Run append manually or investigate before next deploy.",
+             "ERROR")
+        _log("=" * 60, "ERROR")
+
     _log("=" * 60)
     _log("6b DEPLOY SUCCESS")
     _log(f"  git HEAD: {facts['head_sha']}")
@@ -551,6 +720,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     _log(f"  banner:   {banner['banner_line']}")
     _log(f"  backup:   {backup}")
     _log(f"  record:   {record}")
+    _log(f"  lineage:  {'ok' if lineage_ok else 'FAILED (non-fatal)'}")
     _log("=" * 60)
     return 0
 

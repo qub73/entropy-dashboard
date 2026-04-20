@@ -300,3 +300,116 @@ def test_execute_banner_mismatch_triggers_rollback(fake_repo, mock_git_ok,
 
     # Rollback record should exist
     assert (fake_repo / "state" / "rollback_complete.json").exists()
+
+
+# ---------- health-check ----------
+
+def test_health_check_all_green(fake_repo, monkeypatch):
+    """With ENTROPY_SERVICE_NAME set + state writable + tests present,
+    exit 0 and no issues reported."""
+    # Copy tests file into fake_repo so the 'tests present' check passes.
+    (fake_repo / "tests").mkdir(exist_ok=True)
+    (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
+    monkeypatch.setenv("ENTROPY_SERVICE_NAME", "mr-trading.service")
+    code, ok, issues = d6b.health_check()
+    assert code == 0, f"expected 0, got {code}; issues={issues}"
+    assert len(issues) == 0
+    # Spot-check that env var was observed
+    assert any("ENTROPY_SERVICE_NAME=mr-trading.service" in m for m in ok)
+
+
+def test_health_check_missing_env_var(fake_repo, monkeypatch):
+    (fake_repo / "tests").mkdir(exist_ok=True)
+    (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
+    monkeypatch.delenv("ENTROPY_SERVICE_NAME", raising=False)
+    code, ok, issues = d6b.health_check()
+    assert code == 1
+    assert any("ENTROPY_SERVICE_NAME not set" in m for m in issues)
+
+
+def test_health_check_exits_fast(fake_repo, monkeypatch):
+    """Sanity: run under 5 seconds (we give it 3 for safety)."""
+    import time
+    (fake_repo / "tests").mkdir(exist_ok=True)
+    (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
+    monkeypatch.setenv("ENTROPY_SERVICE_NAME", "mr-trading.service")
+    t0 = time.time()
+    rc = d6b.main(["--health-check"])
+    assert time.time() - t0 < 3.0
+    assert rc == 0
+
+
+# ---------- lineage append integration ----------
+
+def test_lineage_append_success_adds_entry(fake_repo, mock_git_ok):
+    """With the real config_lineage_init.py copied into the fake repo,
+    append_lineage_on_success should add a live 6b entry to the lineage
+    file."""
+    # Seed the init module + lineage state in the fake repo
+    src = ROOT / "algo" / "dashboard" / "config_lineage_init.py"
+    dst_dir = fake_repo / "algo" / "dashboard"
+    dst_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src, dst_dir / "config_lineage_init.py")
+
+    # Pre-seed the lineage file with a queued 6b entry so the append
+    # flips queued -> live.
+    lineage = fake_repo / "state" / "config_lineage.jsonl"
+    lineage.write_text(json.dumps({
+        "version_label": "6b PATH A", "status": "queued",
+        "deployed_at": None, "deployed_sha": None,
+        "key_changes": [], "notes": "queued",
+    }) + "\n" + json.dumps({
+        "version_label": "6a observer", "status": "live",
+        "deployed_at": "2026-04-19T22:26:17+00:00",
+        "deployed_sha": "7c8d67f",
+        "key_changes": [], "notes": "observer",
+    }) + "\n")
+
+    facts = {"head_sha": "abc1234567890abcdef"}
+    ok, msg = d6b.append_lineage_on_success(fake_repo / "state", facts)
+    assert ok, f"append failed: {msg}"
+
+    entries = [json.loads(ln) for ln in lineage.read_text().splitlines() if ln.strip()]
+    six_b = [e for e in entries if e["version_label"] == "6b PATH A"]
+    assert len(six_b) == 1
+    assert six_b[0]["status"] == "live"
+    assert six_b[0]["deployed_sha"] == "abc1234"
+    # previous 'live' entry (6a) flipped to 'historical'
+    six_a = [e for e in entries if e["version_label"] == "6a observer"]
+    assert six_a[0]["status"] == "historical"
+
+
+def test_lineage_append_failure_writes_error_but_deploy_succeeds(
+        fake_repo, mock_git_ok, monkeypatch):
+    """If the init module is MISSING, append_lineage_on_success must
+    return (False, msg) AND write state/lineage_append_failed.json, AND
+    the overall --execute return code must still be 0."""
+    # Ensure the init file is NOT present (fake_repo already has no
+    # algo/dashboard/ by default).
+    init = fake_repo / "algo" / "dashboard" / "config_lineage_init.py"
+    assert not init.exists()
+
+    # Seed banner so the execute path gets past verify_startup_banner.
+    banner = ("2026-04-22 06:00:01 INFO ETH: "
+              "f3c_enabled=False timeout_trail_enabled=True "
+              "e3_time_decay_sl_enabled=True leverage=5x")
+    (fake_repo / "algo" / "logs" / "entropy_multi.log").write_text(banner + "\n")
+    monkeypatch.setattr(d6b, "BANNER_POLL_SEC", 2)
+    monkeypatch.setattr(d6b, "AUDIT_POLL_SEC", 1)
+    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 2)
+
+    rc = d6b.main(["--execute", "--confirm", d6b.EXECUTE_CONFIRM])
+    # Deploy itself succeeded; lineage append is non-fatal.
+    assert rc == 0
+
+    # Deploy record written
+    assert (fake_repo / "state" / "deploy_6b_complete.json").exists()
+
+    # Lineage-failure marker written with traceback + intended entry
+    fail = fake_repo / "state" / "lineage_append_failed.json"
+    assert fail.exists()
+    payload = json.loads(fail.read_text())
+    assert "exception" in payload
+    assert "traceback" in payload
+    assert payload["intended_entry"]["version_label"] == "6b PATH A"
+    assert payload["intended_entry"]["status"] == "live"
