@@ -223,11 +223,13 @@ over-performance from triggering a protective rollback that wasn't needed.
 "extended_move_lookback": 150,          # unchanged
 "extended_move_cap_bps": 100,           # unchanged
 # NEW (flip from default-off to on):
-"f3c_enabled": True,
-"f3c_ema_fast": 30,
-"f3c_ema_slow": 150,
-"f3c_atr_window": 30,
-"f3c_threshold": 0.3,
+# F3c paused pending sprint v2 native-L2 confirmation.
+# Leave f3c_enabled=False in live until re-validated.
+#"f3c_enabled": True,
+#"f3c_ema_fast": 30,
+#"f3c_ema_slow": 150,
+#"f3c_atr_window": 30,
+#"f3c_threshold": 0.3,
 "timeout_trail_enabled": True,
 "timeout_trail_width_bps": 20,
 "timeout_trail_hard_floor_bps": -60,
