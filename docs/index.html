@@ -180,13 +180,15 @@ details > *:not(summary) { padding: 0 14px 14px; }
 .phase-pills .pill.pending { background: var(--card2);          color: var(--dim); }
 .phase-pills .pill.tripped { background: rgba(248,81,73,0.2);   color: var(--red);    border-color: rgba(248,81,73,0.4); font-weight: 600; }
 .sprint-status-line { font-size: 12px; color: var(--text); margin: 8px 0; }
-.sprint-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 10px 0; }
+.sprint-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin: 10px 0; }
 .sprint-cols .col h4 { font-size: 11px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
 .sprint-cols .col.promoted h4 { color: var(--green); }
+.sprint-cols .col.paused h4 { color: var(--yellow); }
 .sprint-cols .col.rejected h4 { color: var(--red); }
 .sprint-cols .col ul { font-size: 12px; list-style: none; padding: 0; margin: 0; }
 .sprint-cols .col ul li { padding: 2px 0; }
 .sprint-cols .col.rejected ul li { opacity: 0.55; text-decoration: line-through; }
+.sprint-next-line { font-size: 12px; color: var(--dim); margin: 8px 0 0 0; font-style: italic; }
 .live-state-note {
   font-size: 0.88em;
   border-top: 1px solid var(--border);
@@ -220,7 +222,7 @@ details > *:not(summary) { padding: 0 14px 14px; }
   <div class="sprint-tagline">
     <span class="from">Before: 29% WR · −22% compound · knife 35%</span>
     <span class="arrow">→</span>
-    <span class="to">Shadow OOS: +103% @5× · DD 15% · knife 26%</span>
+    <span class="to">Shadow OOS (revised 6b): +26% @5× · DD 39% · knife 34%</span>
   </div>
 
   <div class="phase-pills" id="sprintPhasePills">
@@ -230,25 +232,27 @@ details > *:not(summary) { padding: 0 14px 14px; }
     <span class="pill done">4 sizing</span>
     <span class="pill done">5 docs</span>
     <span class="pill done">6a observer</span>
+    <span class="pill done">v1.5 F3c test</span>
     <span class="pill current">6b promote ← now</span>
   </div>
 
-  <div class="phase-pills" style="margin-top:6px;">
-    <span class="pill tripped">F3c paused</span>
-  </div>
-
   <div class="sprint-status-line" id="sprintStatusLine">
-    6a active. F3c failed Kraken-native OOS (RED). 6b paused until sprint v2 with native L2.
+    6a active. F3c RED on Kraken-native OOS (v1.5). Revised 6b (no F3c) pending.
   </div>
 
   <div class="sprint-cols">
     <div class="col promoted">
       <h4>Shipping (flags off in live)</h4>
       <ul>
-        <li style="text-decoration: line-through; opacity: 0.55;">F3c entry gate (regime alignment) <span style="font-size: 10px; opacity: 0.85;">(paused)</span></li>
         <li>timeout_trail exit</li>
         <li>E3 time-decay SL</li>
         <li>Leverage 5× (was 10×)</li>
+      </ul>
+    </div>
+    <div class="col paused">
+      <h4>Paused pending v2</h4>
+      <ul>
+        <li title="F3c entry gate: paused; failed native-L2 confirmation; revisit in sprint v2.">F3c entry gate <span style="font-size: 10px; opacity: 0.85;">— paused after native-L2 test failed</span></li>
       </ul>
     </div>
     <div class="col rejected">
@@ -261,6 +265,10 @@ details > *:not(summary) { padding: 0 14px 14px; }
         <li>Entropy-weighted sizing</li>
       </ul>
     </div>
+  </div>
+
+  <div class="sprint-next-line">
+    Next: promote revised 6b with timeout_trail + E3 + 5× only. F3c revisited in sprint v2 after native-L2 collector has 30+ days.
   </div>
 
   <div class="live-state-note" id="sprintLiveNote">
