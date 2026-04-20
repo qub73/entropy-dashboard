@@ -85,12 +85,15 @@ def session_from_ts(ts_utc):
     return "americas"
 
 
-def simulate_promoted(feats, ts_ms):
+def simulate_promoted(feats, ts_ms, f3c_enabled=True):
     """Simulate the promoted Phase-5 config on Pi data, emit per-trade records.
 
     Records include pnl_bps (leverage-invariant), direction, and entry-time
     session so the caller can bucket them. `ts_ms` is an array of unix ms
     timestamps aligned with bars.
+
+    With f3c_enabled=False, skip the F3c entry gate (revised 6b after
+    sprint v1.5 RED verdict).
     """
     n = feats['n']
     mids = feats['mid']; highs = feats['high']; lows = feats['low']
@@ -210,12 +213,13 @@ def simulate_promoted(feats, ts_ms):
             if d == 1 and r150 > ext_cap: continue
             if d == -1 and r150 < -ext_cap: continue
         # F3c
-        if atr_30[i] > 0:
-            norm = (ef[i] - es[i]) / atr_30[i]
-        else:
-            norm = 0.0
-        if d == 1 and norm < f3c_threshold: continue
-        if d == -1 and norm > -f3c_threshold: continue
+        if f3c_enabled:
+            if atr_30[i] > 0:
+                norm = (ef[i] - es[i]) / atr_30[i]
+            else:
+                norm = 0.0
+            if d == 1 and norm < f3c_threshold: continue
+            if d == -1 and norm > -f3c_threshold: continue
 
         in_trade = True; entry_idx = i; entry_price = mids[i]
         direction = d; peak_pnl = 0
@@ -247,7 +251,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true",
                         help="print bucket table without writing shadow_expectation.json")
+    parser.add_argument("--no-f3c", action="store_true",
+                        help="disable F3c entry gate (revised 6b post sprint v1.5 RED)")
     args = parser.parse_args()
+    f3c_enabled = not args.no_f3c
 
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     print("Loading ETH Pi orderbook (Feb 18 - Apr 7)...", flush=True)
@@ -265,7 +272,8 @@ def main():
         ts_ms = np.zeros(feats['n'], dtype=np.int64)
     print(f"  {feats['n']} bars, {feats['n']/1440:.1f} days", flush=True)
 
-    trades = simulate_promoted(feats, ts_ms)
+    print(f"  F3c enabled: {f3c_enabled}", flush=True)
+    trades = simulate_promoted(feats, ts_ms, f3c_enabled=f3c_enabled)
     print(f"  {len(trades)} trades simulated", flush=True)
 
     # Bucket
@@ -285,8 +293,11 @@ def main():
     bucket_summaries = {k: summarize_bucket(v) for k, v in buckets.items()}
     fallback = {k: summarize_bucket(v) for k, v in by_direction.items()}
 
+    cell_label = ("F3c+timeout_trail+E3+5x" if f3c_enabled
+                  else "timeout_trail+E3+5x (revised 6b, no F3c)")
     out = {
-        "cell_name": "F3c+timeout_trail+E3+5x",
+        "cell_name": cell_label,
+        "f3c_enabled": f3c_enabled,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "data_source": "Feb 18 - Apr 7 2026 Pi Kraken Futures ETH L2",
         "n_trades_total": len(trades),
