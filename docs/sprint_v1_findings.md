@@ -267,19 +267,99 @@ over-performance from triggering a protective rollback that wasn't needed.
 
 ---
 
+## Sprint v1.5 update — F3c did not replicate
+
+After Stage 6a deploy, a follow-on sprint ran F3c confirmation against
+Kraken-native L2 data (Abraxasccs HF dataset, 62 clean days selected from
+a 120-day archive). The verdict was **RED**:
+
+- Block rate was healthy (54% vs Pi 39%), so the OOS sample exposed F3c
+  to sufficient regimes
+- F3c failed both GREEN criteria: ret delta −3.23pp, DD delta +1.60pp,
+  PF unchanged
+- Knife rate INCREASED under F3c (+8.93pp) — opposite of intended
+  behavior
+- Live-window reconstruction (8 trades, Apr 12–15) showed F3c blocking
+  2/3 winners vs 2/5 losers — anti-selective on the actual live regime
+
+Interpretation: F3c's Phase 2 OOS signal was likely fit to Kaggle Binance
+microstructure and/or the H=0.4352 regime, and does not generalize to
+Kraken spot L2 at the refit-optimal H=0.50. Whether it generalizes to
+Kraken Futures at our deployed parameters is currently unknown.
+
+Action taken: 6b promotion paused. Stage 6a observer-only deploy
+continues. F3c flag stays False in live config.
+
+Current promoted config revised:
+
+- **timeout_trail**: STILL PROMOTED (Phase 3 evidence stands;
+  multi-substrate cross-validated)
+- **E3 time_decayed_sl**: STILL PROMOTED (Phase 3 + Phase 4
+  cross-confirmation, not substrate-dependent)
+- **Leverage 5×**: STILL PROMOTED
+- **F3c**: REVERTED TO UNPROMOTED pending native Kraken Futures L2
+  confirmation (next sprint)
+
+Evidence files:
+
+- `algo/reports/sprint_v15_f3c_block_rate.json`
+- `algo/reports/sprint_v15_kraken_native_refit.json`
+- `algo/reports/sprint_v15_f3c_kraken_native_confirmation.json`
+- `algo/reports/sprint_v15_live_window_reconstruction.json`
+- `algo/reports/sprint_v15_decision.md`
+
+---
+
 ## Open questions for next sprint
 
-1. **dH-gated E5.** The original E5 (absolute `H > h_exit_threshold`) failed because H drifts mechanically. A derivative-based gate (`H rising faster than a threshold over a short window`) could in principle distinguish drift from invalidation. Worth prototyping on the same Feb–Mar baseline winners.
+1. **#1 PRIORITY — Pi-side Kraken Futures L2 collector.** Sprint v1 relied
+   on 21 days of Pi + 60 days of Kaggle Binance (cross-venue). Sprint v1.5
+   used a third-party Kraken spot HF archive as a proxy but the clean-day
+   filter skewed the sample toward calmer regimes and the L2 venue was
+   spot, not Futures. Pi collector must be modified to persist book
+   snapshots beyond the bot's 30-min in-memory window. **Must be standing
+   before any further F3c evaluation or any future filter/regime work.**
+   Target: 30+ days of forward archive before attempting sprint v2.
 
-2. **Asymmetric short-side E5.** All 8 winner-cuts in the E5 acceptance test were on short trades. A short-only E5 with different thresholds could potentially save the SHORT losers without cutting winners. Interesting since shorts are the majority contributor in Feb–Mar (65 % of USD).
+2. **#2 F3c root cause investigation.** Before any re-test on native
+   Kraken Futures data, investigate why F3c's Kaggle OOS signal did not
+   replicate. Specifically: (a) rerun F3c on Kaggle with Kraken-refit
+   params (SL=50, TP=150, H=0.50, knife=50, ext=100); (b) rerun F3c on
+   Kaggle v2 substrate with H=0.50. If either shows F3c failing there
+   too, the Phase 2 decision was fit to a specific (substrate × H)
+   combination and F3c should not be considered further without a new
+   formulation.
 
-3. **Trade-flow imbalance.** Cross-regime comparison against book imbalance requires a trade-tick archive we currently lack. Options: (a) add a Kraken `trade` WebSocket subscription to the Pi collector (cheap, forward-looking only); (b) subscribe to Tardis/Kaiko for historical trades (≈$50/mo, full cross-regime backfill). Revisit after 14+ days of forward archive.
+3. **dH-gated E5.** The original E5 (absolute `H > h_exit_threshold`)
+   failed because H drifts mechanically. A derivative-based gate
+   (`H rising faster than a threshold over a short window`) could in
+   principle distinguish drift from invalidation. Worth prototyping on
+   the same Feb–Mar baseline winners.
 
-4. **60-day shadow coverage.** Sprint relied on 21 days of Pi + 60 days of Kaggle (cross-venue). Ideally we want a contiguous 90+ days of Kraken Futures L2 — currently not archived. Pi collector change to persist book snapshots beyond the bot's in-memory deques would be a one-time setup that pays off every future sprint.
+4. **Asymmetric short-side E5.** All 8 winner-cuts in the E5 acceptance
+   test were on short trades. A short-only E5 with different thresholds
+   could potentially save the SHORT losers without cutting winners.
+   Interesting since shorts are the majority contributor in Feb–Mar
+   (65 % of USD).
 
-5. **Filter regime dependency.** F3c promoted based on Feb–Mar + Kaggle 2023–24. If a new regime arrives, F3c could flip from helper to blocker. Monitor F3c block-rate weekly; flag if it exceeds 60 % of candidates (means most bars look anti-trend, likely a chop/mean-reverting regime where F3c should be loosened).
+5. **Trade-flow imbalance.** Cross-regime comparison against book
+   imbalance requires a trade-tick archive we currently lack. Options:
+   (a) add a Kraken `trade` WebSocket subscription to the Pi collector
+   (cheap, forward-looking only); (b) subscribe to Tardis/Kaiko for
+   historical trades (≈$50/mo, full cross-regime backfill). Revisit
+   after 14+ days of forward archive.
 
-6. **Phase 4 rule language.** The sprint ran up against an ill-posed promotion rule twice (Phase 2 venue bias, Phase 4 PF invariance). Next sprint should define the promotion rule *per-phase-type* up front — rules appropriate for a filter sweep differ structurally from rules appropriate for a sizing sweep.
+6. **Filter regime dependency.** F3c promoted based on Feb–Mar + Kaggle
+   2023–24. If a new regime arrives, F3c could flip from helper to
+   blocker. Monitor F3c block-rate weekly; flag if it exceeds 60 % of
+   candidates (means most bars look anti-trend, likely a chop/mean-
+   reverting regime where F3c should be loosened).
+
+7. **Phase 4 rule language.** The sprint ran up against an ill-posed
+   promotion rule twice (Phase 2 venue bias, Phase 4 PF invariance).
+   Next sprint should define the promotion rule *per-phase-type* up
+   front — rules appropriate for a filter sweep differ structurally
+   from rules appropriate for a sizing sweep.
 
 ---
 
