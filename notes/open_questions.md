@@ -50,6 +50,40 @@ it's load-bearing and not obviously wrong; flagging per guardrail 6.
 
 ---
 
+## 2026-04-20 — Kraken Market Data HF dataset (next-sprint candidate)
+
+**Source:** https://huggingface.co/datasets/Abraxasccs/kraken-market-data
+
+Free MIT dataset with **Kraken-native** L2 orderbook (100 levels), OHLC
+(1m/5m/15m/1h/4h/1d), trade prints, and ticker snapshots. Feb 2024 –
+Jan 2025. 4.26 GB total. Pairs include ETH/USD and ETH/EUR (spot, NOT
+futures -- venue-caveat remains but much milder than Binance).
+
+Unlocks (next sprint, after current 6a/6b sequence):
+
+1. Redo Phase 2/3 ablations with Kraken-spot OOS (currently Binance).
+   Verify F3c/timeout_trail/E3 all still pass on the correct venue.
+2. H_threshold refit -- was out of scope this sprint. This dataset
+   makes it tractable on 11 months of Kraken data.
+3. Shadow expectation sample sizes -- 3-6 trades per primary bucket
+   today (4 of 6 fallback to direction-only). 11 months of Kraken
+   would give 50-150 per bucket; safety-valve z-score becomes meaningful.
+4. Trade-flow imbalance archive -- the `trade/` subdir provides the
+   historical trade prints Phase 1 flagged as missing for cross-regime
+   comparison against book imbalance.
+
+Caveats:
+ - Spot vs futures: different spread profile, no funding effects in
+   spot, retail-heavier book shape. Milder mismatch than Binance but
+   not zero.
+ - Temporally disjoint from live trades (Apr 2026) and from Pi archive
+   (Feb-Mar 2026). Does not fill the on-host regeneration gap.
+ - Archive freezes at Jan 2025; not a live feed. Fine for OOS use.
+
+**Do NOT consume during Stage 6a/6b monitoring.** Observation window
+is about live behavior vs deployed observer, not offline re-ablation.
+Log and revisit in sprint-v2 scoping.
+
 ## 2026-04-19 — E2 partial_tp aggregation bug
 
 **Issue:** in `phase3_exit_ablation.py` the partial_tp fill and the
