@@ -233,15 +233,19 @@ details > *:not(summary) { padding: 0 14px 14px; }
     <span class="pill current">6b promote ← now</span>
   </div>
 
+  <div class="phase-pills" style="margin-top:6px;">
+    <span class="pill tripped">F3c paused</span>
+  </div>
+
   <div class="sprint-status-line" id="sprintStatusLine">
-    6a deployed 2026-04-20. Observing for 3–7 days. Awaiting explicit "promote 6b".
+    6a active. F3c failed Kraken-native OOS (RED). 6b paused until sprint v2 with native L2.
   </div>
 
   <div class="sprint-cols">
     <div class="col promoted">
       <h4>Shipping (flags off in live)</h4>
       <ul>
-        <li>F3c entry gate (regime alignment)</li>
+        <li style="text-decoration: line-through; opacity: 0.55;">F3c entry gate (regime alignment) <span style="font-size: 10px; opacity: 0.85;">(paused)</span></li>
         <li>timeout_trail exit</li>
         <li>E3 time-decay SL</li>
         <li>Leverage 5× (was 10×)</li>
