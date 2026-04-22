@@ -24,7 +24,11 @@ Design
 ------
 - Repo-path-agnostic. Resolves paths relative to this file's location.
 - Systemd service name resolved from $ENTROPY_SERVICE_NAME, default
-  'entropy_trader.service'.
+  'entropy-trader.service'. Pre-flight cross-validates that the named
+  unit actually is our bot (right WorkingDirectory, right ExecStart,
+  right running-process cmdline) before any restart -- this guards
+  against the 'env var points at a sibling trading system' class of
+  error.
 - Every file mutation is copy-then-rename (atomic on POSIX).
 - On any exception during Phase 3, an automatic rollback is attempted.
 - Exits with code 0 on success, non-zero on any abort.
@@ -56,7 +60,13 @@ EXPECTED_COMMIT_SUBJECT = (
 )
 EXECUTE_CONFIRM = "PROMOTE PATH A"
 ROLLBACK_CONFIRM = "ROLLBACK TO PRE-6B"
-SERVICE_NAME_DEFAULT = "entropy_trader.service"
+SERVICE_NAME_DEFAULT = "entropy-trader.service"
+
+# Service-target invariants. The named unit must match all three or
+# preflight aborts -- this is the defense against the env var pointing
+# at a sibling trading system (see notes/pi_infrastructure_audit_2026_04_22.md).
+EXPECTED_WORKING_DIR = "/home/user/entropy_trader"
+EXPECTED_EXEC_MARKER = "entropy_live_multi.py"
 
 MAX_CLOCK_DRIFT_SEC = 30
 BANNER_POLL_SEC = 120
@@ -116,6 +126,120 @@ def _atomic_write(path: Path, data: str) -> None:
     tmp = path.with_suffix(path.suffix + ".tmp")
     tmp.write_text(data)
     os.replace(tmp, path)
+
+
+# ------------ service-target verification ------------
+
+def _extract_unit_key(unit_text: str, key: str) -> Optional[str]:
+    """Return the first `Key=Value` pair from the [Service] section, or
+    None. Handles the standard `systemctl cat` output format where the
+    unit file contents are preceded by a comment line with the path."""
+    in_service = False
+    for raw in unit_text.splitlines():
+        line = raw.strip()
+        if line.startswith("["):
+            in_service = (line == "[Service]")
+            continue
+        if in_service and line.startswith(f"{key}="):
+            return line.split("=", 1)[1].strip()
+    return None
+
+
+def _read_proc_cmdline(pid: int) -> str:
+    """Read /proc/<pid>/cmdline and return it with NULs replaced by
+    spaces. Broken out so tests can monkeypatch without touching /proc."""
+    raw = Path(f"/proc/{pid}/cmdline").read_bytes()
+    return raw.replace(b"\x00", b" ").decode(errors="replace").strip()
+
+
+def verify_service_targets_expected_bot(
+        service_name: str) -> Tuple[bool, Optional[str]]:
+    """Layered defense: confirm the named service is our entropy_trader
+    bot and not a sibling trading system. Four checks, each naming both
+    expected and observed values in the abort message:
+        P1. systemctl is-active returns 'active'
+        P2. unit WorkingDirectory matches EXPECTED_WORKING_DIR
+        P3. unit ExecStart contains EXPECTED_EXEC_MARKER
+        P4. running MainPID's /proc/<pid>/cmdline contains EXPECTED_EXEC_MARKER
+    Returns (ok, error_msg). On ok=True, error_msg is None.
+
+    Rationale: see notes/pi_infrastructure_audit_2026_04_22.md -- the Pi
+    hosts several other live-trader unit files, and a stale env var
+    would otherwise cause this script to restart (i.e. start) one of
+    them.
+    """
+    # P1 -- active
+    res = _run(["systemctl", "is-active", service_name],
+                check=False, timeout=10)
+    actual_state = res.stdout.strip()
+    if actual_state != "active":
+        return False, (
+            f"P1 FAILED: service {service_name!r} is not active. "
+            f"systemctl is-active returned {actual_state!r} (expected "
+            f"'active'). The env var may point at a stale/unrelated "
+            f"unit -- refusing to proceed."
+        )
+
+    # P2, P3 -- parse unit file
+    res = _run(["systemctl", "cat", service_name],
+                check=False, timeout=10)
+    if res.returncode != 0:
+        return False, (
+            f"systemctl cat {service_name!r} failed (rc={res.returncode}): "
+            f"{(res.stderr or '').strip()!r}"
+        )
+    unit_text = res.stdout
+
+    wd = _extract_unit_key(unit_text, "WorkingDirectory")
+    if wd != EXPECTED_WORKING_DIR:
+        return False, (
+            f"P2 FAILED: service {service_name!r} WorkingDirectory is "
+            f"{wd!r}, expected {EXPECTED_WORKING_DIR!r}. This unit does "
+            f"not look like our entropy_trader bot -- refusing to proceed."
+        )
+
+    execstart = _extract_unit_key(unit_text, "ExecStart") or ""
+    if EXPECTED_EXEC_MARKER not in execstart:
+        return False, (
+            f"P3 FAILED: service {service_name!r} ExecStart is "
+            f"{execstart!r}, expected to contain {EXPECTED_EXEC_MARKER!r}. "
+            f"Refusing to proceed."
+        )
+
+    # P4 -- running process cmdline
+    res = _run(["systemctl", "show", "-p", "MainPID", "--value",
+                 service_name], check=False, timeout=10)
+    pid_str = res.stdout.strip()
+    try:
+        pid = int(pid_str)
+    except ValueError:
+        return False, (
+            f"P4 FAILED: systemctl show -p MainPID returned non-integer "
+            f"{pid_str!r} for {service_name!r}."
+        )
+    if pid <= 0:
+        return False, (
+            f"P4 FAILED: service {service_name!r} has MainPID={pid} (no "
+            f"running process). systemctl is-active said 'active' but "
+            f"show disagrees -- state is inconsistent."
+        )
+
+    try:
+        cmdline = _read_proc_cmdline(pid)
+    except Exception as e:
+        return False, (
+            f"P4 FAILED: could not read /proc/{pid}/cmdline: "
+            f"{type(e).__name__}: {e}"
+        )
+    if EXPECTED_EXEC_MARKER not in cmdline:
+        return False, (
+            f"P4 FAILED: running process PID {pid} cmdline is "
+            f"{cmdline!r}, expected to contain {EXPECTED_EXEC_MARKER!r}. "
+            f"The unit file matches but the live process does not -- "
+            f"someone may have swapped the service. Refusing to proceed."
+        )
+
+    return True, None
 
 
 # ------------ health-check (no state reads, no mutations) ------------
@@ -291,6 +415,16 @@ def preflight(state_dir: Path, config_file: Path) -> dict:
         raise AbortError(
             f"clock drift {skew_sec:.1f}s exceeds +/-{MAX_CLOCK_DRIFT_SEC}s"
         )
+
+    # 8. service target verification (P1..P4). See
+    #    notes/pi_infrastructure_audit_2026_04_22.md for rationale.
+    svc = _service_name()
+    ok, err = verify_service_targets_expected_bot(svc)
+    if not ok:
+        raise AbortError(err or f"service verification failed for {svc!r}")
+    facts["service_verified"] = svc
+    facts["service_working_dir"] = EXPECTED_WORKING_DIR
+    facts["service_exec_marker"] = EXPECTED_EXEC_MARKER
 
     return facts
 

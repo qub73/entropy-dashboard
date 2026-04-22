@@ -72,16 +72,57 @@ def fake_repo(tmp_path, monkeypatch):
     return tmp_path
 
 
+GOOD_UNIT_FILE = (
+    "# /etc/systemd/system/entropy-trader.service\n"
+    "[Unit]\n"
+    "Description=Multi-Pair Entropy Trader (BTC+ETH, Kraken Futures 10x)\n"
+    "\n"
+    "[Service]\n"
+    "Type=simple\n"
+    "User=user\n"
+    "WorkingDirectory=/home/user/entropy_trader\n"
+    "ExecStart=/home/user/entropy_trader/venv/bin/python -u entropy_live_multi.py\n"
+    "Restart=always\n"
+    "\n"
+    "[Install]\n"
+    "WantedBy=multi-user.target\n"
+)
+GOOD_MAIN_PID = "227313"
+GOOD_CMDLINE = (
+    "/home/user/entropy_trader/venv/bin/python -u entropy_live_multi.py"
+)
+
+
+def _systemctl_fake(cmd, *, unit_text=GOOD_UNIT_FILE,
+                    is_active="active", main_pid=GOOD_MAIN_PID):
+    """Translate a systemctl-prefixed cmd into a CompletedProcess.
+    Returns None when the cmd isn't a systemctl call."""
+    if cmd[0] != "systemctl":
+        return None
+    if cmd[1:2] == ["is-active"]:
+        return subprocess.CompletedProcess(cmd, 0, f"{is_active}\n", "")
+    if cmd[1:2] == ["cat"]:
+        return subprocess.CompletedProcess(cmd, 0, unit_text, "")
+    if cmd[1] == "show" and "--value" in cmd and "MainPID" in cmd:
+        return subprocess.CompletedProcess(cmd, 0, f"{main_pid}\n", "")
+    if cmd[1] in ("restart", "is-active"):
+        return subprocess.CompletedProcess(cmd, 0, "active\n", "")
+    # Default: pretend success with empty output
+    return subprocess.CompletedProcess(cmd, 0, "", "")
+
+
 @pytest.fixture
 def mock_git_ok(monkeypatch):
-    """_run returns clean git status, 'main' branch, PATH-A HEAD subject."""
+    """_run returns clean git status, 'main' branch, PATH-A HEAD subject.
+    systemctl calls return unit+pid state consistent with our bot.
+    /proc/<pid>/cmdline reads return the expected entropy_live_multi.py
+    command line."""
     calls = []
     def fake_run(cmd, check=True, timeout=30, capture=True):
         calls.append(cmd)
-        stdout = ""
-        rc = 0
         if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)]:
             rest = cmd[3:]
+            stdout = ""
             if rest[:2] == ["status", "--porcelain"]:
                 stdout = ""
             elif rest == ["branch", "--show-current"]:
@@ -92,14 +133,17 @@ def mock_git_ok(monkeypatch):
                 stdout = "deadbeefdeadbeef\n"
             elif rest[:2] == ["log", "--oneline"]:
                 stdout = "deadbeef test head\n"
-        elif cmd[0] == "systemctl":
-            stdout = "active\n"
-        elif cmd[0] == "chronyc":
-            # no chronyc in test -> simulate absence
+            return subprocess.CompletedProcess(cmd, 0, stdout, "")
+        sc = _systemctl_fake(cmd)
+        if sc is not None:
+            return sc
+        if cmd[0] == "chronyc":
             raise FileNotFoundError("chronyc not found in test env")
-        return subprocess.CompletedProcess(cmd, rc, stdout, "")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
 
     monkeypatch.setattr(d6b, "_run", fake_run)
+    monkeypatch.setattr(d6b, "_read_proc_cmdline",
+                        lambda pid: GOOD_CMDLINE)
     return calls
 
 
@@ -210,6 +254,102 @@ def test_preflight_valve_exists_aborts(fake_repo, mock_git_ok):
         d6b.preflight(fake_repo / "state", fake_repo / "algo" / "entropy_live_multi.py")
 
 
+# ---------- P1..P4 service-target verification ----------
+
+def _make_fake_run(unit_text=GOOD_UNIT_FILE, is_active="active",
+                    main_pid=GOOD_MAIN_PID):
+    """Build a fake _run that passes git pre-flight cleanly but returns
+    parametrized systemctl state. Used for P1..P4 failure-mode tests."""
+    def fake_run(cmd, check=True, timeout=30, capture=True):
+        if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)]:
+            rest = cmd[3:]
+            if rest[:2] == ["status", "--porcelain"]:
+                return subprocess.CompletedProcess(cmd, 0, "", "")
+            if rest == ["branch", "--show-current"]:
+                return subprocess.CompletedProcess(cmd, 0, "main\n", "")
+            if rest[:2] == ["log", "-1"] and "--format=%s" in rest:
+                return subprocess.CompletedProcess(
+                    cmd, 0, d6b.EXPECTED_COMMIT_SUBJECT + "\n", "")
+            if rest == ["rev-parse", "HEAD"]:
+                return subprocess.CompletedProcess(cmd, 0, "dead\n", "")
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        sc = _systemctl_fake(cmd, unit_text=unit_text,
+                               is_active=is_active, main_pid=main_pid)
+        if sc is not None:
+            return sc
+        if cmd[0] == "chronyc":
+            raise FileNotFoundError()
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+    return fake_run
+
+
+def test_preflight_service_not_active_aborts(fake_repo, monkeypatch):
+    """P1: systemctl is-active returns 'inactive' -> abort."""
+    monkeypatch.setattr(d6b, "_run", _make_fake_run(is_active="inactive"))
+    monkeypatch.setattr(d6b, "_read_proc_cmdline", lambda pid: GOOD_CMDLINE)
+    with pytest.raises(d6b.AbortError, match="P1 FAILED"):
+        d6b.preflight(fake_repo / "state",
+                       fake_repo / "algo" / "entropy_live_multi.py")
+
+
+def test_preflight_working_dir_mismatch_aborts(fake_repo, monkeypatch):
+    """P2: unit WorkingDirectory points at a sibling trading system."""
+    wrong_unit = GOOD_UNIT_FILE.replace(
+        "WorkingDirectory=/home/user/entropy_trader",
+        "WorkingDirectory=/home/user",
+    ).replace(
+        "ExecStart=/home/user/entropy_trader/venv/bin/python -u entropy_live_multi.py",
+        "ExecStart=/home/user/hft/venv/bin/python -u -m hft.mr_live --live",
+    )
+    monkeypatch.setattr(d6b, "_run",
+                         _make_fake_run(unit_text=wrong_unit))
+    monkeypatch.setattr(d6b, "_read_proc_cmdline", lambda pid: GOOD_CMDLINE)
+    with pytest.raises(d6b.AbortError, match="P2 FAILED"):
+        d6b.preflight(fake_repo / "state",
+                       fake_repo / "algo" / "entropy_live_multi.py")
+
+
+def test_preflight_execstart_mismatch_aborts(fake_repo, monkeypatch):
+    """P3: unit WorkingDirectory happens to match but ExecStart is a
+    different Python entry point."""
+    wrong_unit = GOOD_UNIT_FILE.replace(
+        "ExecStart=/home/user/entropy_trader/venv/bin/python -u entropy_live_multi.py",
+        "ExecStart=/home/user/entropy_trader/venv/bin/python -u some_other_script.py",
+    )
+    monkeypatch.setattr(d6b, "_run",
+                         _make_fake_run(unit_text=wrong_unit))
+    monkeypatch.setattr(d6b, "_read_proc_cmdline", lambda pid: GOOD_CMDLINE)
+    with pytest.raises(d6b.AbortError, match="P3 FAILED"):
+        d6b.preflight(fake_repo / "state",
+                       fake_repo / "algo" / "entropy_live_multi.py")
+
+
+def test_preflight_running_pid_cmdline_mismatch_aborts(fake_repo, monkeypatch):
+    """P4: unit file looks right but the live PID is running something
+    else -- someone swapped the service after the unit file was written."""
+    monkeypatch.setattr(d6b, "_run", _make_fake_run())  # unit file clean
+    monkeypatch.setattr(
+        d6b, "_read_proc_cmdline",
+        lambda pid: "/usr/bin/python -m hft.mr_live --live",
+    )
+    with pytest.raises(d6b.AbortError, match="P4 FAILED"):
+        d6b.preflight(fake_repo / "state",
+                       fake_repo / "algo" / "entropy_live_multi.py")
+
+
+def test_preflight_all_checks_pass_when_service_is_correct(
+        fake_repo, mock_git_ok):
+    """Happy path: service verification passes and facts dict exposes
+    the verified invariants."""
+    facts = d6b.preflight(
+        fake_repo / "state",
+        fake_repo / "algo" / "entropy_live_multi.py",
+    )
+    assert facts["service_verified"] == d6b.SERVICE_NAME_DEFAULT
+    assert facts["service_working_dir"] == d6b.EXPECTED_WORKING_DIR
+    assert facts["service_exec_marker"] == d6b.EXPECTED_EXEC_MARKER
+
+
 # ---------- backup ----------
 
 def test_backup_creates_expected_files(fake_repo, mock_git_ok):
@@ -310,12 +450,12 @@ def test_health_check_all_green(fake_repo, monkeypatch):
     # Copy tests file into fake_repo so the 'tests present' check passes.
     (fake_repo / "tests").mkdir(exist_ok=True)
     (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
-    monkeypatch.setenv("ENTROPY_SERVICE_NAME", "mr-trading.service")
+    monkeypatch.setenv("ENTROPY_SERVICE_NAME", "entropy-trader.service")
     code, ok, issues = d6b.health_check()
     assert code == 0, f"expected 0, got {code}; issues={issues}"
     assert len(issues) == 0
     # Spot-check that env var was observed
-    assert any("ENTROPY_SERVICE_NAME=mr-trading.service" in m for m in ok)
+    assert any("ENTROPY_SERVICE_NAME=entropy-trader.service" in m for m in ok)
 
 
 def test_health_check_missing_env_var(fake_repo, monkeypatch):
@@ -332,7 +472,7 @@ def test_health_check_exits_fast(fake_repo, monkeypatch):
     import time
     (fake_repo / "tests").mkdir(exist_ok=True)
     (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
-    monkeypatch.setenv("ENTROPY_SERVICE_NAME", "mr-trading.service")
+    monkeypatch.setenv("ENTROPY_SERVICE_NAME", "entropy-trader.service")
     t0 = time.time()
     rc = d6b.main(["--health-check"])
     assert time.time() - t0 < 3.0
