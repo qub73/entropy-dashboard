@@ -29,6 +29,11 @@ Design
   right running-process cmdline) before any restart -- this guards
   against the 'env var points at a sibling trading system' class of
   error.
+- Pi connectivity: $PI_HOST_TARGET (default 'user@raspberry') resolves
+  the ssh target. Default is the Tailscale MagicDNS hostname for
+  remote access. Set to 'user@192.168.1.15' (or similar) when running
+  from the home network without Tailscale, or to 'user@100.67.10.19'
+  to use the raw Tailscale IP if MagicDNS is unavailable.
 - Every file mutation is copy-then-rename (atomic on POSIX).
 - On any exception during Phase 3, an automatic rollback is attempted.
 - Exits with code 0 on success, non-zero on any abort.
@@ -61,6 +66,12 @@ EXPECTED_COMMIT_SUBJECT = (
 EXECUTE_CONFIRM = "PROMOTE PATH A"
 ROLLBACK_CONFIRM = "ROLLBACK TO PRE-6B"
 SERVICE_NAME_DEFAULT = "entropy-trader.service"
+
+# Pi ssh target. Default is Tailscale MagicDNS for remote access; can
+# be overridden via $PI_HOST_TARGET (e.g. 'user@192.168.1.15' for LAN-
+# only, 'user@100.67.10.19' for raw Tailscale IP).
+PI_HOST_TARGET_DEFAULT = "user@raspberry"
+PI_REACHABLE_TIMEOUT_SEC = 8
 
 # Service-target invariants. The named unit must match all three or
 # preflight aborts -- this is the defense against the env var pointing
@@ -110,6 +121,10 @@ def _resolve_config_file() -> Path:
 
 def _service_name() -> str:
     return os.environ.get("ENTROPY_SERVICE_NAME", SERVICE_NAME_DEFAULT)
+
+
+def _pi_host_target() -> str:
+    return os.environ.get("PI_HOST_TARGET", PI_HOST_TARGET_DEFAULT)
 
 
 def _run(cmd: List[str], check: bool = True, timeout: int = 30,
@@ -313,6 +328,34 @@ def health_check() -> Tuple[int, List[str], List[str]]:
         ok.append(f"tests present: {tests.relative_to(REPO_ROOT)}")
     else:
         issues.append(f"tests missing: {tests.relative_to(REPO_ROOT)}")
+
+    # 7. Pi reachable via ssh (Tailscale or LAN). Default Tailscale.
+    pi_host = _pi_host_target()
+    try:
+        res = _run(
+            ["ssh", "-o", "ConnectTimeout=5", "-o", "BatchMode=yes",
+             pi_host, "echo pi_reachable"],
+            check=False, timeout=PI_REACHABLE_TIMEOUT_SEC,
+        )
+        if res.returncode == 0 and "pi_reachable" in (res.stdout or ""):
+            ok.append(f"Pi reachable at {pi_host}")
+        else:
+            issues.append(
+                f"PI unreachable at {pi_host} -- verify network/Tailscale "
+                f"or set PI_HOST_TARGET env var to override "
+                f"(rc={res.returncode}, stderr="
+                f"{(res.stderr or '').strip()[:200]!r})"
+            )
+    except subprocess.TimeoutExpired:
+        issues.append(
+            f"PI unreachable at {pi_host} (ssh timeout > "
+            f"{PI_REACHABLE_TIMEOUT_SEC}s) -- verify network/Tailscale "
+            f"or set PI_HOST_TARGET env var to override"
+        )
+    except FileNotFoundError:
+        issues.append(
+            "ssh not found in PATH; cannot verify Pi reachability"
+        )
 
     return (0 if not issues else 1), ok, issues
 

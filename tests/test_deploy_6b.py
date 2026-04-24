@@ -444,27 +444,56 @@ def test_execute_banner_mismatch_triggers_rollback(fake_repo, mock_git_ok,
 
 # ---------- health-check ----------
 
+def _mock_ssh_pi_reachable(monkeypatch, reachable=True):
+    """Patch _run to fake the ssh-to-Pi probe used by health_check.
+    Other commands fall through to a generic success."""
+    def fake_run(cmd, check=True, timeout=30, capture=True):
+        if cmd[0] == "ssh":
+            if reachable:
+                return subprocess.CompletedProcess(
+                    cmd, 0, "pi_reachable\n", "")
+            return subprocess.CompletedProcess(
+                cmd, 255, "", "ssh: connect: Connection timed out\n")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+    monkeypatch.setattr(d6b, "_run", fake_run)
+
+
 def test_health_check_all_green(fake_repo, monkeypatch):
-    """With ENTROPY_SERVICE_NAME set + state writable + tests present,
-    exit 0 and no issues reported."""
-    # Copy tests file into fake_repo so the 'tests present' check passes.
+    """With ENTROPY_SERVICE_NAME set + state writable + tests present
+    + Pi reachable, exit 0 and no issues reported."""
     (fake_repo / "tests").mkdir(exist_ok=True)
     (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
     monkeypatch.setenv("ENTROPY_SERVICE_NAME", "entropy-trader.service")
+    _mock_ssh_pi_reachable(monkeypatch, reachable=True)
     code, ok, issues = d6b.health_check()
     assert code == 0, f"expected 0, got {code}; issues={issues}"
     assert len(issues) == 0
-    # Spot-check that env var was observed
     assert any("ENTROPY_SERVICE_NAME=entropy-trader.service" in m for m in ok)
+    assert any("Pi reachable at" in m for m in ok)
 
 
 def test_health_check_missing_env_var(fake_repo, monkeypatch):
     (fake_repo / "tests").mkdir(exist_ok=True)
     (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
     monkeypatch.delenv("ENTROPY_SERVICE_NAME", raising=False)
+    _mock_ssh_pi_reachable(monkeypatch, reachable=True)
     code, ok, issues = d6b.health_check()
     assert code == 1
     assert any("ENTROPY_SERVICE_NAME not set" in m for m in issues)
+
+
+def test_health_check_pi_unreachable(fake_repo, monkeypatch):
+    """Pi unreachable -> health-check fails with a specific error
+    naming PI_HOST_TARGET and the override mechanism."""
+    (fake_repo / "tests").mkdir(exist_ok=True)
+    (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
+    monkeypatch.setenv("ENTROPY_SERVICE_NAME", "entropy-trader.service")
+    _mock_ssh_pi_reachable(monkeypatch, reachable=False)
+    code, ok, issues = d6b.health_check()
+    assert code == 1
+    pi_issue = [m for m in issues if "PI unreachable" in m]
+    assert len(pi_issue) == 1, f"expected one PI-unreachable issue, got: {issues}"
+    assert "PI_HOST_TARGET" in pi_issue[0]
 
 
 def test_health_check_exits_fast(fake_repo, monkeypatch):
@@ -473,6 +502,7 @@ def test_health_check_exits_fast(fake_repo, monkeypatch):
     (fake_repo / "tests").mkdir(exist_ok=True)
     (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
     monkeypatch.setenv("ENTROPY_SERVICE_NAME", "entropy-trader.service")
+    _mock_ssh_pi_reachable(monkeypatch, reachable=True)
     t0 = time.time()
     rc = d6b.main(["--health-check"])
     assert time.time() - t0 < 3.0
