@@ -1,0 +1,1606 @@
+{
+  "generated_at_utc": "2026-04-21T09:07:22.372733+00:00",
+  "timeout_variants_bars": [
+    90,
+    120,
+    150,
+    180,
+    240
+  ],
+  "live_retrospective": {
+    "n_pre_sprint_live_trades": 17,
+    "n_reconstructed": 17,
+    "params": {
+      "sl_bps": 50.0,
+      "tp_bps": 200.0,
+      "trail_after_bps": 150.0,
+      "trail_bps": 50.0,
+      "fee_bps_per_side": 5.0,
+      "leverage_live": 10
+    },
+    "metrics_by_variant": {
+      "T_90": {
+        "n_trades": 17,
+        "compound_ret_pct": -10.018727799738553,
+        "max_dd_pct": 15.36480385911597,
+        "win_rate": 0.4117647058823529,
+        "avg_winner_bps": 55.95918346169736,
+        "avg_loser_bps": -48.01439415784367,
+        "knife_rate": 0.35294117647058826,
+        "knife_catchers": 6,
+        "mean_pnl_bps": -5.20174454979736,
+        "reason_distribution": {
+          "timeout": 5,
+          "sl": 5,
+          "trail_stop": 5,
+          "tp_trail": 2
+        }
+      },
+      "T_120": {
+        "n_trades": 17,
+        "compound_ret_pct": -24.175909885321772,
+        "max_dd_pct": 25.70331188212912,
+        "win_rate": 0.23529411764705882,
+        "avg_winner_bps": 84.42830295836055,
+        "avg_loser_bps": -47.274614920754075,
+        "knife_rate": 0.35294117647058826,
+        "knife_catchers": 6,
+        "mean_pnl_bps": -16.28569306684476,
+        "reason_distribution": {
+          "trail_stop": 2,
+          "sl": 7,
+          "timeout": 6,
+          "tp_trail": 2
+        }
+      },
+      "T_150": {
+        "n_trades": 17,
+        "compound_ret_pct": -10.021301294822333,
+        "max_dd_pct": 18.72155683712521,
+        "win_rate": 0.4117647058823529,
+        "avg_winner_bps": 65.42862693582131,
+        "avg_loser_bps": -54.16564053318558,
+        "knife_rate": 0.29411764705882354,
+        "knife_catchers": 5,
+        "mean_pnl_bps": -4.920942163594503,
+        "reason_distribution": {
+          "trail_stop": 5,
+          "sl": 8,
+          "tp_trail": 2,
+          "timeout": 2
+        }
+      },
+      "T_180": {
+        "n_trades": 17,
+        "compound_ret_pct": -0.8248620394073987,
+        "max_dd_pct": 19.912535294400023,
+        "win_rate": 0.4117647058823529,
+        "avg_winner_bps": 83.35492080383274,
+        "avg_loser_bps": -55.209410658575266,
+        "knife_rate": 0.29411764705882354,
+        "knife_catchers": 5,
+        "mean_pnl_bps": 1.8464905318280227,
+        "reason_distribution": {
+          "trail_stop": 4,
+          "sl": 9,
+          "tp_trail": 3,
+          "timeout": 1
+        }
+      },
+      "T_240": {
+        "n_trades": 17,
+        "compound_ret_pct": 1.299972136272736,
+        "max_dd_pct": 19.912535294400012,
+        "win_rate": 0.4117647058823529,
+        "avg_winner_bps": 88.66870944050781,
+        "avg_loser_bps": -56.25646395145096,
+        "knife_rate": 0.29411764705882354,
+        "knife_catchers": 5,
+        "mean_pnl_bps": 3.4186074452379493,
+        "reason_distribution": {
+          "trail_stop": 4,
+          "sl": 9,
+          "tp_trail": 3,
+          "timeout": 1
+        }
+      }
+    },
+    "bucket_cross_tab": {
+      "<30": {
+        "n_trades": 3,
+        "by_variant": {
+          "T_90": {
+            "n_changed": 0,
+            "sum_delta_bps": 0,
+            "changes": []
+          },
+          "T_120": {
+            "n_changed": 0,
+            "sum_delta_bps": 0,
+            "changes": []
+          },
+          "T_150": {
+            "n_changed": 0,
+            "sum_delta_bps": 0,
+            "changes": []
+          },
+          "T_180": {
+            "n_changed": 0,
+            "sum_delta_bps": 0,
+            "changes": []
+          }
+        }
+      },
+      "30-90": {
+        "n_trades": 3,
+        "by_variant": {
+          "T_90": {
+            "n_changed": 0,
+            "sum_delta_bps": 0,
+            "changes": []
+          },
+          "T_120": {
+            "n_changed": 0,
+            "sum_delta_bps": 0,
+            "changes": []
+          },
+          "T_150": {
+            "n_changed": 0,
+            "sum_delta_bps": 0,
+            "changes": []
+          },
+          "T_180": {
+            "n_changed": 0,
+            "sum_delta_bps": 0,
+            "changes": []
+          }
+        }
+      },
+      "90-180": {
+        "n_trades": 6,
+        "by_variant": {
+          "T_90": {
+            "n_changed": 5,
+            "sum_delta_bps": 45.83,
+            "changes": [
+              {
+                "order_id": "a18a854d-9851-4bfd-8760-94eb48ce75c0",
+                "delta_pnl_bps": 12.95,
+                "t240_reason": "sl",
+                "t_var_reason": "timeout"
+              },
+              {
+                "order_id": "a18ae249-51da-4a57-910a-c5854b4fdd25",
+                "delta_pnl_bps": -103.5,
+                "t240_reason": "tp_trail",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a18b33d3-52fb-49aa-9bd8-474257b16229",
+                "delta_pnl_bps": 77.5,
+                "t240_reason": "sl",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a191b93b-6522-46e6-ab44-fc681e74c525",
+                "delta_pnl_bps": 25.01,
+                "t240_reason": "sl",
+                "t_var_reason": "timeout"
+              },
+              {
+                "order_id": "a1920066-645b-42f8-85cd-508ba7fd5209",
+                "delta_pnl_bps": 33.87,
+                "t240_reason": "sl",
+                "t_var_reason": "timeout"
+              }
+            ]
+          },
+          "T_120": {
+            "n_changed": 3,
+            "sum_delta_bps": -20.25,
+            "changes": [
+              {
+                "order_id": "a18ae249-51da-4a57-910a-c5854b4fdd25",
+                "delta_pnl_bps": -58.88,
+                "t240_reason": "tp_trail",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a191b93b-6522-46e6-ab44-fc681e74c525",
+                "delta_pnl_bps": 13.06,
+                "t240_reason": "sl",
+                "t_var_reason": "timeout"
+              },
+              {
+                "order_id": "a1920066-645b-42f8-85cd-508ba7fd5209",
+                "delta_pnl_bps": 25.57,
+                "t240_reason": "sl",
+                "t_var_reason": "timeout"
+              }
+            ]
+          },
+          "T_150": {
+            "n_changed": 2,
+            "sum_delta_bps": -49.86,
+            "changes": [
+              {
+                "order_id": "a18ae249-51da-4a57-910a-c5854b4fdd25",
+                "delta_pnl_bps": -65.49,
+                "t240_reason": "tp_trail",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a1920066-645b-42f8-85cd-508ba7fd5209",
+                "delta_pnl_bps": 15.63,
+                "t240_reason": "sl",
+                "t_var_reason": "timeout"
+              }
+            ]
+          },
+          "T_180": {
+            "n_changed": 0,
+            "sum_delta_bps": 0,
+            "changes": []
+          }
+        }
+      },
+      ">180": {
+        "n_trades": 5,
+        "by_variant": {
+          "T_90": {
+            "n_changed": 5,
+            "sum_delta_bps": -192.39,
+            "changes": [
+              {
+                "order_id": "a187cfdd-418b-4899-9e8f-7acbb7e8d2de",
+                "delta_pnl_bps": -86.31,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "timeout"
+              },
+              {
+                "order_id": "a1893db4-945f-4aba-b20e-e1c7ad44b5d6",
+                "delta_pnl_bps": -34.11,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a18c738b-66bc-4843-bd50-be3fe57b3e9c",
+                "delta_pnl_bps": -45.06,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a18ece25-be34-4d61-992a-9380a5df4fca",
+                "delta_pnl_bps": -25.3,
+                "t240_reason": "timeout",
+                "t_var_reason": "timeout"
+              },
+              {
+                "order_id": "a18fb9d3-44dd-4828-beeb-85e7ad521db8",
+                "delta_pnl_bps": -1.61,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              }
+            ]
+          },
+          "T_120": {
+            "n_changed": 5,
+            "sum_delta_bps": -314.74,
+            "changes": [
+              {
+                "order_id": "a187cfdd-418b-4899-9e8f-7acbb7e8d2de",
+                "delta_pnl_bps": -39.35,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a1893db4-945f-4aba-b20e-e1c7ad44b5d6",
+                "delta_pnl_bps": -137.69,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "timeout"
+              },
+              {
+                "order_id": "a18c738b-66bc-4843-bd50-be3fe57b3e9c",
+                "delta_pnl_bps": -77.48,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "timeout"
+              },
+              {
+                "order_id": "a18ece25-be34-4d61-992a-9380a5df4fca",
+                "delta_pnl_bps": -18.89,
+                "t240_reason": "timeout",
+                "t_var_reason": "timeout"
+              },
+              {
+                "order_id": "a18fb9d3-44dd-4828-beeb-85e7ad521db8",
+                "delta_pnl_bps": -41.33,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "timeout"
+              }
+            ]
+          },
+          "T_150": {
+            "n_changed": 5,
+            "sum_delta_bps": -91.91,
+            "changes": [
+              {
+                "order_id": "a187cfdd-418b-4899-9e8f-7acbb7e8d2de",
+                "delta_pnl_bps": -16.96,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a1893db4-945f-4aba-b20e-e1c7ad44b5d6",
+                "delta_pnl_bps": -32.45,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a18c738b-66bc-4843-bd50-be3fe57b3e9c",
+                "delta_pnl_bps": -43.91,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a18ece25-be34-4d61-992a-9380a5df4fca",
+                "delta_pnl_bps": 37.28,
+                "t240_reason": "timeout",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a18fb9d3-44dd-4828-beeb-85e7ad521db8",
+                "delta_pnl_bps": -35.87,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "timeout"
+              }
+            ]
+          },
+          "T_180": {
+            "n_changed": 5,
+            "sum_delta_bps": -26.72,
+            "changes": [
+              {
+                "order_id": "a187cfdd-418b-4899-9e8f-7acbb7e8d2de",
+                "delta_pnl_bps": -1.8,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a1893db4-945f-4aba-b20e-e1c7ad44b5d6",
+                "delta_pnl_bps": -35.15,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a18c738b-66bc-4843-bd50-be3fe57b3e9c",
+                "delta_pnl_bps": -2.09,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              },
+              {
+                "order_id": "a18ece25-be34-4d61-992a-9380a5df4fca",
+                "delta_pnl_bps": 10.47,
+                "t240_reason": "timeout",
+                "t_var_reason": "timeout"
+              },
+              {
+                "order_id": "a18fb9d3-44dd-4828-beeb-85e7ad521db8",
+                "delta_pnl_bps": 1.85,
+                "t240_reason": "trail_stop",
+                "t_var_reason": "trail_stop"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "per_trade": [
+      {
+        "order_id": "a187cfdd-418b-4899-9e8f-7acbb7e8d2de",
+        "direction": 1,
+        "entry_time_utc": "2026-04-12T22:19:00.722562+00:00",
+        "live_pnl_bps": 30.514339976761562,
+        "live_reason": "timeout",
+        "live_hold_min": 240.99410165548323,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 103,
+            "hold_bars": 90,
+            "exit_price": 2187.32,
+            "reason": "timeout",
+            "pnl_bps_gross": -14.11341397575927,
+            "pnl_bps_net": -24.113413975759272,
+            "mfe_bps": 50.805896986176876,
+            "mae_bps": -29.316037428872566
+          },
+          "T_120": {
+            "exit_bar_idx": 134,
+            "hold_bars": 121,
+            "exit_price": 2197.6052511615926,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 32.8423819793085,
+            "pnl_bps_net": 22.8423819793085,
+            "mfe_bps": 50.805896986176876,
+            "mae_bps": -29.316037428872566
+          },
+          "T_150": {
+            "exit_bar_idx": 164,
+            "hold_bars": 151,
+            "exit_price": 2202.51,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 55.23428880285009,
+            "pnl_bps_net": 45.23428880285009,
+            "mfe_bps": 65.59763872434176,
+            "mae_bps": -29.316037428872566
+          },
+          "T_180": {
+            "exit_bar_idx": 194,
+            "hold_bars": 181,
+            "exit_price": 2205.8302227517684,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 70.39227567239406,
+            "pnl_bps_net": 60.392275672394064,
+            "mfe_bps": 85.09169342247435,
+            "mae_bps": -29.316037428872566
+          },
+          "T_240": {
+            "exit_bar_idx": 254,
+            "hold_bars": 241,
+            "exit_price": 2206.2243665754295,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 72.19168111908915,
+            "pnl_bps_net": 62.191681119089154,
+            "mfe_bps": 85.09169342247435,
+            "mae_bps": -29.316037428872566
+          }
+        }
+      },
+      {
+        "order_id": "a188509c-1e14-461d-ba12-c9b40d336ba7",
+        "direction": 1,
+        "entry_time_utc": "2026-04-13T06:04:00.800116+00:00",
+        "live_pnl_bps": -53.85091129079478,
+        "live_reason": "sl",
+        "live_hold_min": 135.99183783928552,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 96,
+            "hold_bars": 83,
+            "exit_price": 2183.13216314492,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 33.486689347055346,
+            "mae_bps": -50.10101234166009
+          },
+          "T_120": {
+            "exit_bar_idx": 96,
+            "hold_bars": 83,
+            "exit_price": 2183.13216314492,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 33.486689347055346,
+            "mae_bps": -50.10101234166009
+          },
+          "T_150": {
+            "exit_bar_idx": 96,
+            "hold_bars": 83,
+            "exit_price": 2183.13216314492,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 33.486689347055346,
+            "mae_bps": -50.10101234166009
+          },
+          "T_180": {
+            "exit_bar_idx": 96,
+            "hold_bars": 83,
+            "exit_price": 2183.13216314492,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 33.486689347055346,
+            "mae_bps": -50.10101234166009
+          },
+          "T_240": {
+            "exit_bar_idx": 96,
+            "hold_bars": 83,
+            "exit_price": 2183.13216314492,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 33.486689347055346,
+            "mae_bps": -50.10101234166009
+          }
+        }
+      },
+      {
+        "order_id": "a1893db4-945f-4aba-b20e-e1c7ad44b5d6",
+        "direction": 1,
+        "entry_time_utc": "2026-04-13T13:57:00.739281+00:00",
+        "live_pnl_bps": 129.13420153878752,
+        "live_reason": "manual_close",
+        "live_hold_min": 325.9606240034103,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 104,
+            "hold_bars": 91,
+            "exit_price": 2230.7460929957524,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 91.76707755330081,
+            "pnl_bps_net": 81.76707755330081,
+            "mfe_bps": 117.48074606870995,
+            "mae_bps": -31.718877887929597
+          },
+          "T_120": {
+            "exit_bar_idx": 133,
+            "hold_bars": 120,
+            "exit_price": 2207.85,
+            "reason": "timeout",
+            "pnl_bps_gross": -11.813530847020193,
+            "pnl_bps_net": -21.813530847020193,
+            "mfe_bps": 117.48074606870995,
+            "mae_bps": -49.49797194946925
+          },
+          "T_150": {
+            "exit_bar_idx": 164,
+            "hold_bars": 151,
+            "exit_price": 2231.1116253255323,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 93.42072479851242,
+            "pnl_bps_net": 83.42072479851242,
+            "mfe_bps": 117.48074606870995,
+            "mae_bps": -49.49797194946925
+          },
+          "T_180": {
+            "exit_bar_idx": 194,
+            "hold_bars": 181,
+            "exit_price": 2230.5145107449184,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 90.71941276435204,
+            "pnl_bps_net": 80.71941276435204,
+            "mfe_bps": 117.48074606870995,
+            "mae_bps": -49.49797194946925
+          },
+          "T_240": {
+            "exit_bar_idx": 254,
+            "hold_bars": 241,
+            "exit_price": 2238.2851231452823,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 125.8732165256327,
+            "pnl_bps_net": 115.8732165256327,
+            "mfe_bps": 146.75065410386657,
+            "mae_bps": -49.49797194946925
+          }
+        }
+      },
+      {
+        "order_id": "a18a854d-9851-4bfd-8760-94eb48ce75c0",
+        "direction": 1,
+        "entry_time_utc": "2026-04-14T08:37:00.252924+00:00",
+        "live_pnl_bps": -52.56016114096984,
+        "live_reason": "sl",
+        "live_hold_min": 121.99853851795197,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 103,
+            "hold_bars": 90,
+            "exit_price": 2385.56,
+            "reason": "timeout",
+            "pnl_bps_gross": -37.04658265945127,
+            "pnl_bps_net": -47.04658265945127,
+            "mfe_bps": 6.679889229563862,
+            "mae_bps": -49.909766367012274
+          },
+          "T_120": {
+            "exit_bar_idx": 115,
+            "hold_bars": 102,
+            "exit_price": 2382.4583941832816,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 6.679889229563862,
+            "mae_bps": -55.00492354987618
+          },
+          "T_150": {
+            "exit_bar_idx": 115,
+            "hold_bars": 102,
+            "exit_price": 2382.4583941832816,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 6.679889229563862,
+            "mae_bps": -55.00492354987618
+          },
+          "T_180": {
+            "exit_bar_idx": 115,
+            "hold_bars": 102,
+            "exit_price": 2382.4583941832816,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 6.679889229563862,
+            "mae_bps": -55.00492354987618
+          },
+          "T_240": {
+            "exit_bar_idx": 115,
+            "hold_bars": 102,
+            "exit_price": 2382.4583941832816,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 6.679889229563862,
+            "mae_bps": -55.00492354987618
+          }
+        }
+      },
+      {
+        "order_id": "a18ae249-51da-4a57-910a-c5854b4fdd25",
+        "direction": 1,
+        "entry_time_utc": "2026-04-14T11:37:00.258947+00:00",
+        "live_pnl_bps": -53.798122178840835,
+        "live_reason": "sl",
+        "live_hold_min": 201.99864485263825,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 113,
+            "hold_bars": 100,
+            "exit_price": 2379.07,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 24.07231230640905,
+            "pnl_bps_net": 14.07231230640905,
+            "mfe_bps": 36.03848621761996,
+            "mae_bps": -20.2109580481169
+          },
+          "T_120": {
+            "exit_bar_idx": 135,
+            "hold_bars": 122,
+            "exit_price": 2389.6600000000003,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 68.69265798237656,
+            "pnl_bps_net": 58.69265798237656,
+            "mfe_bps": 91.15030127349044,
+            "mae_bps": -20.2109580481169
+          },
+          "T_150": {
+            "exit_bar_idx": 164,
+            "hold_bars": 151,
+            "exit_price": 2388.09,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 62.07755479906485,
+            "pnl_bps_net": 52.07755479906485,
+            "mfe_bps": 95.27947396116288,
+            "mae_bps": -20.2109580481169
+          },
+          "T_180": {
+            "exit_bar_idx": 190,
+            "hold_bars": 177,
+            "exit_price": 2403.6332160928287,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 127.56798680834461,
+            "pnl_bps_net": 117.56798680834461,
+            "mfe_bps": 177.5679868083446,
+            "mae_bps": -20.2109580481169
+          },
+          "T_240": {
+            "exit_bar_idx": 190,
+            "hold_bars": 177,
+            "exit_price": 2403.6332160928287,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 127.56798680834461,
+            "pnl_bps_net": 117.56798680834461,
+            "mfe_bps": 177.5679868083446,
+            "mae_bps": -20.2109580481169
+          }
+        }
+      },
+      {
+        "order_id": "a18b04f9-d617-4b60-82f9-a50fd534449b",
+        "direction": 1,
+        "entry_time_utc": "2026-04-14T16:14:00.249285+00:00",
+        "live_pnl_bps": -64.8101026027137,
+        "live_reason": "sl",
+        "live_hold_min": 21.99760534763336,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 21,
+            "hold_bars": 8,
+            "exit_price": 2349.5601423191283,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 2.6807472153067557,
+            "mae_bps": -57.87739617384658
+          },
+          "T_120": {
+            "exit_bar_idx": 21,
+            "hold_bars": 8,
+            "exit_price": 2349.5601423191283,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 2.6807472153067557,
+            "mae_bps": -57.87739617384658
+          },
+          "T_150": {
+            "exit_bar_idx": 21,
+            "hold_bars": 8,
+            "exit_price": 2349.5601423191283,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 2.6807472153067557,
+            "mae_bps": -57.87739617384658
+          },
+          "T_180": {
+            "exit_bar_idx": 21,
+            "hold_bars": 8,
+            "exit_price": 2349.5601423191283,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 2.6807472153067557,
+            "mae_bps": -57.87739617384658
+          },
+          "T_240": {
+            "exit_bar_idx": 21,
+            "hold_bars": 8,
+            "exit_price": 2349.5601423191283,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 2.6807472153067557,
+            "mae_bps": -57.87739617384658
+          }
+        }
+      },
+      {
+        "order_id": "a18b33d3-52fb-49aa-9bd8-474257b16229",
+        "direction": 1,
+        "entry_time_utc": "2026-04-14T16:58:00.316840+00:00",
+        "live_pnl_bps": -56.751223630070456,
+        "live_reason": "sl",
+        "live_hold_min": 108.99740179777146,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 104,
+            "hold_bars": 91,
+            "exit_price": 2340.0597717045525,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 27.498572993007677,
+            "pnl_bps_net": 17.498572993007677,
+            "mfe_bps": 50.767895914600736,
+            "mae_bps": -42.776848751892025
+          },
+          "T_120": {
+            "exit_bar_idx": 122,
+            "hold_bars": 109,
+            "exit_price": 2321.974374663073,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 50.767895914600736,
+            "mae_bps": -66.34515363809102
+          },
+          "T_150": {
+            "exit_bar_idx": 122,
+            "hold_bars": 109,
+            "exit_price": 2321.974374663073,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 50.767895914600736,
+            "mae_bps": -66.34515363809102
+          },
+          "T_180": {
+            "exit_bar_idx": 122,
+            "hold_bars": 109,
+            "exit_price": 2321.974374663073,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 50.767895914600736,
+            "mae_bps": -66.34515363809102
+          },
+          "T_240": {
+            "exit_bar_idx": 122,
+            "hold_bars": 109,
+            "exit_price": 2321.974374663073,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 50.767895914600736,
+            "mae_bps": -66.34515363809102
+          }
+        }
+      },
+      {
+        "order_id": "a18c738b-66bc-4843-bd50-be3fe57b3e9c",
+        "direction": 1,
+        "entry_time_utc": "2026-04-15T05:40:00.263124+00:00",
+        "live_pnl_bps": 15.221789804718,
+        "live_reason": "timeout",
+        "live_hold_min": 240.99763820171356,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 104,
+            "hold_bars": 91,
+            "exit_price": 2320.0,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 15.221789804718,
+            "pnl_bps_net": 5.221789804718,
+            "mfe_bps": 19.625033867476382,
+            "mae_bps": -10.679645858570064
+          },
+          "T_120": {
+            "exit_bar_idx": 133,
+            "hold_bars": 120,
+            "exit_price": 2312.49,
+            "reason": "timeout",
+            "pnl_bps_gross": -17.198173833831156,
+            "pnl_bps_net": -27.198173833831156,
+            "mfe_bps": 30.460467786621592,
+            "mae_bps": -34.42262854991718
+          },
+          "T_150": {
+            "exit_bar_idx": 164,
+            "hold_bars": 151,
+            "exit_price": 2320.2671426362217,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 16.375019438887087,
+            "pnl_bps_net": 6.375019438887087,
+            "mfe_bps": 30.460467786621592,
+            "mae_bps": -34.42262854991718
+          },
+          "T_180": {
+            "exit_bar_idx": 194,
+            "hold_bars": 181,
+            "exit_price": 2329.9540706940397,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 58.19257674963308,
+            "pnl_bps_net": 48.19257674963308,
+            "mfe_bps": 71.34156707517603,
+            "mae_bps": -34.42262854991718
+          },
+          "T_240": {
+            "exit_bar_idx": 254,
+            "hold_bars": 241,
+            "exit_price": 2330.4384488118626,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 60.28359152554919,
+            "pnl_bps_net": 50.28359152554919,
+            "mfe_bps": 71.34156707517603,
+            "mae_bps": -34.42262854991718
+          }
+        }
+      },
+      {
+        "order_id": "a18d82fc-01a3-4b1b-8b66-b439d3f17557",
+        "direction": 1,
+        "entry_time_utc": "2026-04-15T18:10:00.319267+00:00",
+        "live_pnl_bps": 74.76748737778038,
+        "live_reason": "trail_stop",
+        "live_hold_min": 249.99744715690613,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 105,
+            "hold_bars": 92,
+            "exit_price": 2376.33,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 118.32645419907806,
+            "pnl_bps_net": 108.32645419907806,
+            "mfe_bps": 157.84035567529165,
+            "mae_bps": -4.515793385913014
+          },
+          "T_120": {
+            "exit_bar_idx": 105,
+            "hold_bars": 92,
+            "exit_price": 2376.33,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 118.32645419907806,
+            "pnl_bps_net": 108.32645419907806,
+            "mfe_bps": 157.84035567529165,
+            "mae_bps": -4.515793385913014
+          },
+          "T_150": {
+            "exit_bar_idx": 105,
+            "hold_bars": 92,
+            "exit_price": 2376.33,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 118.32645419907806,
+            "pnl_bps_net": 108.32645419907806,
+            "mfe_bps": 157.84035567529165,
+            "mae_bps": -4.515793385913014
+          },
+          "T_180": {
+            "exit_bar_idx": 105,
+            "hold_bars": 92,
+            "exit_price": 2376.33,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 118.32645419907806,
+            "pnl_bps_net": 108.32645419907806,
+            "mfe_bps": 157.84035567529165,
+            "mae_bps": -4.515793385913014
+          },
+          "T_240": {
+            "exit_bar_idx": 105,
+            "hold_bars": 92,
+            "exit_price": 2376.33,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 118.32645419907806,
+            "pnl_bps_net": 108.32645419907806,
+            "mfe_bps": 157.84035567529165,
+            "mae_bps": -4.515793385913014
+          }
+        }
+      },
+      {
+        "order_id": "a18d9702-e245-434b-846f-46b088db4f85",
+        "direction": 1,
+        "entry_time_utc": "2026-04-15T22:56:00.242829+00:00",
+        "live_pnl_bps": -65.53447578988569,
+        "live_reason": "sl",
+        "live_hold_min": 19.997909530003867,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 33,
+            "hold_bars": 20,
+            "exit_price": 2354.5607001261296,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 18.666963538611636,
+            "mae_bps": -70.96313178604707
+          },
+          "T_120": {
+            "exit_bar_idx": 33,
+            "hold_bars": 20,
+            "exit_price": 2354.5607001261296,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 18.666963538611636,
+            "mae_bps": -70.96313178604707
+          },
+          "T_150": {
+            "exit_bar_idx": 33,
+            "hold_bars": 20,
+            "exit_price": 2354.5607001261296,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 18.666963538611636,
+            "mae_bps": -70.96313178604707
+          },
+          "T_180": {
+            "exit_bar_idx": 33,
+            "hold_bars": 20,
+            "exit_price": 2354.5607001261296,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 18.666963538611636,
+            "mae_bps": -70.96313178604707
+          },
+          "T_240": {
+            "exit_bar_idx": 33,
+            "hold_bars": 20,
+            "exit_price": 2354.5607001261296,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 18.666963538611636,
+            "mae_bps": -70.96313178604707
+          }
+        }
+      },
+      {
+        "order_id": "a18ece25-be34-4d61-992a-9380a5df4fca",
+        "direction": 1,
+        "entry_time_utc": "2026-04-16T09:45:00.321883+00:00",
+        "live_pnl_bps": -20.915599173215725,
+        "live_reason": "timeout",
+        "live_hold_min": 240.996388789018,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 103,
+            "hold_bars": 90,
+            "exit_price": 2331.04,
+            "reason": "timeout",
+            "pnl_bps_gross": -37.86486601991545,
+            "pnl_bps_net": -47.86486601991545,
+            "mfe_bps": 4.359160647890992,
+            "mae_bps": -48.12171460318871
+          },
+          "T_120": {
+            "exit_bar_idx": 133,
+            "hold_bars": 120,
+            "exit_price": 2332.54,
+            "reason": "timeout",
+            "pnl_bps_gross": -31.454335655370926,
+            "pnl_bps_net": -41.454335655370926,
+            "mfe_bps": 4.359160647890992,
+            "mae_bps": -48.12171460318871
+          },
+          "T_150": {
+            "exit_bar_idx": 164,
+            "hold_bars": 151,
+            "exit_price": 2345.682976002196,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 24.71462883967771,
+            "pnl_bps_net": 14.714628839677712,
+            "mfe_bps": 40.81370998760603,
+            "mae_bps": -48.12171460318871
+          },
+          "T_180": {
+            "exit_bar_idx": 193,
+            "hold_bars": 180,
+            "exit_price": 2339.41,
+            "reason": "timeout",
+            "pnl_bps_gross": -2.0941065857527086,
+            "pnl_bps_net": -12.094106585752709,
+            "mfe_bps": 40.81370998760603,
+            "mae_bps": -48.12171460318871
+          },
+          "T_240": {
+            "exit_bar_idx": 253,
+            "hold_bars": 240,
+            "exit_price": 2336.96,
+            "reason": "timeout",
+            "pnl_bps_gross": -12.56463951450959,
+            "pnl_bps_net": -22.56463951450959,
+            "mfe_bps": 50.85687422539564,
+            "mae_bps": -48.12171460318871
+          }
+        }
+      },
+      {
+        "order_id": "a18fb9d3-44dd-4828-beeb-85e7ad521db8",
+        "direction": 1,
+        "entry_time_utc": "2026-04-16T20:35:00.241471+00:00",
+        "live_pnl_bps": -4.243360517598438,
+        "live_reason": "trail_stop",
+        "live_hold_min": 250.00077232519786,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 104,
+            "hold_bars": 91,
+            "exit_price": 2352.830002804236,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 26.976359702688924,
+            "pnl_bps_net": 16.976359702688924,
+            "mfe_bps": 42.74451310462446,
+            "mae_bps": -43.68207969316029
+          },
+          "T_120": {
+            "exit_bar_idx": 133,
+            "hold_bars": 120,
+            "exit_price": 2343.51,
+            "reason": "timeout",
+            "pnl_bps_gross": -12.742382271466735,
+            "pnl_bps_net": -22.742382271466735,
+            "mfe_bps": 42.74451310462446,
+            "mae_bps": -43.68207969316029
+          },
+          "T_150": {
+            "exit_bar_idx": 163,
+            "hold_bars": 150,
+            "exit_price": 2344.79,
+            "reason": "timeout",
+            "pnl_bps_gross": -7.2874493927121975,
+            "pnl_bps_net": -17.287449392712197,
+            "mfe_bps": 42.74451310462446,
+            "mae_bps": -43.68207969316029
+          },
+          "T_180": {
+            "exit_bar_idx": 194,
+            "hold_bars": 181,
+            "exit_price": 2353.641343206066,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 30.434021760348205,
+            "pnl_bps_net": 20.434021760348205,
+            "mfe_bps": 42.74451310462446,
+            "mae_bps": -43.68207969316029
+          },
+          "T_240": {
+            "exit_bar_idx": 254,
+            "hold_bars": 241,
+            "exit_price": 2353.207779573416,
+            "reason": "trail_stop",
+            "pnl_bps_gross": 28.58631823318201,
+            "pnl_bps_net": 18.58631823318201,
+            "mfe_bps": 42.74451310462446,
+            "mae_bps": -43.68207969316029
+          }
+        }
+      },
+      {
+        "order_id": "a190dac9-9e0e-487c-8d67-5af0998ea996",
+        "direction": 1,
+        "entry_time_utc": "2026-04-17T13:12:00.263830+00:00",
+        "live_pnl_bps": 133.63857749360665,
+        "live_reason": "tp_trail",
+        "live_hold_min": 60.997456300258634,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 58,
+            "hold_bars": 45,
+            "exit_price": 2433.68,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 157.85171767267903,
+            "pnl_bps_net": 147.85171767267903,
+            "mfe_bps": 186.1087835682129,
+            "mae_bps": -26.257466470896993
+          },
+          "T_120": {
+            "exit_bar_idx": 58,
+            "hold_bars": 45,
+            "exit_price": 2433.68,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 157.85171767267903,
+            "pnl_bps_net": 147.85171767267903,
+            "mfe_bps": 186.1087835682129,
+            "mae_bps": -26.257466470896993
+          },
+          "T_150": {
+            "exit_bar_idx": 58,
+            "hold_bars": 45,
+            "exit_price": 2433.68,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 157.85171767267903,
+            "pnl_bps_net": 147.85171767267903,
+            "mfe_bps": 186.1087835682129,
+            "mae_bps": -26.257466470896993
+          },
+          "T_180": {
+            "exit_bar_idx": 58,
+            "hold_bars": 45,
+            "exit_price": 2433.68,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 157.85171767267903,
+            "pnl_bps_net": 147.85171767267903,
+            "mfe_bps": 186.1087835682129,
+            "mae_bps": -26.257466470896993
+          },
+          "T_240": {
+            "exit_bar_idx": 58,
+            "hold_bars": 45,
+            "exit_price": 2433.68,
+            "reason": "tp_trail",
+            "pnl_bps_gross": 157.85171767267903,
+            "pnl_bps_net": 147.85171767267903,
+            "mfe_bps": 186.1087835682129,
+            "mae_bps": -26.257466470896993
+          }
+        }
+      },
+      {
+        "order_id": "a1911f73-d6b4-4864-95af-5a261463ea43",
+        "direction": 1,
+        "entry_time_utc": "2026-04-17T17:09:00.267723+00:00",
+        "live_pnl_bps": -58.249866430051256,
+        "live_reason": "sl",
+        "live_hold_min": 15.998507026831309,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 26,
+            "hold_bars": 13,
+            "exit_price": 2428.723679089924,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 24.87446786181735,
+            "mae_bps": -51.244113099715435
+          },
+          "T_120": {
+            "exit_bar_idx": 26,
+            "hold_bars": 13,
+            "exit_price": 2428.723679089924,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 24.87446786181735,
+            "mae_bps": -51.244113099715435
+          },
+          "T_150": {
+            "exit_bar_idx": 26,
+            "hold_bars": 13,
+            "exit_price": 2428.723679089924,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 24.87446786181735,
+            "mae_bps": -51.244113099715435
+          },
+          "T_180": {
+            "exit_bar_idx": 26,
+            "hold_bars": 13,
+            "exit_price": 2428.723679089924,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 24.87446786181735,
+            "mae_bps": -51.244113099715435
+          },
+          "T_240": {
+            "exit_bar_idx": 26,
+            "hold_bars": 13,
+            "exit_price": 2428.723679089924,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 24.87446786181735,
+            "mae_bps": -51.244113099715435
+          }
+        }
+      },
+      {
+        "order_id": "a191b93b-6522-46e6-ab44-fc681e74c525",
+        "direction": 1,
+        "entry_time_utc": "2026-04-17T22:15:00.305944+00:00",
+        "live_pnl_bps": -54.779484953654254,
+        "live_reason": "sl",
+        "live_hold_min": 139.99655552307766,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 103,
+            "hold_bars": 90,
+            "exit_price": 2420.7,
+            "reason": "timeout",
+            "pnl_bps_gross": -24.985193470530298,
+            "pnl_bps_net": -34.9851934705303,
+            "mfe_bps": 72.42850918835364,
+            "mae_bps": -46.53653293355653
+          },
+          "T_120": {
+            "exit_bar_idx": 133,
+            "hold_bars": 120,
+            "exit_price": 2417.8,
+            "reason": "timeout",
+            "pnl_bps_gross": -36.93526697775229,
+            "pnl_bps_net": -46.93526697775229,
+            "mfe_bps": 72.42850918835364,
+            "mae_bps": -46.53653293355653
+          },
+          "T_150": {
+            "exit_bar_idx": 153,
+            "hold_bars": 140,
+            "exit_price": 2414.629498518012,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 72.42850918835364,
+            "mae_bps": -68.82960109703129
+          },
+          "T_180": {
+            "exit_bar_idx": 153,
+            "hold_bars": 140,
+            "exit_price": 2414.629498518012,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 72.42850918835364,
+            "mae_bps": -68.82960109703129
+          },
+          "T_240": {
+            "exit_bar_idx": 153,
+            "hold_bars": 140,
+            "exit_price": 2414.629498518012,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 72.42850918835364,
+            "mae_bps": -68.82960109703129
+          }
+        }
+      },
+      {
+        "order_id": "a1920066-645b-42f8-85cd-508ba7fd5209",
+        "direction": 1,
+        "entry_time_utc": "2026-04-18T01:07:00.254409+00:00",
+        "live_pnl_bps": -63.64022844808525,
+        "live_reason": "sl",
+        "live_hold_min": 166.9974514245987,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 103,
+            "hold_bars": 90,
+            "exit_price": 2419.99,
+            "reason": "timeout",
+            "pnl_bps_gross": -16.133885452780383,
+            "pnl_bps_net": -26.133885452780383,
+            "mfe_bps": 15.426813465928557,
+            "mae_bps": -29.17072317606406
+          },
+          "T_120": {
+            "exit_bar_idx": 133,
+            "hold_bars": 120,
+            "exit_price": 2417.98,
+            "reason": "timeout",
+            "pnl_bps_gross": -24.426304384361774,
+            "pnl_bps_net": -34.42630438436177,
+            "mfe_bps": 15.426813465928557,
+            "mae_bps": -35.40035132864383
+          },
+          "T_150": {
+            "exit_bar_idx": 163,
+            "hold_bars": 150,
+            "exit_price": 2415.57,
+            "reason": "timeout",
+            "pnl_bps_gross": -34.368955939143575,
+            "pnl_bps_net": -44.368955939143575,
+            "mfe_bps": 15.426813465928557,
+            "mae_bps": -39.52593288664596
+          },
+          "T_180": {
+            "exit_bar_idx": 180,
+            "hold_bars": 167,
+            "exit_price": 2411.781190145898,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 15.426813465928557,
+            "mae_bps": -72.40681790391612
+          },
+          "T_240": {
+            "exit_bar_idx": 180,
+            "hold_bars": 167,
+            "exit_price": 2411.781190145898,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 15.426813465928557,
+            "mae_bps": -72.40681790391612
+          }
+        }
+      },
+      {
+        "order_id": "a19481fc-4324-4b8c-93c6-9a010c3cf92d",
+        "direction": 1,
+        "entry_time_utc": "2026-04-19T08:38:00.487908+00:00",
+        "live_pnl_bps": -48.46057479886423,
+        "live_reason": "sl",
+        "live_hold_min": 69.99639711380004,
+        "variants": {
+          "T_90": {
+            "exit_bar_idx": 84,
+            "hold_bars": 71,
+            "exit_price": 2308.3021962981006,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 4.561810423211465,
+            "mae_bps": -58.113258825528426
+          },
+          "T_120": {
+            "exit_bar_idx": 84,
+            "hold_bars": 71,
+            "exit_price": 2308.3021962981006,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 4.561810423211465,
+            "mae_bps": -58.113258825528426
+          },
+          "T_150": {
+            "exit_bar_idx": 84,
+            "hold_bars": 71,
+            "exit_price": 2308.3021962981006,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 4.561810423211465,
+            "mae_bps": -58.113258825528426
+          },
+          "T_180": {
+            "exit_bar_idx": 84,
+            "hold_bars": 71,
+            "exit_price": 2308.3021962981006,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 4.561810423211465,
+            "mae_bps": -58.113258825528426
+          },
+          "T_240": {
+            "exit_bar_idx": 84,
+            "hold_bars": 71,
+            "exit_price": 2308.3021962981006,
+            "reason": "sl",
+            "pnl_bps_gross": -50.0,
+            "pnl_bps_net": -60.0,
+            "mfe_bps": 4.561810423211465,
+            "mae_bps": -58.113258825528426
+          }
+        }
+      }
+    ]
+  },
+  "pi_is_by_variant": {
+    "T_90": {
+      "n_trades": 47,
+      "compound_ret_pct": 103.27592614487938,
+      "max_dd_pct": 8.090530946324993,
+      "win_rate": 0.5531914893617021,
+      "avg_winner_bps": 113.48047724103488,
+      "avg_loser_bps": -49.04761904761905,
+      "knife_rate": 0.2553191489361702,
+      "knife_catchers": 12,
+      "mean_pnl_bps": 40.86154060142354,
+      "reason_distribution": {
+        "sl": 21,
+        "trail_stop": 14,
+        "pst_trail": 1,
+        "pst_timeout": 2,
+        "tp_trail": 8,
+        "tp": 1
+      }
+    },
+    "T_120": {
+      "n_trades": 46,
+      "compound_ret_pct": 130.6704688463837,
+      "max_dd_pct": 8.090530946325018,
+      "win_rate": 0.5217391304347826,
+      "avg_winner_bps": 135.45335830100223,
+      "avg_loser_bps": -46.89968340970872,
+      "knife_rate": 0.2826086956521739,
+      "knife_catchers": 13,
+      "mean_pnl_bps": 48.24103400457525,
+      "reason_distribution": {
+        "sl": 21,
+        "trail_stop": 10,
+        "tp_trail": 12,
+        "tp": 1,
+        "pst_timeout": 2
+      }
+    },
+    "T_150": {
+      "n_trades": 44,
+      "compound_ret_pct": 148.27259487284937,
+      "max_dd_pct": 8.090530946324993,
+      "win_rate": 0.5681818181818182,
+      "avg_winner_bps": 132.75108395527943,
+      "avg_loser_bps": -49.73684210526316,
+      "knife_rate": 0.22727272727272727,
+      "knife_catchers": 10,
+      "mean_pnl_bps": 53.94947952004512,
+      "reason_distribution": {
+        "sl": 19,
+        "trail_stop": 10,
+        "tp_trail": 14,
+        "pst_timeout": 1
+      }
+    },
+    "T_180": {
+      "n_trades": 44,
+      "compound_ret_pct": 172.2207133706882,
+      "max_dd_pct": 8.090530946325018,
+      "win_rate": 0.5681818181818182,
+      "avg_winner_bps": 141.2073319204826,
+      "avg_loser_bps": -49.73684210526316,
+      "knife_rate": 0.22727272727272727,
+      "knife_catchers": 10,
+      "mean_pnl_bps": 58.75416586391057,
+      "reason_distribution": {
+        "sl": 19,
+        "trail_stop": 11,
+        "tp_trail": 14
+      }
+    },
+    "T_240": {
+      "n_trades": 44,
+      "compound_ret_pct": 178.36067444521507,
+      "max_dd_pct": 8.090530946325,
+      "win_rate": 0.5454545454545454,
+      "avg_winner_bps": 151.1712710031624,
+      "avg_loser_bps": -49.161137155908264,
+      "knife_rate": 0.22727272727272727,
+      "knife_catchers": 10,
+      "mean_pnl_bps": 60.111085476312084,
+      "reason_distribution": {
+        "sl": 19,
+        "tp_trail": 16,
+        "trail_stop": 7,
+        "pst_timeout": 1,
+        "pst_trail": 1
+      }
+    }
+  },
+  "kaggle_oos_by_variant": {
+    "T_90": {
+      "n_trades": 139,
+      "compound_ret_pct": 13.187030919989084,
+      "max_dd_pct": 42.82603459060487,
+      "win_rate": 0.4460431654676259,
+      "avg_winner_bps": 74.22053343667189,
+      "avg_loser_bps": -44.922858622840735,
+      "knife_rate": 0.33093525179856115,
+      "knife_catchers": 46,
+      "mean_pnl_bps": 8.220237115934681,
+      "reason_distribution": {
+        "sl": 72,
+        "pst_timeout": 2,
+        "tp_trail": 13,
+        "trail_stop": 44,
+        "tp": 1,
+        "pst_trail": 7
+      }
+    },
+    "T_120": {
+      "n_trades": 136,
+      "compound_ret_pct": 8.60231429329111,
+      "max_dd_pct": 39.07405439966153,
+      "win_rate": 0.38235294117647056,
+      "avg_winner_bps": 91.47489244487285,
+      "avg_loser_bps": -44.12141913544084,
+      "knife_rate": 0.34558823529411764,
+      "knife_catchers": 47,
+      "mean_pnl_bps": 7.724229409973221,
+      "reason_distribution": {
+        "sl": 78,
+        "trail_stop": 34,
+        "tp_trail": 14,
+        "pst_trail": 4,
+        "tp": 4,
+        "pst_timeout": 2
+      }
+    },
+    "T_150": {
+      "n_trades": 133,
+      "compound_ret_pct": 12.588148961724109,
+      "max_dd_pct": 41.957985455550215,
+      "win_rate": 0.37593984962406013,
+      "avg_winner_bps": 96.04897887808416,
+      "avg_loser_bps": -44.38284443202512,
+      "knife_rate": 0.3383458646616541,
+      "knife_catchers": 45,
+      "mean_pnl_bps": 8.411074105609954,
+      "reason_distribution": {
+        "sl": 79,
+        "trail_stop": 29,
+        "tp_trail": 16,
+        "pst_trail": 4,
+        "tp": 3,
+        "pst_timeout": 2
+      }
+    },
+    "T_180": {
+      "n_trades": 132,
+      "compound_ret_pct": 36.26432666465529,
+      "max_dd_pct": 41.141085884504896,
+      "win_rate": 0.3484848484848485,
+      "avg_winner_bps": 116.20949344666988,
+      "avg_loser_bps": -43.84024205777924,
+      "knife_rate": 0.3409090909090909,
+      "knife_catchers": 45,
+      "mean_pnl_bps": 11.934665769528786,
+      "reason_distribution": {
+        "sl": 83,
+        "trail_stop": 25,
+        "tp_trail": 18,
+        "pst_trail": 3,
+        "tp": 3
+      }
+    },
+    "T_240": {
+      "n_trades": 130,
+      "compound_ret_pct": 26.390394927676933,
+      "max_dd_pct": 38.612544648086306,
+      "win_rate": 0.33076923076923076,
+      "avg_winner_bps": 123.03756202420556,
+      "avg_loser_bps": -44.6551724137931,
+      "knife_rate": 0.3384615384615385,
+      "knife_catchers": 44,
+      "mean_pnl_bps": 10.81242436185261,
+      "reason_distribution": {
+        "sl": 87,
+        "trail_stop": 18,
+        "tp_trail": 23,
+        "tp": 1,
+        "pst_timeout": 1
+      }
+    }
+  },
+  "elapsed_sec": 535.0
+}

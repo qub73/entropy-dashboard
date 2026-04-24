@@ -85,15 +85,20 @@ def session_from_ts(ts_utc):
     return "americas"
 
 
-def simulate_promoted(feats, ts_ms, f3c_enabled=True):
+def simulate_promoted(feats, ts_ms,
+                       f3c_enabled: bool = True,
+                       pst_max_wait: int = PST_MAX_WAIT):
     """Simulate the promoted Phase-5 config on Pi data, emit per-trade records.
 
     Records include pnl_bps (leverage-invariant), direction, and entry-time
     session so the caller can bucket them. `ts_ms` is an array of unix ms
     timestamps aligned with bars.
 
-    With f3c_enabled=False, skip the F3c entry gate (revised 6b after
-    sprint v1.5 RED verdict).
+    Parameters:
+      f3c_enabled: if False, skip the F3c entry gate (revised 6b after
+                    sprint v1.5 RED; PATH A keeps it off).
+      pst_max_wait: post-signal-trail timeout in bars (Candidate 3 fold-in
+                     bumps this from 30 to 40).
     """
     n = feats['n']
     mids = feats['mid']; highs = feats['high']; lows = feats['low']
@@ -159,7 +164,7 @@ def simulate_promoted(feats, ts_ms, f3c_enabled=True):
                     exit_reason = 'pst_trail'; exit_pnl = max(floor_bps, curr_bps)
                 elif worst_bps <= PST_HARD_FLOOR:
                     exit_reason = 'pst_floored'; exit_pnl = PST_HARD_FLOOR
-                elif bars_in_trail >= PST_MAX_WAIT:
+                elif bars_in_trail >= pst_max_wait:
                     exit_reason = 'pst_timeout'; exit_pnl = curr_bps
 
             if (exit_reason is None and not tp_trailing and not pst_active
@@ -212,7 +217,7 @@ def simulate_promoted(feats, ts_ms, f3c_enabled=True):
             r150 = ret_150[i]
             if d == 1 and r150 > ext_cap: continue
             if d == -1 and r150 < -ext_cap: continue
-        # F3c
+        # F3c (skip when disabled per PATH A revised 6b)
         if f3c_enabled:
             if atr_30[i] > 0:
                 norm = (ef[i] - es[i]) / atr_30[i]
@@ -252,9 +257,16 @@ def main():
     parser.add_argument("--dry-run", action="store_true",
                         help="print bucket table without writing shadow_expectation.json")
     parser.add_argument("--no-f3c", action="store_true",
-                        help="disable F3c entry gate (revised 6b post sprint v1.5 RED)")
+                        help="disable F3c entry gate (revised 6b post "
+                             "sprint v1.5 RED; PATH A keeps it off)")
+    parser.add_argument("--pst-max-wait", type=int, default=PST_MAX_WAIT,
+                        help=f"post-signal-trail max wait bars "
+                             f"(default {PST_MAX_WAIT}; PATH A folds in "
+                             f"Candidate 3 at 40)")
     args = parser.parse_args()
+
     f3c_enabled = not args.no_f3c
+    pst_max_wait = args.pst_max_wait
 
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     print("Loading ETH Pi orderbook (Feb 18 - Apr 7)...", flush=True)
@@ -271,9 +283,12 @@ def main():
         # Fallback: synthesize from RangeIndex assuming 1-min bars
         ts_ms = np.zeros(feats['n'], dtype=np.int64)
     print(f"  {feats['n']} bars, {feats['n']/1440:.1f} days", flush=True)
+    print(f"  config: f3c_enabled={f3c_enabled} "
+          f"pst_max_wait={pst_max_wait}", flush=True)
 
-    print(f"  F3c enabled: {f3c_enabled}", flush=True)
-    trades = simulate_promoted(feats, ts_ms, f3c_enabled=f3c_enabled)
+    trades = simulate_promoted(feats, ts_ms,
+                                  f3c_enabled=f3c_enabled,
+                                  pst_max_wait=pst_max_wait)
     print(f"  {len(trades)} trades simulated", flush=True)
 
     # Bucket
@@ -293,11 +308,14 @@ def main():
     bucket_summaries = {k: summarize_bucket(v) for k, v in buckets.items()}
     fallback = {k: summarize_bucket(v) for k, v in by_direction.items()}
 
-    cell_label = ("F3c+timeout_trail+E3+5x" if f3c_enabled
-                  else "timeout_trail+E3+5x (revised 6b, no F3c)")
+    cell_name = "timeout_trail+E3+5x" if not f3c_enabled \
+        else "F3c+timeout_trail+E3+5x"
+    if not f3c_enabled:
+        cell_name += f" (revised 6b, no F3c, pst_max_wait={pst_max_wait})"
     out = {
-        "cell_name": cell_label,
+        "cell_name": cell_name,
         "f3c_enabled": f3c_enabled,
+        "pst_max_wait_bars": pst_max_wait,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "data_source": "Feb 18 - Apr 7 2026 Pi Kraken Futures ETH L2",
         "n_trades_total": len(trades),

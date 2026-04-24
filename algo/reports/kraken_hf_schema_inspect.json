@@ -1,0 +1,148 @@
+{
+  "2025-12-17": {
+    "n_files_day": 11,
+    "first_parquet": "13.parquet",
+    "last_parquet": "23.parquet",
+    "first_ts_ms": 1765979402840,
+    "last_ts_ms": 1766015693079,
+    "day_span_minutes": 604.8373166666667,
+    "sampled_parquets": 8,
+    "total_sampled_rows": 2080,
+    "pair_counts_in_sample": {
+      "BTC/USD": 255,
+      "BTC/EUR": 255,
+      "ETH/USD": 255,
+      "ETH/EUR": 255,
+      "SOL/USD": 255,
+      "SOL/EUR": 255,
+      "DOT/USD": 255,
+      "DOT/EUR": 255,
+      "POL/USD": 20,
+      "POL/EUR": 20
+    },
+    "eth_usd_snapshots_in_sample": 255,
+    "eth_usd_gap_stats_ms": {
+      "min_ms": 29971,
+      "p50_ms": 30006,
+      "p90_ms": 30095,
+      "max_ms": 8063607,
+      "mean_ms": 142874
+    },
+    "bid_depth_range": [
+      100,
+      100
+    ],
+    "ask_depth_range": [
+      100,
+      100
+    ],
+    "bid_depth_unique_values": [
+      100
+    ],
+    "ask_depth_unique_values": [
+      100
+    ],
+    "rows_with_asks_below_bid": 218,
+    "rows_inspected_for_ordering": 255
+  },
+  "2026-02-15": {
+    "n_files_day": 279,
+    "first_parquet": "0004.parquet",
+    "last_parquet": "2357.parquet",
+    "first_ts_ms": 1771113595511,
+    "last_ts_ms": 1771199813097,
+    "day_span_minutes": 1436.9597666666666,
+    "sampled_parquets": 8,
+    "total_sampled_rows": 462,
+    "pair_counts_in_sample": {
+      "BTC/USD": 33,
+      "BTC/EUR": 33,
+      "ETH/USD": 33,
+      "ETH/EUR": 33,
+      "SOL/USD": 33,
+      "SOL/EUR": 33,
+      "DOT/USD": 33,
+      "DOT/EUR": 33,
+      "POL/USD": 33,
+      "POL/EUR": 33,
+      "PAXG/BTC": 33,
+      "PAXG/USD": 33,
+      "PAXG/EUR": 33,
+      "PAXG/ETH": 33
+    },
+    "eth_usd_snapshots_in_sample": 33,
+    "eth_usd_gap_stats_ms": {
+      "min_ms": 30000,
+      "p50_ms": 60006,
+      "p90_ms": 11977862,
+      "max_ms": 12867647,
+      "mean_ms": 2694299
+    },
+    "bid_depth_range": [
+      100,
+      100
+    ],
+    "ask_depth_range": [
+      100,
+      100
+    ],
+    "bid_depth_unique_values": [
+      100
+    ],
+    "ask_depth_unique_values": [
+      100
+    ],
+    "rows_with_asks_below_bid": 33,
+    "rows_inspected_for_ordering": 33
+  },
+  "2026-04-15": {
+    "n_files_day": 283,
+    "first_parquet": "0002.parquet",
+    "last_parquet": "2356.parquet",
+    "first_ts_ms": 1776211050663,
+    "last_ts_ms": 1776297355200,
+    "day_span_minutes": 1438.40895,
+    "sampled_parquets": 8,
+    "total_sampled_rows": 434,
+    "pair_counts_in_sample": {
+      "BTC/USD": 31,
+      "BTC/EUR": 31,
+      "ETH/USD": 31,
+      "ETH/EUR": 31,
+      "SOL/USD": 31,
+      "SOL/EUR": 31,
+      "DOT/USD": 31,
+      "DOT/EUR": 31,
+      "POL/USD": 31,
+      "POL/EUR": 31,
+      "PAXG/BTC": 31,
+      "PAXG/USD": 31,
+      "PAXG/EUR": 31,
+      "PAXG/ETH": 31
+    },
+    "eth_usd_snapshots_in_sample": 31,
+    "eth_usd_gap_stats_ms": {
+      "min_ms": 30001,
+      "p50_ms": 90007,
+      "p90_ms": 12362273,
+      "max_ms": 12507624,
+      "mean_ms": 2876817
+    },
+    "bid_depth_range": [
+      100,
+      100
+    ],
+    "ask_depth_range": [
+      100,
+      100
+    ],
+    "bid_depth_unique_values": [
+      100
+    ],
+    "ask_depth_unique_values": [
+      100
+    ],
+    "rows_with_asks_below_bid": 0,
+    "rows_inspected_for_ordering": 31
+  }
+}

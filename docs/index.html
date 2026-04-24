@@ -177,6 +177,45 @@ details > *:not(summary) { padding: 0 14px 14px; }
 }
 .phase-pills .pill.done    { background: rgba(63,185,80,0.15);  color: var(--green);  border-color: rgba(63,185,80,0.3); }
 .phase-pills .pill.current { background: var(--yellow);         color: #000;          border-color: var(--yellow); font-weight: 600; }
+
+/* Config lineage card (version history timeline + 30d live-perf readout) */
+.lineage-card { border-left: 4px solid var(--blue); }
+.lineage-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--dim); margin-bottom: 8px; }
+.lineage-timeline { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.lineage-entry {
+  position: relative;
+  padding: 8px 10px 8px 24px;
+  border-radius: 6px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  font-size: 12px;
+}
+.lineage-entry::before {
+  content: '';
+  position: absolute; left: 8px; top: 12px;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--dim);
+}
+.lineage-entry.historical { opacity: 0.6; }
+.lineage-entry.historical::before { background: var(--dim); }
+.lineage-entry.live { border-color: rgba(63,185,80,0.5); }
+.lineage-entry.live::before { background: var(--green); box-shadow: 0 0 0 3px rgba(63,185,80,0.2); }
+.lineage-entry.queued { border-color: rgba(210,153,34,0.4); }
+.lineage-entry.queued::before { background: var(--yellow); }
+.lineage-entry .hdr { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.lineage-entry .label { font-weight: 600; color: var(--text); }
+.lineage-entry .meta { font-size: 10px; color: var(--dim); font-family: ui-monospace, 'SF Mono', monospace; }
+.lineage-entry .notes { color: var(--dim); font-size: 11px; line-height: 1.4; }
+.lineage-entry ul { font-size: 11px; color: var(--text); margin: 4px 0 4px 14px; padding: 0; }
+.lineage-entry ul li { padding: 1px 0; }
+
+.perf-readout { font-size: 12px; padding: 10px; border-radius: 6px; border: 1px solid var(--border); margin-top: 4px; }
+.perf-readout.strong  { background: rgba(63,185,80,0.18);  border-color: rgba(63,185,80,0.45); }
+.perf-readout.baseline { background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.25); }
+.perf-readout.mixed   { background: var(--card2); border-color: var(--border); }
+.perf-readout.warn    { background: rgba(210,153,34,0.10); border-color: rgba(210,153,34,0.35); }
+.perf-readout.fail    { background: rgba(248,81,73,0.15);  border-color: rgba(248,81,73,0.4); }
+.perf-readout .tier-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--dim); margin-bottom: 4px; }
 .phase-pills .pill.pending { background: var(--card2);          color: var(--dim); }
 .phase-pills .pill.tripped { background: rgba(248,81,73,0.2);   color: var(--red);    border-color: rgba(248,81,73,0.4); font-weight: 600; }
 .sprint-status-line { font-size: 12px; color: var(--text); margin: 8px 0; }
@@ -273,6 +312,16 @@ details > *:not(summary) { padding: 0 14px 14px; }
 
   <div class="live-state-note" id="sprintLiveNote">
     Live: 10× at pre-sprint config. No behavior changes deployed.
+  </div>
+</div>
+
+<!-- CONFIG LINEAGE CARD (populated by JS; degrades gracefully if file missing) -->
+<div class="card lineage-card" id="lineageCard" style="display:none;">
+  <div class="lineage-title">Config version history</div>
+  <div class="lineage-timeline" id="lineageTimeline"></div>
+  <div class="perf-readout mixed" id="perfReadout" style="display:none;">
+    <div class="tier-label" id="perfTierLabel">live performance</div>
+    <div id="perfReadoutBody">–</div>
   </div>
 </div>
 
@@ -460,6 +509,8 @@ async function fetchStatus() {
     render(data);
     // Fetch sibling trade_charts.json (gist co-hosts it)
     fetchStoredCharts(url);
+    // Fetch sibling config_lineage.jsonl (gracefully hidden if absent)
+    fetchConfigLineage(url, data);
     if (!window._initialized) {
       window._initialized = true;
       renderPriceChart();
@@ -486,6 +537,110 @@ async function fetchStoredCharts(statusUrl) {
       if (r.ok) { _storedCharts = await r.json(); return; }
     } catch (e) { /* try next */ }
   }
+}
+
+// ---- Config lineage (Deliverable 2 of the 6b auto-deploy package) ----
+async function fetchConfigLineage(statusUrl, statusData) {
+  const base = statusUrl.split('?')[0];
+  const candidates = [
+    base.replace(/\/raw(\/[0-9a-f]+)?\/status\.json$/, '/raw/config_lineage.jsonl'),
+    base.replace(/status\.json$/, 'config_lineage.jsonl'),
+  ];
+  let text = null;
+  for (const u of candidates) {
+    if (u === base) continue;
+    try {
+      const bust = u + '?_t=' + Date.now();
+      const r = await fetch(bust, { cache: 'no-store' });
+      if (r.ok) { text = await r.text(); break; }
+    } catch (e) { /* try next */ }
+  }
+  const card = document.getElementById('lineageCard');
+  if (!text) { if (card) card.style.display = 'none'; return; }
+  let entries = [];
+  for (const ln of text.split('\n')) {
+    const s = ln.trim();
+    if (!s) continue;
+    try { entries.push(JSON.parse(s)); } catch (e) { /* skip bad line */ }
+  }
+  if (!entries.length) { card.style.display = 'none'; return; }
+  renderLineage(entries);
+  renderPerfReadout(entries, statusData);
+  card.style.display = '';
+}
+
+function renderLineage(entries) {
+  const host = document.getElementById('lineageTimeline');
+  if (!host) return;
+  host.innerHTML = '';
+  for (const e of entries) {
+    const div = document.createElement('div');
+    div.className = 'lineage-entry ' + (e.status || 'historical');
+    const meta = [];
+    if (e.deployed_sha)  meta.push(e.deployed_sha);
+    if (e.deployed_at)   meta.push(e.deployed_at.substring(0, 10));
+    else if (e.status === 'queued') meta.push('queued');
+    const changes = (e.key_changes || []).map(c =>
+      `<li>${escapeHtml(c)}</li>`).join('');
+    div.innerHTML =
+      `<div class="hdr">` +
+        `<span class="label">${escapeHtml(e.version_label || '?')}</span>` +
+        `<span class="meta">${escapeHtml(meta.join(' · '))}</span>` +
+      `</div>` +
+      (changes ? `<ul>${changes}</ul>` : '') +
+      (e.notes ? `<div class="notes">${escapeHtml(e.notes)}</div>` : '');
+    host.appendChild(div);
+  }
+}
+
+function renderPerfReadout(entries, statusData) {
+  const host = document.getElementById('perfReadout');
+  const body = document.getElementById('perfReadoutBody');
+  const label = document.getElementById('perfTierLabel');
+  if (!host || !body || !label) return;
+  const live = entries.find(e => e.status === 'live');
+  if (!live || !live.deployed_at) { host.style.display = 'none'; return; }
+  const deployedAt = new Date(live.deployed_at);
+  const now = new Date();
+  const days = (now - deployedAt) / 86400000;
+  if (days < 0.25) { host.style.display = 'none'; return; }
+  // Pull cumulative metrics from statusData if present. We don't
+  // recompute here -- the dashboard's existing pipeline already has these.
+  const trades = (statusData && statusData.trades) || [];
+  const postDeploy = trades.filter(t => {
+    const dt = t.time ? new Date(t.time) : null;
+    return dt && dt >= deployedAt;
+  });
+  let cumRet = 0, peak = 1, dd = 0, running = 1;
+  for (const t of postDeploy) {
+    const r = (t.pnl_bps_leveraged || 0) / 10000;
+    running *= (1 + r);
+    if (running > peak) peak = running;
+    const ddNow = (peak - running) / peak * 100;
+    if (ddNow > dd) dd = ddNow;
+  }
+  cumRet = (running - 1) * 100;
+  const tripCount = 0; // valve trips: read from safety_valve marker if added
+  // Tier classification (mirrors brief section E)
+  let tier = 'mixed', cls = 'mixed';
+  if (cumRet >= 30 && dd <= 15 && tripCount === 0)       { tier = 'success-strong';   cls = 'strong';   }
+  else if (cumRet >= 5 && dd <= 20 && tripCount === 0)   { tier = 'success-baseline'; cls = 'baseline'; }
+  else if (cumRet >= -10 && dd <= 20 && tripCount === 0) { tier = 'mixed-continue';   cls = 'mixed';    }
+  else if (dd > 25 || cumRet < -10 || tripCount >= 2)    { tier = 'failure';          cls = 'fail';     }
+  else                                                    { tier = 'warn';             cls = 'warn';     }
+  host.className = 'perf-readout ' + cls;
+  label.textContent = `${live.version_label || 'live'} · day ${days.toFixed(1)}/30 · ${tier}`;
+  body.textContent =
+    `cum ret ${cumRet >= 0 ? '+' : ''}${cumRet.toFixed(1)}% · ` +
+    `DD ${dd.toFixed(1)}% · ` +
+    `trades ${postDeploy.length} · ` +
+    `valve trips ${tripCount}`;
+  host.style.display = '';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
 // ---- Main render ----

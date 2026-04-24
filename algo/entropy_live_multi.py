@@ -73,15 +73,16 @@ PAIRS = {
         "f3c_atr_window": 30,
         "f3c_threshold": 0.3,
         # timeout_trail: on timeout-at-loss, transition to post_signal_trail
-        # instead of force-exit. Phase 3 promoted.
-        "timeout_trail_enabled": False,
+        # instead of force-exit. Phase 3 promoted; PATH A live.
+        "timeout_trail_enabled": True,
         "timeout_trail_width_bps": 20,
         "timeout_trail_hard_floor_bps": -60,
-        "timeout_trail_max_wait_bars": 30,
+        "timeout_trail_max_wait_bars": 40,
         # E3: time-decayed SL. At `e3_tighten_after_bars` into the trade,
         # if peak_pnl_bps < e3_peak_threshold_bps, tighten SL from the
-        # configured stop_loss_bps to e3_tightened_sl_bps. Phase 4 promoted.
-        "e3_time_decay_sl_enabled": False,
+        # configured stop_loss_bps to e3_tightened_sl_bps. Phase 4 promoted;
+        # PATH A live.
+        "e3_time_decay_sl_enabled": True,
         "e3_tighten_after_bars": 60,
         "e3_peak_threshold_bps": 50,
         "e3_tightened_sl_bps": 25,
@@ -96,7 +97,7 @@ SHARED_CONFIG = {
     "return_low_bps": 20,
     "return_high_bps": 80,
     "entropy_window": 30,
-    "leverage": 10,                   # Phase 6 flips this to 5 when promoted
+    "leverage": 5,                    # Phase 6b PATH A: live
     "equity_fraction": 0.90,
     # Audit writer (Phase 5): appends one JSON line per candidate bar
     # (passed or blocked) to state/daily_filter_audit.jsonl. Safe diagnostic,

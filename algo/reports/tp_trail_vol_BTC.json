@@ -1,0 +1,451 @@
+[
+  {
+    "name": "LIVE_BASELINE",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 282.3280014248376,
+    "pnl_usd": 31378.57843879601,
+    "max_dd": 20.845773457175145,
+    "calmar": 13.543656799535059,
+    "avg_bps": 63.20731958698541,
+    "avg_hold": 151.125,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "trail_stop": 9,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TP100",
+    "trades": 36,
+    "wins": 22,
+    "losses": 14,
+    "win_rate": 0.6111111111111112,
+    "ret_pct": 97.34425552268607,
+    "pnl_usd": 12088.320252566778,
+    "max_dd": 16.22075196528975,
+    "calmar": 6.001217189621654,
+    "avg_bps": 33.79020439033694,
+    "avg_hold": 109.69444444444444,
+    "reasons": {
+      "tp": 19,
+      "sl": 12,
+      "trail_stop": 3,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TP120",
+    "trades": 34,
+    "wins": 18,
+    "losses": 16,
+    "win_rate": 0.5294117647058824,
+    "ret_pct": 71.59971884923696,
+    "pnl_usd": 9089.952557395642,
+    "max_dd": 20.591814842324666,
+    "calmar": 3.4770960887852405,
+    "avg_bps": 31.189882741462583,
+    "avg_hold": 121.26470588235294,
+    "reasons": {
+      "tp": 15,
+      "sl": 14,
+      "trail_stop": 3,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TP150",
+    "trades": 33,
+    "wins": 18,
+    "losses": 15,
+    "win_rate": 0.5454545454545454,
+    "ret_pct": 143.91924242522575,
+    "pnl_usd": 16767.72232640842,
+    "max_dd": 20.716306174838103,
+    "calmar": 6.947147875234108,
+    "avg_bps": 44.656264829786345,
+    "avg_hold": 137.72727272727272,
+    "reasons": {
+      "tp": 11,
+      "sl": 13,
+      "trail_stop": 7,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TP80",
+    "trades": 37,
+    "wins": 22,
+    "losses": 15,
+    "win_rate": 0.5945945945945946,
+    "ret_pct": 41.60793125711345,
+    "pnl_usd": 6265.789915241792,
+    "max_dd": 20.63897958016,
+    "calmar": 2.0159878106139826,
+    "avg_bps": 22.63000066914616,
+    "avg_hold": 97.21621621621621,
+    "reasons": {
+      "tp": 21,
+      "sl": 13,
+      "trail_stop": 1,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after50_30bps",
+    "trades": 35,
+    "wins": 23,
+    "losses": 12,
+    "win_rate": 0.6571428571428571,
+    "ret_pct": 99.67821906154842,
+    "pnl_usd": 12250.250026831523,
+    "max_dd": 16.154494229187897,
+    "calmar": 6.170308871784427,
+    "avg_bps": 34.9490601645508,
+    "avg_hold": 81.8,
+    "reasons": {
+      "tp_trail": 23,
+      "sl": 10,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after50_50bps",
+    "trades": 34,
+    "wins": 21,
+    "losses": 13,
+    "win_rate": 0.6176470588235294,
+    "ret_pct": 173.03786446760668,
+    "pnl_usd": 19850.287192512373,
+    "max_dd": 16.477598163124146,
+    "calmar": 10.501400917450143,
+    "avg_bps": 49.11179264144271,
+    "avg_hold": 102.97058823529412,
+    "reasons": {
+      "tp_trail": 22,
+      "sl": 10,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after80_30bps",
+    "trades": 34,
+    "wins": 21,
+    "losses": 13,
+    "win_rate": 0.6176470588235294,
+    "ret_pct": 118.97987130047447,
+    "pnl_usd": 14220.284928219908,
+    "max_dd": 16.27172149511571,
+    "calmar": 7.31206414368564,
+    "avg_bps": 39.04614118506521,
+    "avg_hold": 104.67647058823529,
+    "reasons": {
+      "tp_trail": 20,
+      "sl": 11,
+      "trail_stop": 1,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after80_50bps",
+    "trades": 33,
+    "wins": 20,
+    "losses": 13,
+    "win_rate": 0.6060606060606061,
+    "ret_pct": 206.63488409255825,
+    "pnl_usd": 23385.646623417044,
+    "max_dd": 16.54271314058179,
+    "calmar": 12.49099118968892,
+    "avg_bps": 54.54014676373413,
+    "avg_hold": 123.39393939393939,
+    "reasons": {
+      "tp_trail": 19,
+      "sl": 11,
+      "trail_stop": 1,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after100_30bps",
+    "trades": 34,
+    "wins": 20,
+    "losses": 14,
+    "win_rate": 0.5882352941176471,
+    "ret_pct": 103.68716224421266,
+    "pnl_usd": 12552.108266115689,
+    "max_dd": 16.25539262651582,
+    "calmar": 6.378631671749226,
+    "avg_bps": 36.80754006808726,
+    "avg_hold": 111.88235294117646,
+    "reasons": {
+      "tp_trail": 18,
+      "sl": 12,
+      "trail_stop": 2,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after100_50bps",
+    "trades": 33,
+    "wins": 19,
+    "losses": 14,
+    "win_rate": 0.5757575757575758,
+    "ret_pct": 210.60529235469474,
+    "pnl_usd": 23797.67539038616,
+    "max_dd": 16.552214621651824,
+    "calmar": 12.723692700262815,
+    "avg_bps": 55.279003991903025,
+    "avg_hold": 130.57575757575756,
+    "reasons": {
+      "tp_trail": 17,
+      "sl": 12,
+      "trail_stop": 2,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after150_50bps",
+    "trades": 33,
+    "wins": 18,
+    "losses": 15,
+    "win_rate": 0.5454545454545454,
+    "ret_pct": 323.36788137194867,
+    "pnl_usd": 35800.38638413659,
+    "max_dd": 20.749213226628846,
+    "calmar": 15.584585200413727,
+    "avg_bps": 67.29330287810214,
+    "avg_hold": 150.96969696969697,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 13,
+      "trail_stop": 7,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after80_atr2x",
+    "trades": 34,
+    "wins": 21,
+    "losses": 13,
+    "win_rate": 0.6176470588235294,
+    "ret_pct": 132.09399835129844,
+    "pnl_usd": 15746.263950222974,
+    "max_dd": 16.335397797311323,
+    "calmar": 8.086365571889536,
+    "avg_bps": 41.23071807065904,
+    "avg_hold": 99.5,
+    "reasons": {
+      "tp_trail": 20,
+      "sl": 11,
+      "trail_stop": 1,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after100_atr2x",
+    "trades": 34,
+    "wins": 20,
+    "losses": 14,
+    "win_rate": 0.5882352941176471,
+    "ret_pct": 132.3671386079375,
+    "pnl_usd": 15707.403492897614,
+    "max_dd": 16.37538677755977,
+    "calmar": 8.08329845309844,
+    "avg_bps": 41.57424081482946,
+    "avg_hold": 108.76470588235294,
+    "reasons": {
+      "tp_trail": 18,
+      "sl": 12,
+      "trail_stop": 2,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after100_atr3x",
+    "trades": 34,
+    "wins": 20,
+    "losses": 14,
+    "win_rate": 0.5882352941176471,
+    "ret_pct": 131.36133910526624,
+    "pnl_usd": 15527.14791116702,
+    "max_dd": 16.32722731925315,
+    "calmar": 8.04553869047712,
+    "avg_bps": 41.46384963708638,
+    "avg_hold": 111.05882352941177,
+    "reasons": {
+      "tp_trail": 18,
+      "sl": 12,
+      "trail_stop": 2,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TPtrail_after50_atr2x",
+    "trades": 35,
+    "wins": 23,
+    "losses": 12,
+    "win_rate": 0.6571428571428571,
+    "ret_pct": 97.19350765938317,
+    "pnl_usd": 12117.573227235924,
+    "max_dd": 16.172000078470955,
+    "calmar": 6.009986840698353,
+    "avg_bps": 34.5869128372277,
+    "avg_hold": 75.28571428571429,
+    "reasons": {
+      "tp_trail": 23,
+      "sl": 10,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "Vol_p50",
+    "trades": 23,
+    "wins": 13,
+    "losses": 10,
+    "win_rate": 0.5652173913043478,
+    "ret_pct": 142.35823583186604,
+    "pnl_usd": 15809.734423059832,
+    "max_dd": 16.994167471269023,
+    "calmar": 8.376887898306418,
+    "avg_bps": 59.54200741301803,
+    "avg_hold": 140.8695652173913,
+    "reasons": {
+      "sl": 10,
+      "tp": 7,
+      "trail_stop": 6
+    }
+  },
+  {
+    "name": "Vol_p70",
+    "trades": 22,
+    "wins": 10,
+    "losses": 12,
+    "win_rate": 0.45454545454545453,
+    "ret_pct": 75.527938143157,
+    "pnl_usd": 8697.837788541496,
+    "max_dd": 20.577170539568154,
+    "calmar": 3.670472478124394,
+    "avg_bps": 44.960277828330156,
+    "avg_hold": 131.95454545454547,
+    "reasons": {
+      "sl": 11,
+      "tp": 6,
+      "trail_stop": 4,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "Vol_p80",
+    "trades": 18,
+    "wins": 6,
+    "losses": 12,
+    "win_rate": 0.3333333333333333,
+    "ret_pct": 2.960453281102855,
+    "pnl_usd": 921.8312757696116,
+    "max_dd": 38.29166620083731,
+    "calmar": 0.07731325311297421,
+    "avg_bps": 17.406439537120825,
+    "avg_hold": 123.83333333333333,
+    "reasons": {
+      "sl": 11,
+      "timeout": 1,
+      "tp": 4,
+      "trail_stop": 2
+    }
+  },
+  {
+    "name": "Vol_p90",
+    "trades": 9,
+    "wins": 2,
+    "losses": 7,
+    "win_rate": 0.2222222222222222,
+    "ret_pct": -15.927168657753937,
+    "pnl_usd": -1252.1561244682655,
+    "max_dd": 25.121716582482982,
+    "calmar": -0.6340000137116317,
+    "avg_bps": -6.111111111111111,
+    "avg_hold": 116.88888888888889,
+    "reasons": {
+      "sl": 7,
+      "tp": 2
+    }
+  },
+  {
+    "name": "Vol_p60_w120",
+    "trades": 23,
+    "wins": 10,
+    "losses": 13,
+    "win_rate": 0.43478260869565216,
+    "ret_pct": 63.679802318493984,
+    "pnl_usd": 7498.60943422361,
+    "max_dd": 25.3669537969247,
+    "calmar": 2.5103448694818864,
+    "avg_bps": 40.179396183620156,
+    "avg_hold": 131.2608695652174,
+    "reasons": {
+      "sl": 12,
+      "tp": 6,
+      "trail_stop": 4,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "TP150+TPtrail100_30",
+    "trades": 34,
+    "wins": 20,
+    "losses": 14,
+    "win_rate": 0.5882352941176471,
+    "ret_pct": 103.68716224421266,
+    "pnl_usd": 12552.108266115689,
+    "max_dd": 16.25539262651582,
+    "calmar": 6.378631671749226,
+    "avg_bps": 36.80754006808726,
+    "avg_hold": 111.88235294117646,
+    "reasons": {
+      "tp_trail": 18,
+      "sl": 12,
+      "trail_stop": 2,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "TP150+Vol_p70",
+    "trades": 22,
+    "wins": 10,
+    "losses": 12,
+    "win_rate": 0.45454545454545453,
+    "ret_pct": 38.264421970990206,
+    "pnl_usd": 4847.184514630528,
+    "max_dd": 20.840527548050826,
+    "calmar": 1.8360582227472932,
+    "avg_bps": 31.12390075909897,
+    "avg_hold": 125.4090909090909,
+    "reasons": {
+      "sl": 11,
+      "tp": 7,
+      "timeout": 1,
+      "trail_stop": 3
+    }
+  },
+  {
+    "name": "TPtrail80_atr2+Vol70",
+    "trades": 22,
+    "wins": 12,
+    "losses": 10,
+    "win_rate": 0.5454545454545454,
+    "ret_pct": 31.21769299767966,
+    "pnl_usd": 4182.957838363483,
+    "max_dd": 16.971548786042455,
+    "calmar": 1.839413325868842,
+    "avg_bps": 26.929889761187823,
+    "avg_hold": 96.63636363636364,
+    "reasons": {
+      "sl": 9,
+      "tp_trail": 12,
+      "timeout": 1
+    }
+  }
+]

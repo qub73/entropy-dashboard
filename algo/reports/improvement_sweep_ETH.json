@@ -1,0 +1,391 @@
+[
+  {
+    "name": "BASELINE (live)",
+    "trades": 56,
+    "wins": 25,
+    "win_rate": 0.44642857142857145,
+    "ret_pct": 333.6764434441057,
+    "max_dd": 17.023350441187183,
+    "calmar": 19.60110288494041,
+    "avg_bps": 44.72897687581038,
+    "reasons": {
+      "sl": 28,
+      "tp_trail": 18,
+      "trail_stop": 7,
+      "timeout": 3
+    }
+  },
+  {
+    "name": "I1: dH<0",
+    "trades": 53,
+    "wins": 24,
+    "win_rate": 0.4528301886792453,
+    "ret_pct": 366.94080788538355,
+    "max_dd": 13.473627929150872,
+    "calmar": 27.234001845300227,
+    "avg_bps": 48.17317786266509,
+    "reasons": {
+      "sl": 26,
+      "tp_trail": 18,
+      "trail_stop": 6,
+      "timeout": 3
+    }
+  },
+  {
+    "name": "I2: ATR-SL",
+    "trades": 61,
+    "wins": 19,
+    "win_rate": 0.3114754098360656,
+    "ret_pct": 118.74020601064386,
+    "max_dd": 17.318089262490584,
+    "calmar": 6.856426492027871,
+    "avg_bps": 27.890763236449676,
+    "reasons": {
+      "sl": 41,
+      "tp_trail": 13,
+      "trail_stop": 6,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I3: VWAP trend",
+    "trades": 34,
+    "wins": 15,
+    "win_rate": 0.4411764705882353,
+    "ret_pct": 114.83290949075395,
+    "max_dd": 13.783706082541855,
+    "calmar": 8.331061965707383,
+    "avg_bps": 39.97034366461868,
+    "reasons": {
+      "sl": 17,
+      "tp_trail": 9,
+      "trail_stop": 5,
+      "timeout": 2,
+      "end": 1
+    }
+  },
+  {
+    "name": "I4: Depth guard",
+    "trades": 49,
+    "wins": 20,
+    "win_rate": 0.40816326530612246,
+    "ret_pct": 121.68971542014691,
+    "max_dd": 20.714981722634125,
+    "calmar": 5.874478531988432,
+    "avg_bps": 32.41030728673315,
+    "reasons": {
+      "sl": 25,
+      "tp_trail": 13,
+      "trail_stop": 7,
+      "timeout": 4
+    }
+  },
+  {
+    "name": "I5: Spread*imb",
+    "trades": 56,
+    "wins": 24,
+    "win_rate": 0.42857142857142855,
+    "ret_pct": 273.86199649087575,
+    "max_dd": 27.153570780349806,
+    "calmar": 10.085671557018982,
+    "avg_bps": 41.72597660968716,
+    "reasons": {
+      "sl": 29,
+      "tp_trail": 17,
+      "trail_stop": 7,
+      "timeout": 3
+    }
+  },
+  {
+    "name": "I1+I2",
+    "trades": 55,
+    "wins": 18,
+    "win_rate": 0.32727272727272727,
+    "ret_pct": 138.20390012946766,
+    "max_dd": 20.16719150549987,
+    "calmar": 6.852907609459531,
+    "avg_bps": 31.39706010946896,
+    "reasons": {
+      "sl": 36,
+      "tp_trail": 13,
+      "trail_stop": 5,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I1+I3",
+    "trades": 31,
+    "wins": 15,
+    "win_rate": 0.4838709677419355,
+    "ret_pct": 153.7624747210192,
+    "max_dd": 10.252685561128137,
+    "calmar": 14.997287667144667,
+    "avg_bps": 48.6771511160334,
+    "reasons": {
+      "sl": 14,
+      "tp_trail": 9,
+      "trail_stop": 5,
+      "timeout": 2,
+      "end": 1
+    }
+  },
+  {
+    "name": "I1+I4",
+    "trades": 47,
+    "wins": 18,
+    "win_rate": 0.3829787234042553,
+    "ret_pct": 64.99855943456456,
+    "max_dd": 18.253157353200013,
+    "calmar": 3.560948836238979,
+    "avg_bps": 25.902016028975385,
+    "reasons": {
+      "sl": 26,
+      "tp_trail": 12,
+      "trail_stop": 6,
+      "timeout": 3
+    }
+  },
+  {
+    "name": "I1+I5",
+    "trades": 52,
+    "wins": 23,
+    "win_rate": 0.4423076923076923,
+    "ret_pct": 325.5162815496983,
+    "max_dd": 24.1085643698199,
+    "calmar": 13.502101434011271,
+    "avg_bps": 46.82712330419902,
+    "reasons": {
+      "sl": 26,
+      "tp_trail": 17,
+      "trail_stop": 6,
+      "timeout": 3
+    }
+  },
+  {
+    "name": "I2+I3",
+    "trades": 36,
+    "wins": 13,
+    "win_rate": 0.3611111111111111,
+    "ret_pct": 98.5778418348595,
+    "max_dd": 24.321685431757224,
+    "calmar": 4.053084318989867,
+    "avg_bps": 35.195148224028024,
+    "reasons": {
+      "sl": 23,
+      "tp_trail": 7,
+      "trail_stop": 5,
+      "end": 1
+    }
+  },
+  {
+    "name": "I2+I4",
+    "trades": 51,
+    "wins": 15,
+    "win_rate": 0.29411764705882354,
+    "ret_pct": 60.023595216619576,
+    "max_dd": 19.93158877685595,
+    "calmar": 3.0114807147896525,
+    "avg_bps": 23.483237884901758,
+    "reasons": {
+      "sl": 35,
+      "tp_trail": 10,
+      "trail_stop": 5,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I3+I4",
+    "trades": 29,
+    "wins": 14,
+    "win_rate": 0.4827586206896552,
+    "ret_pct": 120.45327834167259,
+    "max_dd": 13.56653070062375,
+    "calmar": 8.87870900820167,
+    "avg_bps": 45.233611687140424,
+    "reasons": {
+      "sl": 13,
+      "tp_trail": 8,
+      "trail_stop": 5,
+      "timeout": 2,
+      "end": 1
+    }
+  },
+  {
+    "name": "I4+I5",
+    "trades": 49,
+    "wins": 19,
+    "win_rate": 0.3877551020408163,
+    "ret_pct": 91.11335388718756,
+    "max_dd": 30.402682827661952,
+    "calmar": 2.9968853210640956,
+    "avg_bps": 28.978306982592322,
+    "reasons": {
+      "sl": 26,
+      "tp_trail": 12,
+      "trail_stop": 7,
+      "timeout": 4
+    }
+  },
+  {
+    "name": "I1+I2+I3",
+    "trades": 33,
+    "wins": 13,
+    "win_rate": 0.3939393939393939,
+    "ret_pct": 121.66630638880125,
+    "max_dd": 22.380856451691784,
+    "calmar": 5.436177415793416,
+    "avg_bps": 41.12197988075784,
+    "reasons": {
+      "sl": 20,
+      "tp_trail": 7,
+      "trail_stop": 5,
+      "end": 1
+    }
+  },
+  {
+    "name": "I1+I2+I4",
+    "trades": 47,
+    "wins": 15,
+    "win_rate": 0.3191489361702128,
+    "ret_pct": 85.30019987582513,
+    "max_dd": 17.477203052482224,
+    "calmar": 4.880655080774509,
+    "avg_bps": 28.03500281127638,
+    "reasons": {
+      "sl": 31,
+      "tp_trail": 10,
+      "trail_stop": 5,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I1+I3+I4",
+    "trades": 27,
+    "wins": 12,
+    "win_rate": 0.4444444444444444,
+    "ret_pct": 71.16999168212543,
+    "max_dd": 18.253157353200013,
+    "calmar": 3.8990510137495975,
+    "avg_bps": 36.536846796644745,
+    "reasons": {
+      "sl": 13,
+      "trail_stop": 4,
+      "tp_trail": 7,
+      "timeout": 2,
+      "end": 1
+    }
+  },
+  {
+    "name": "I1+I4+I5",
+    "trades": 47,
+    "wins": 17,
+    "win_rate": 0.3617021276595745,
+    "ret_pct": 42.24127637284331,
+    "max_dd": 27.384847996736568,
+    "calmar": 1.542505416786581,
+    "avg_bps": 22.323973158700902,
+    "reasons": {
+      "sl": 27,
+      "tp_trail": 11,
+      "trail_stop": 6,
+      "timeout": 3
+    }
+  },
+  {
+    "name": "I2+I3+I4",
+    "trades": 31,
+    "wins": 12,
+    "win_rate": 0.3870967741935484,
+    "ret_pct": 103.87374409537374,
+    "max_dd": 16.3452482375014,
+    "calmar": 6.3549811288306435,
+    "avg_bps": 39.73322923805818,
+    "reasons": {
+      "sl": 19,
+      "tp_trail": 7,
+      "trail_stop": 4,
+      "end": 1
+    }
+  },
+  {
+    "name": "I1+I2+I5",
+    "trades": 54,
+    "wins": 17,
+    "win_rate": 0.3148148148148148,
+    "ret_pct": 117.07170613926449,
+    "max_dd": 26.827011054093592,
+    "calmar": 4.363948928309711,
+    "avg_bps": 29.790190576257256,
+    "reasons": {
+      "sl": 36,
+      "tp_trail": 12,
+      "trail_stop": 5,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I1+I2+I3+I4",
+    "trades": 28,
+    "wins": 12,
+    "win_rate": 0.42857142857142855,
+    "ret_pct": 127.57795837493032,
+    "max_dd": 13.999037834406423,
+    "calmar": 9.11333763677479,
+    "avg_bps": 47.20464665642156,
+    "reasons": {
+      "sl": 16,
+      "tp_trail": 7,
+      "trail_stop": 4,
+      "end": 1
+    }
+  },
+  {
+    "name": "I1+I2+I4+I5",
+    "trades": 47,
+    "wins": 14,
+    "win_rate": 0.2978723404255319,
+    "ret_pct": 62.782334859577624,
+    "max_dd": 23.491286697954617,
+    "calmar": 2.672579653333509,
+    "avg_bps": 24.88249185589551,
+    "reasons": {
+      "sl": 32,
+      "tp_trail": 9,
+      "trail_stop": 5,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I1+I3+I4+I5",
+    "trades": 27,
+    "wins": 11,
+    "win_rate": 0.4074074074074074,
+    "ret_pct": 47.561519185567484,
+    "max_dd": 18.253157353200013,
+    "calmar": 2.6056598464171645,
+    "avg_bps": 30.308401800241022,
+    "reasons": {
+      "sl": 14,
+      "trail_stop": 4,
+      "tp_trail": 6,
+      "timeout": 2,
+      "end": 1
+    }
+  },
+  {
+    "name": "ALL (I1-I5)",
+    "trades": 28,
+    "wins": 11,
+    "win_rate": 0.39285714285714285,
+    "ret_pct": 99.9224579988164,
+    "max_dd": 15.03550038848243,
+    "calmar": 6.645768708526622,
+    "avg_bps": 41.912931838460814,
+    "reasons": {
+      "sl": 17,
+      "tp_trail": 6,
+      "trail_stop": 4,
+      "end": 1
+    }
+  }
+]

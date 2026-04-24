@@ -1,0 +1,94 @@
+{
+  "cell_name": "timeout_trail+E3+5x (revised 6b, no F3c, pst_max_wait=40)",
+  "f3c_enabled": false,
+  "pst_max_wait_bars": 40,
+  "generated_at": "2026-04-24T12:09:01.059766+00:00",
+  "data_source": "Feb 18 - Apr 7 2026 Pi Kraken Futures ETH L2",
+  "n_trades_total": 44,
+  "skipped_no_session": 0,
+  "buckets": {
+    "long_europe": {
+      "count": 6,
+      "mean_pnl_bps": 38.58129269831473,
+      "std_bps": 128.15607772115027,
+      "p25_bps": -50.0,
+      "p50_bps": -37.5,
+      "p75_bps": 136.84774025027343,
+      "min_bps": -50.0,
+      "max_bps": 215.69076918952385
+    },
+    "short_europe": {
+      "count": 12,
+      "mean_pnl_bps": 119.24561382710597,
+      "std_bps": 86.28006103215118,
+      "p25_bps": 107.58907778186628,
+      "p50_bps": 125.564670811656,
+      "p75_bps": 164.8084269625869,
+      "min_bps": -50.0,
+      "max_bps": 270.45643049237185
+    },
+    "short_americas": {
+      "count": 8,
+      "mean_pnl_bps": 21.949078808436624,
+      "std_bps": 145.1669842102414,
+      "p25_bps": -50.0,
+      "p50_bps": -50.0,
+      "p75_bps": -5.019707859958103,
+      "min_bps": -50.0,
+      "max_bps": 345.6714619073254
+    },
+    "long_americas": {
+      "count": 4,
+      "mean_pnl_bps": 116.18006919836648,
+      "std_bps": 122.66320720930676,
+      "p25_bps": 58.13305215651734,
+      "p50_bps": 118.36547863936417,
+      "p75_bps": 176.4124956812133,
+      "min_bps": -33.22274311816529,
+      "max_bps": 261.21206263290287
+    },
+    "long_asia": {
+      "count": 6,
+      "mean_pnl_bps": 35.81624162276188,
+      "std_bps": 123.34319579107472,
+      "p25_bps": -50.0,
+      "p50_bps": -22.06729910998848,
+      "p75_bps": 78.54818553299029,
+      "min_bps": -50.0,
+      "max_bps": 256.25626783923553
+    },
+    "short_asia": {
+      "count": 8,
+      "mean_pnl_bps": 42.92712747682421,
+      "std_bps": 95.33448976819125,
+      "p25_bps": -31.25,
+      "p50_bps": 19.46723338088396,
+      "p75_bps": 106.58843202869889,
+      "min_bps": -50.0,
+      "max_bps": 208.58596707929337
+    }
+  },
+  "fallback_by_direction": {
+    "long": {
+      "count": 16,
+      "mean_pnl_bps": 56.94409266999534,
+      "std_bps": 121.67264358922746,
+      "p25_bps": -50.0,
+      "p50_bps": -9.56729910998848,
+      "p75_bps": 158.80872677307872,
+      "min_bps": -50.0,
+      "max_bps": 261.21206263290287
+    },
+    "short": {
+      "count": 28,
+      "mean_pnl_bps": 69.64132200740566,
+      "std_bps": 113.2768128943562,
+      "p25_bps": -50.0,
+      "p50_bps": 102.08586711164564,
+      "p75_bps": 135.49250591943164,
+      "min_bps": -50.0,
+      "max_bps": 345.6714619073254
+    }
+  },
+  "notes": "pnl_bps is leverage-invariant; live auto-flip monitor should score the realized pnl_bps (gross price move, not leveraged) against these expectations. Buckets = (direction, UTC session). If a live trade's bucket has count<5, fall back to the direction-only fallback_by_direction entry."
+}

@@ -1,0 +1,649 @@
+{
+  "pair": "XBTUSD",
+  "best_test_params": {
+    "train_rank": 7,
+    "train_obj": 1.1907658596783892,
+    "train_sharpe": 2.190765859678389,
+    "test_sharpe": 0.7285371201469236,
+    "test_pnl": 226.9186798916052,
+    "test_trades": 257,
+    "test_wr": 0.36964980544747084,
+    "params": {
+      "entropy_percentile": 5,
+      "volume_percentile": 90,
+      "return_low_bps": 10,
+      "return_high_bps": 30,
+      "entropy_window_bars": 120,
+      "stop_loss_bps": 30,
+      "take_profit_bps": 120,
+      "timeout_sec": 2400,
+      "kill_switch_drawdown": 3.0,
+      "kill_switch_window": 60,
+      "retraining_freq_days": 10
+    }
+  },
+  "train_top20": [
+    {
+      "params": {
+        "entropy_percentile": 5,
+        "volume_percentile": 99,
+        "return_low_bps": 20,
+        "return_high_bps": 30,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 3.5384284139415314,
+      "sharpe": 6.538428413941531,
+      "trades": 20,
+      "win_rate": 0.2875,
+      "pnl": 402.7452878487506
+    },
+    {
+      "params": {
+        "entropy_percentile": 1,
+        "volume_percentile": 99,
+        "return_low_bps": 10,
+        "return_high_bps": 30,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 50,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 2.2884730155738024,
+      "sharpe": 6.7884730155738024,
+      "trades": 16,
+      "win_rate": 0.25,
+      "pnl": 704.0351321523787
+    },
+    {
+      "params": {
+        "entropy_percentile": 2,
+        "volume_percentile": 90,
+        "return_low_bps": 20,
+        "return_high_bps": 30,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 50,
+        "take_profit_bps": 180,
+        "timeout_sec": 600,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 1.485224662263299,
+      "sharpe": 5.485224662263299,
+      "trades": 72,
+      "win_rate": 0.45028541719718185,
+      "pnl": 565.6358480777172
+    },
+    {
+      "params": {
+        "entropy_percentile": 1,
+        "volume_percentile": 95,
+        "return_low_bps": 10,
+        "return_high_bps": 30,
+        "entropy_window_bars": 60,
+        "stop_loss_bps": 80,
+        "take_profit_bps": 120,
+        "timeout_sec": 1200,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 1.412265182092419,
+      "sharpe": 3.912265182092419,
+      "trades": 60,
+      "win_rate": 0.3523191473559121,
+      "pnl": 463.37582377007016
+    },
+    {
+      "params": {
+        "entropy_percentile": 1,
+        "volume_percentile": 95,
+        "return_low_bps": 15,
+        "return_high_bps": 30,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 80,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 1.369127534593833,
+      "sharpe": 4.869127534593833,
+      "trades": 46,
+      "win_rate": 0.28541666666666665,
+      "pnl": 566.9711732079029
+    },
+    {
+      "params": {
+        "entropy_percentile": 3,
+        "volume_percentile": 90,
+        "return_low_bps": 15,
+        "return_high_bps": 30,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 1.3576026931879714,
+      "sharpe": 2.8576026931879714,
+      "trades": 142,
+      "win_rate": 0.39335664335664333,
+      "pnl": 1417.4129725091182
+    },
+    {
+      "params": {
+        "entropy_percentile": 5,
+        "volume_percentile": 90,
+        "return_low_bps": 10,
+        "return_high_bps": 30,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 1.1907658596783892,
+      "sharpe": 2.190765859678389,
+      "trades": 258,
+      "win_rate": 0.3875232611922638,
+      "pnl": 1232.4612288130704
+    },
+    {
+      "params": {
+        "entropy_percentile": 2,
+        "volume_percentile": 99,
+        "return_low_bps": 10,
+        "return_high_bps": 30,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 80,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 1.073078799196188,
+      "sharpe": 5.073078799196188,
+      "trades": 24,
+      "win_rate": 0.2791666666666667,
+      "pnl": 523.2990464364929
+    },
+    {
+      "params": {
+        "entropy_percentile": 5,
+        "volume_percentile": 90,
+        "return_low_bps": 10,
+        "return_high_bps": 50,
+        "entropy_window_bars": 180,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 180,
+        "timeout_sec": 1200,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 1.0281990363937772,
+      "sharpe": 2.028199036393777,
+      "trades": 243,
+      "win_rate": 0.37233723143728786,
+      "pnl": 1274.4715437371133
+    },
+    {
+      "params": {
+        "entropy_percentile": 5,
+        "volume_percentile": 90,
+        "return_low_bps": 15,
+        "return_high_bps": 30,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 50,
+        "take_profit_bps": 180,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.8400480467251206,
+      "sharpe": 3.8400480467251206,
+      "trades": 222,
+      "win_rate": 0.4795634449222177,
+      "pnl": 2129.3132035840185
+    },
+    {
+      "params": {
+        "entropy_percentile": 1,
+        "volume_percentile": 95,
+        "return_low_bps": 15,
+        "return_high_bps": 30,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 50,
+        "take_profit_bps": 120,
+        "timeout_sec": 300,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.8218921609320979,
+      "sharpe": 5.321892160932098,
+      "trades": 48,
+      "win_rate": 0.3621212121212121,
+      "pnl": 427.159964917922
+    },
+    {
+      "params": {
+        "entropy_percentile": 2,
+        "volume_percentile": 90,
+        "return_low_bps": 20,
+        "return_high_bps": 30,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 80,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.7984321029500405,
+      "sharpe": 4.7984321029500405,
+      "trades": 72,
+      "win_rate": 0.3695675239792887,
+      "pnl": 716.0185196556279
+    },
+    {
+      "params": {
+        "entropy_percentile": 1,
+        "volume_percentile": 99,
+        "return_low_bps": 15,
+        "return_high_bps": 100,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 80,
+        "timeout_sec": 300,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.7424421015555778,
+      "sharpe": 5.242442101555578,
+      "trades": 25,
+      "win_rate": 0.169237012987013,
+      "pnl": 381.46162141941153
+    },
+    {
+      "params": {
+        "entropy_percentile": 2,
+        "volume_percentile": 95,
+        "return_low_bps": 20,
+        "return_high_bps": 30,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.6761045322987096,
+      "sharpe": 5.67610453229871,
+      "trades": 44,
+      "win_rate": 0.30416666666666664,
+      "pnl": 663.2606902770206
+    },
+    {
+      "params": {
+        "entropy_percentile": 3,
+        "volume_percentile": 99,
+        "return_low_bps": 20,
+        "return_high_bps": 50,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 50,
+        "take_profit_bps": 180,
+        "timeout_sec": 1200,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.6720357431204929,
+      "sharpe": 3.172035743120493,
+      "trades": 24,
+      "win_rate": 0.55625,
+      "pnl": 458.5904708160817
+    },
+    {
+      "params": {
+        "entropy_percentile": 1,
+        "volume_percentile": 99,
+        "return_low_bps": 20,
+        "return_high_bps": 150,
+        "entropy_window_bars": 60,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 80,
+        "timeout_sec": 600,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.60863212448053,
+      "sharpe": 4.10863212448053,
+      "trades": 39,
+      "win_rate": 0.19188596491228072,
+      "pnl": 209.70098023949842
+    },
+    {
+      "params": {
+        "entropy_percentile": 2,
+        "volume_percentile": 90,
+        "return_low_bps": 20,
+        "return_high_bps": 30,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 50,
+        "take_profit_bps": 80,
+        "timeout_sec": 300,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.5359162270551572,
+      "sharpe": 4.035916227055157,
+      "trades": 72,
+      "win_rate": 0.4244493251846193,
+      "pnl": 434.39131294054073
+    },
+    {
+      "params": {
+        "entropy_percentile": 7,
+        "volume_percentile": 90,
+        "return_low_bps": 10,
+        "return_high_bps": 50,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.533712822966887,
+      "sharpe": 2.033712822966887,
+      "trades": 339,
+      "win_rate": 0.38451191454610906,
+      "pnl": 1969.5090344795576
+    },
+    {
+      "params": {
+        "entropy_percentile": 1,
+        "volume_percentile": 95,
+        "return_low_bps": 5,
+        "return_high_bps": 100,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 80,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.4761726162378581,
+      "sharpe": 3.976172616237858,
+      "trades": 96,
+      "win_rate": 0.3058910533910534,
+      "pnl": 1131.8880043655463
+    },
+    {
+      "params": {
+        "entropy_percentile": 1,
+        "volume_percentile": 95,
+        "return_low_bps": 15,
+        "return_high_bps": 30,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 50,
+        "take_profit_bps": 120,
+        "timeout_sec": 600,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      },
+      "objective": 0.40475051566537257,
+      "sharpe": 5.404750515665373,
+      "trades": 48,
+      "win_rate": 0.32140151515151516,
+      "pnl": 570.6889454296664
+    }
+  ],
+  "all_test_top10": [
+    {
+      "train_rank": 27,
+      "train_obj": -0.009697535004854374,
+      "train_sharpe": 0.9903024649951456,
+      "test_sharpe": 0.6636341923194369,
+      "test_pnl": 322.0879323254854,
+      "test_trades": 326,
+      "test_wr": 0.35276073619631904,
+      "params": {
+        "entropy_percentile": 5,
+        "volume_percentile": 90,
+        "return_low_bps": 5,
+        "return_high_bps": 50,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    },
+    {
+      "train_rank": 7,
+      "train_obj": 1.1907658596783892,
+      "train_sharpe": 2.190765859678389,
+      "test_sharpe": 0.7285371201469236,
+      "test_pnl": 226.9186798916052,
+      "test_trades": 257,
+      "test_wr": 0.36964980544747084,
+      "params": {
+        "entropy_percentile": 5,
+        "volume_percentile": 90,
+        "return_low_bps": 10,
+        "return_high_bps": 30,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    },
+    {
+      "train_rank": 18,
+      "train_obj": 0.533712822966887,
+      "train_sharpe": 2.033712822966887,
+      "test_sharpe": 0.16556539493064823,
+      "test_pnl": 120.0763628463705,
+      "test_trades": 475,
+      "test_wr": 0.3663157894736842,
+      "params": {
+        "entropy_percentile": 7,
+        "volume_percentile": 90,
+        "return_low_bps": 10,
+        "return_high_bps": 50,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    },
+    {
+      "train_rank": 15,
+      "train_obj": 0.6720357431204929,
+      "train_sharpe": 3.172035743120493,
+      "test_sharpe": -0.8586326906103621,
+      "test_pnl": -34.36660629918062,
+      "test_trades": 19,
+      "test_wr": 0.3157894736842105,
+      "params": {
+        "entropy_percentile": 3,
+        "volume_percentile": 99,
+        "return_low_bps": 20,
+        "return_high_bps": 50,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 50,
+        "take_profit_bps": 180,
+        "timeout_sec": 1200,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    },
+    {
+      "train_rank": 45,
+      "train_obj": -0.4696758543290036,
+      "train_sharpe": 1.5303241456709964,
+      "test_sharpe": -0.0804481280918561,
+      "test_pnl": -47.57136287550588,
+      "test_trades": 355,
+      "test_wr": 0.38591549295774646,
+      "params": {
+        "entropy_percentile": 5,
+        "volume_percentile": 90,
+        "return_low_bps": 10,
+        "return_high_bps": 50,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 180,
+        "timeout_sec": 1200,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    },
+    {
+      "train_rank": 50,
+      "train_obj": -0.5184252507424776,
+      "train_sharpe": 3.9815747492575224,
+      "test_sharpe": -1.85238058703753,
+      "test_pnl": -50.58696852525671,
+      "test_trades": 19,
+      "test_wr": 0.15789473684210525,
+      "params": {
+        "entropy_percentile": 2,
+        "volume_percentile": 99,
+        "return_low_bps": 10,
+        "return_high_bps": 50,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 20,
+        "take_profit_bps": 180,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    },
+    {
+      "train_rank": 35,
+      "train_obj": -0.22149400452646617,
+      "train_sharpe": 3.778505995473534,
+      "test_sharpe": -1.7636314568909517,
+      "test_pnl": -58.0982384035068,
+      "test_trades": 13,
+      "test_wr": 0.23076923076923078,
+      "params": {
+        "entropy_percentile": 2,
+        "volume_percentile": 99,
+        "return_low_bps": 5,
+        "return_high_bps": 30,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 20,
+        "take_profit_bps": 180,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    },
+    {
+      "train_rank": 43,
+      "train_obj": -0.43017702635515587,
+      "train_sharpe": 4.569822973644844,
+      "test_sharpe": -5.6242291378334555,
+      "test_pnl": -73.8,
+      "test_trades": 11,
+      "test_wr": 0.2727272727272727,
+      "params": {
+        "entropy_percentile": 1,
+        "volume_percentile": 99,
+        "return_low_bps": 5,
+        "return_high_bps": 30,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 20,
+        "take_profit_bps": 50,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    },
+    {
+      "train_rank": 1,
+      "train_obj": 3.5384284139415314,
+      "train_sharpe": 6.538428413941531,
+      "test_sharpe": -3.3680165591462297,
+      "test_pnl": -88.54360046913361,
+      "test_trades": 11,
+      "test_wr": 0.2727272727272727,
+      "params": {
+        "entropy_percentile": 5,
+        "volume_percentile": 99,
+        "return_low_bps": 20,
+        "return_high_bps": 30,
+        "entropy_window_bars": 90,
+        "stop_loss_bps": 30,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    },
+    {
+      "train_rank": 42,
+      "train_obj": -0.4277804500419147,
+      "train_sharpe": 3.5722195499580853,
+      "test_sharpe": -4.538979161165005,
+      "test_pnl": -118.09823840350676,
+      "test_trades": 13,
+      "test_wr": 0.23076923076923078,
+      "params": {
+        "entropy_percentile": 2,
+        "volume_percentile": 99,
+        "return_low_bps": 5,
+        "return_high_bps": 30,
+        "entropy_window_bars": 120,
+        "stop_loss_bps": 20,
+        "take_profit_bps": 120,
+        "timeout_sec": 2400,
+        "kill_switch_drawdown": 3.0,
+        "kill_switch_window": 60,
+        "retraining_freq_days": 10
+      }
+    }
+  ]
+}

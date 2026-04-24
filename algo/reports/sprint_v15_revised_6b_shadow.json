@@ -1,0 +1,39 @@
+{
+  "cell": "lev5x_ewoff_e3on",
+  "scenario": "revised 6b (F3c removed, timeout_trail+E3+5x only)",
+  "data": "Kaggle ETH/USDT 60d OOS, refit params (sl=50,tp=150,knife=100,no ext)",
+  "original_with_f3c_oos": {
+    "trades": 76,
+    "wins": 31,
+    "win_rate": 0.40789473684210525,
+    "compound_ret_pct": 102.6206496270208,
+    "max_dd": 14.83933092375442,
+    "pf": 2.060831115871194,
+    "knife_rate": 0.2631578947368421,
+    "knife_catchers": 20,
+    "sharpe_daily": 4.608667221848383,
+    "kelly_f": 0.18600812403807732,
+    "avg_size_mult": 1.0,
+    "trades_long": 36,
+    "trades_short": 40
+  },
+  "revised_no_f3c_oos": {
+    "trades": 131,
+    "wins": 43,
+    "win_rate": 0.3282442748091603,
+    "compound_ret_pct": 26.03294018759823,
+    "max_dd": 38.612544648086306,
+    "pf": 1.3596111839106746,
+    "knife_rate": 0.3435114503816794,
+    "knife_catchers": 45,
+    "trades_long": 58,
+    "trades_short": 73
+  },
+  "delta_vs_original": {
+    "compound_ret_pct": -76.58770943942257,
+    "max_dd": 23.773213724331885,
+    "pf": -0.7012199319605192,
+    "knife_rate": 0.08035355564483732,
+    "trades": 55
+  }
+}

@@ -7,3 +7,11 @@ algo/logs/
 algo/state/
 .claude/
 data/kraken_hf_sample/
+
+# Sprint v1: scratch / output dirs
+New Text Document*.txt
+algo/status.json
+algo/multi_exchange/
+algo/params/
+data/
+reports_out/

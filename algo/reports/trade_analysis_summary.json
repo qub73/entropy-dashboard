@@ -1,0 +1,146 @@
+{
+  "BTC": {
+    "n_trades": 33,
+    "win_rate": 0.5454545454545454,
+    "avg_pnl_bps": 46.95759511766019,
+    "top_features": [
+      {
+        "feature": "ret_5",
+        "cohens_d": 0.5916377392551092
+      },
+      {
+        "feature": "ret_15",
+        "cohens_d": 0.41645445645944956
+      },
+      {
+        "feature": "vwap_pos_30",
+        "cohens_d": 0.3952229893924288
+      },
+      {
+        "feature": "imb5",
+        "cohens_d": -0.37702323170376123
+      },
+      {
+        "feature": "H",
+        "cohens_d": 0.35191137454980626
+      },
+      {
+        "feature": "ret_30",
+        "cohens_d": 0.20034594157082042
+      },
+      {
+        "feature": "vwap_pos_240",
+        "cohens_d": 0.16118128274267177
+      },
+      {
+        "feature": "atr_bps",
+        "cohens_d": -0.08029389238636139
+      },
+      {
+        "feature": "vol_30",
+        "cohens_d": 0.07022336545909567
+      },
+      {
+        "feature": "spread_bps",
+        "cohens_d": -0.04705013795371963
+      },
+      {
+        "feature": "imb10",
+        "cohens_d": 0.0330264907028237
+      },
+      {
+        "feature": "dH_5",
+        "cohens_d": 0.002720785070746018
+      }
+    ],
+    "mistakes": [
+      "Entering on rising entropy (dH_5 > median)",
+      "Trading in high-volatility regime (vol_30 > 75th pctile)",
+      "Counter-trend entries (direction vs VWAP_240 disagree)"
+    ],
+    "big_move_summary": {
+      "pair": "BTC",
+      "n_up": 40,
+      "n_down": 60,
+      "avg_abs_move_bps": 369.14337487949155,
+      "median_abs_move_bps": 315.3519871957483,
+      "avg_spread_before": 0.343378367304346,
+      "avg_vol_before": 26.196468499692838,
+      "avg_depth_ratio_before": 8.766022124141292,
+      "imb5_direction_accuracy": 0.46,
+      "imb10_direction_accuracy": 0.47
+    }
+  },
+  "ETH": {
+    "n_trades": 56,
+    "win_rate": 0.4107142857142857,
+    "avg_pnl_bps": 35.393426910134544,
+    "top_features": [
+      {
+        "feature": "spread_bps",
+        "cohens_d": 0.5049934445708121
+      },
+      {
+        "feature": "atr_bps",
+        "cohens_d": -0.25661488990465425
+      },
+      {
+        "feature": "dH_5",
+        "cohens_d": -0.19277587720544972
+      },
+      {
+        "feature": "vwap_pos_240",
+        "cohens_d": -0.17817930500283383
+      },
+      {
+        "feature": "H",
+        "cohens_d": 0.17212695846810505
+      },
+      {
+        "feature": "ret_5",
+        "cohens_d": -0.1698837306712059
+      },
+      {
+        "feature": "vol_30",
+        "cohens_d": -0.12985808919379646
+      },
+      {
+        "feature": "ret_30",
+        "cohens_d": 0.11189360768213434
+      },
+      {
+        "feature": "ret_15",
+        "cohens_d": -0.0843606478498953
+      },
+      {
+        "feature": "imb5",
+        "cohens_d": -0.08186192322701841
+      },
+      {
+        "feature": "imb10",
+        "cohens_d": -0.034362421297669664
+      },
+      {
+        "feature": "vwap_pos_30",
+        "cohens_d": -0.007345184686504043
+      }
+    ],
+    "mistakes": [
+      "Entering on rising entropy (dH_5 > median)",
+      "Trading in high-volatility regime (vol_30 > 75th pctile)",
+      "Counter-trend entries (direction vs VWAP_240 disagree)"
+    ],
+    "big_move_summary": {
+      "pair": "ETH",
+      "n_up": 36,
+      "n_down": 64,
+      "avg_abs_move_bps": 407.26209110891983,
+      "median_abs_move_bps": 376.7150681477216,
+      "avg_spread_before": 0.38919303098397845,
+      "avg_vol_before": 28.815798066543376,
+      "avg_depth_ratio_before": 3.385476415958023,
+      "imb5_direction_accuracy": 0.49,
+      "imb10_direction_accuracy": 0.45
+    }
+  }
+}

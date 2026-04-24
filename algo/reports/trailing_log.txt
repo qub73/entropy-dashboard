@@ -1,0 +1,146 @@
+
+====================================================================================================
+TRAILING-STOP BACKTEST — BTC
+====================================================================================================
+Loading data/kaggle/BTC_USDT.csv...
+  Total columns: 202
+  Loading 41 columns (top 10 levels + timestamp)
+  Loaded 507,675 rows, 41 cols
+  Detected 10 orderbook levels
+  Valid rows: 507,675
+  Date range: 2023-10-07 11:21:00 -> 2024-10-07 22:46:00
+  Mid: $27,984.94 -> $63,048.01
+  Mean spread: 0.00 bps
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260218.jsonl.gz: 3142 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260219.jsonl.gz: 8584 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260220.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260221.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260222.jsonl.gz: 8635 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260223.jsonl.gz: 8616 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260224.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260225.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260226.jsonl.gz: 8540 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260227.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260228.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260301.jsonl.gz: 8610 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260302.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260303.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260304.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260305.jsonl.gz: 8532 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260306.jsonl.gz: 8622 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260307.jsonl.gz: 8613 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260308.jsonl.gz: 8623 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260309.jsonl.gz: 8493 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260310.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260311.jsonl: 5931 snapshots
+Total: 181117 snapshots, 2026-02-18 15:16:04.907999992 -> 2026-03-11 16:32:23.148999929
+  Resampled Pi data: 181,117 -> 30,271 bars
+H threshold: 0.4314
+
+Variant                        Tr   WR    Ret%   DD%  Calmar  AvgBps AvgHold  GaveUp | Reasons
+------------------------------------------------------------------------------------------------------------------------
+BASELINE                       32  56% +171.6% 20.8%  +8.26  +50.5    151m  +58.8 | tp:9, sl:12, timeout:11
+T1_trail_at_TO_50bps           32  56% +183.1% 20.8%  +8.81  +52.0    153m  +57.2 | tp:9, sl:12, trail_stop:9, timeout:2
+T2_trail_at_TO_30bps           32  56% +229.5% 20.8% +11.02  +57.6    151m  +51.2 | tp:9, sl:12, trail_stop:9, timeout:2
+T3_trail_at_TO_80bps           32  53% +147.7% 20.8%  +7.12  +47.1    175m  +65.5 | tp:9, sl:12, trail_stop:8, timeout:3
+T4_TO_50_if_rising             32  56% +174.1% 20.8%  +8.38  +50.8    151m  +58.6 | tp:9, sl:12, timeout:9, trail_stop:2
+T5_TO_atr_2x                   32  56% +282.3% 20.8% +13.54  +63.2    151m  +45.3 | tp:9, sl:12, trail_stop:9, timeout:2
+T5b_TO_atr_3x                  32  56% +268.3% 20.8% +12.88  +61.8    151m  +46.8 | tp:9, sl:12, trail_stop:9, timeout:2
+T6_no_TO_trail50               32  59% +222.8% 19.1% +11.69  +56.7    159m  +57.5 | tp:9, sl:12, trail_stop:11
+T6b_no_TO_trail30              32  56% +239.9% 18.5% +12.99  +58.7    151m  +50.1 | tp:9, sl:12, trail_stop:11
+T8_trail_after_50bps           34  62% +120.1% 16.4%  +7.32  +39.8     96m  +51.1 | trail_stop:15, sl:10, tp:6, timeout:3
+T9_trail_after_100bps          33  58% +139.7% 16.5%  +8.48  +44.2    123m  +56.5 | trail_stop:9, sl:12, tp:6, timeout:6
+T10_trail_after_50_30          35  66%  +97.3% 16.2%  +6.02  +34.5     82m  +44.0 | trail_stop:21, sl:10, tp:2, timeout:2
+T11_trail_after_TPish_150      33  55% +121.7% 20.7%  +5.88  +41.7    140m  +59.3 | trail_stop:7, sl:13, tp:4, timeout:9
+T12_TO_trail50_min30           32  56% +178.6% 20.8%  +8.59  +51.4    153m  +57.9 | tp:9, sl:12, trail_stop:7, timeout:4
+T13_TO_trail50_min50           32  56% +180.1% 20.8%  +8.66  +51.6    152m  +57.7 | tp:9, sl:12, trail_stop:6, timeout:5
+
+RANKED BY CALMAR (BTC):
+  + T5_TO_atr_2x                 Calmar=+13.54 (d+5.28) | Ret=+282.3% (d+110.7) | DD=20.8%
+  + T6b_no_TO_trail30            Calmar=+12.99 (d+4.73) | Ret=+239.9% (d+68.3) | DD=18.5%
+  + T5b_TO_atr_3x                Calmar=+12.88 (d+4.61) | Ret=+268.3% (d+96.7) | DD=20.8%
+  + T6_no_TO_trail50             Calmar=+11.69 (d+3.42) | Ret=+222.8% (d+51.1) | DD=19.1%
+  + T2_trail_at_TO_30bps         Calmar=+11.02 (d+2.76) | Ret=+229.5% (d+57.9) | DD=20.8%
+  + T1_trail_at_TO_50bps         Calmar=+8.81 (d+0.55) | Ret=+183.1% (d+11.5) | DD=20.8%
+  + T13_TO_trail50_min50         Calmar=+8.66 (d+0.40) | Ret=+180.1% (d+8.4) | DD=20.8%
+  + T12_TO_trail50_min30         Calmar=+8.59 (d+0.33) | Ret=+178.6% (d+6.9) | DD=20.8%
+  + T9_trail_after_100bps        Calmar=+8.48 (d+0.22) | Ret=+139.7% (d-32.0) | DD=16.5%
+  + T4_TO_50_if_rising           Calmar=+8.38 (d+0.12) | Ret=+174.1% (d+2.5) | DD=20.8%
+    BASELINE                     Calmar=+8.26 (d+0.00) | Ret=+171.6% (d+0.0) | DD=20.8%
+    T8_trail_after_50bps         Calmar=+7.32 (d-0.94) | Ret=+120.1% (d-51.5) | DD=16.4%
+    T3_trail_at_TO_80bps         Calmar=+7.12 (d-1.15) | Ret=+147.7% (d-24.0) | DD=20.8%
+    T10_trail_after_50_30        Calmar=+6.02 (d-2.24) | Ret=+97.3% (d-74.4) | DD=16.2%
+    T11_trail_after_TPish_150    Calmar=+5.88 (d-2.38) | Ret=+121.7% (d-49.9) | DD=20.7%
+
+====================================================================================================
+TRAILING-STOP BACKTEST — ETH
+====================================================================================================
+Loading data/kaggle/ETH_USDT.csv...
+  Total columns: 202
+  Loading 41 columns (top 10 levels + timestamp)
+  Loaded 504,717 rows, 41 cols
+  Detected 10 orderbook levels
+  Valid rows: 504,717
+  Date range: 2023-10-07 11:21:00 -> 2024-10-09 17:34:00
+  Mid: $1,640.89 -> $2,439.28
+  Mean spread: 0.04 bps
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260218.jsonl.gz: 3142 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260219.jsonl.gz: 8584 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260220.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260221.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260222.jsonl.gz: 8635 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260223.jsonl.gz: 8616 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260224.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260225.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260226.jsonl.gz: 8540 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260227.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260228.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260301.jsonl.gz: 8610 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260302.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260303.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260304.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260305.jsonl.gz: 8537 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260306.jsonl.gz: 8622 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260307.jsonl.gz: 8613 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260308.jsonl.gz: 8623 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260309.jsonl.gz: 8493 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260310.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260311.jsonl: 5931 snapshots
+Total: 181122 snapshots, 2026-02-18 15:16:04.907999992 -> 2026-03-11 16:32:23.148999929
+  Resampled Pi data: 181,122 -> 30,272 bars
+H threshold: 0.4352
+
+Variant                        Tr   WR    Ret%   DD%  Calmar  AvgBps AvgHold  GaveUp | Reasons
+------------------------------------------------------------------------------------------------------------------------
+BASELINE                       54  44% +118.1% 32.4%  +3.65  +31.4    122m  +70.5 | sl:26, tp:13, timeout:15
+T1_trail_at_TO_50bps           54  43% +134.3% 28.0%  +4.79  +33.0    126m  +69.7 | sl:26, tp:14, trail_stop:9, timeout:5
+T2_trail_at_TO_30bps           54  44% +162.1% 25.9%  +6.26  +35.4    123m  +66.1 | sl:26, tp:13, trail_stop:11, timeout:4
+T3_trail_at_TO_80bps           54  43% +138.3% 30.0%  +4.62  +33.5    139m  +73.7 | sl:26, tp:15, trail_stop:8, timeout:5
+T4_TO_50_if_rising             54  44% +117.1% 29.2%  +4.01  +31.3    124m  +70.7 | sl:26, tp:13, timeout:13, trail_stop:2
+T5_TO_atr_2x                   54  44% +217.3% 24.1%  +9.03  +39.7    122m  +61.3 | sl:26, tp:13, trail_stop:11, timeout:4
+T5b_TO_atr_3x                  54  44% +203.4% 24.7%  +8.23  +38.6    122m  +62.4 | sl:26, tp:13, trail_stop:11, timeout:4
+T6_no_TO_trail50               54  48% +178.0% 28.1%  +6.34  +36.6    132m  +68.0 | sl:26, tp:14, trail_stop:14
+T6b_no_TO_trail30              54  50% +202.9% 25.9%  +7.83  +38.4    123m  +62.7 | sl:26, tp:13, trail_stop:15
+T8_trail_after_50bps           60  55%  +28.6% 23.5%  +1.22  +17.6     75m  +58.2 | sl:23, trail_stop:28, timeout:4, tp:5
+T9_trail_after_100bps          57  49% +183.4% 26.3%  +6.97  +35.2    108m  +63.0 | sl:25, tp:11, timeout:9, trail_stop:12
+T10_trail_after_50_30          61  59%  +13.4% 32.9%  +0.41  +14.9     62m  +49.0 | sl:24, trail_stop:30, timeout:3, tp:4
+T11_trail_after_TPish_150      55  47% +138.4% 28.4%  +4.87  +32.5    110m  +66.2 | sl:25, trail_stop:8, timeout:13, tp:9
+T12_TO_trail50_min30           54  44% +125.8% 28.0%  +4.50  +32.3    126m  +70.6 | sl:26, tp:14, trail_stop:7, timeout:7
+T13_TO_trail50_min50           54  44% +128.7% 28.0%  +4.60  +32.5    125m  +70.3 | sl:26, tp:14, trail_stop:7, timeout:7
+
+RANKED BY CALMAR (ETH):
+  + T5_TO_atr_2x                 Calmar=+9.03 (d+5.39) | Ret=+217.3% (d+99.2) | DD=24.1%
+  + T5b_TO_atr_3x                Calmar=+8.23 (d+4.58) | Ret=+203.4% (d+85.3) | DD=24.7%
+  + T6b_no_TO_trail30            Calmar=+7.83 (d+4.18) | Ret=+202.9% (d+84.8) | DD=25.9%
+  + T9_trail_after_100bps        Calmar=+6.97 (d+3.32) | Ret=+183.4% (d+65.4) | DD=26.3%
+  + T6_no_TO_trail50             Calmar=+6.34 (d+2.70) | Ret=+178.0% (d+59.9) | DD=28.1%
+  + T2_trail_at_TO_30bps         Calmar=+6.26 (d+2.61) | Ret=+162.1% (d+44.0) | DD=25.9%
+  + T11_trail_after_TPish_150    Calmar=+4.87 (d+1.22) | Ret=+138.4% (d+20.3) | DD=28.4%
+  + T1_trail_at_TO_50bps         Calmar=+4.79 (d+1.15) | Ret=+134.3% (d+16.2) | DD=28.0%
+  + T3_trail_at_TO_80bps         Calmar=+4.62 (d+0.97) | Ret=+138.3% (d+20.2) | DD=30.0%
+  + T13_TO_trail50_min50         Calmar=+4.60 (d+0.95) | Ret=+128.7% (d+10.6) | DD=28.0%
+  + T12_TO_trail50_min30         Calmar=+4.50 (d+0.85) | Ret=+125.8% (d+7.8) | DD=28.0%
+  + T4_TO_50_if_rising           Calmar=+4.01 (d+0.37) | Ret=+117.1% (d-1.0) | DD=29.2%
+    BASELINE                     Calmar=+3.65 (d+0.00) | Ret=+118.1% (d+0.0) | DD=32.4%
+    T8_trail_after_50bps         Calmar=+1.22 (d-2.43) | Ret=+28.6% (d-89.5) | DD=23.5%
+    T10_trail_after_50_30        Calmar=+0.41 (d-3.24) | Ret=+13.4% (d-104.7) | DD=32.9%

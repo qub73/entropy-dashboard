@@ -1,0 +1,1236 @@
+{
+  "runs": [
+    {
+      "name": "baseline",
+      "filt": {},
+      "in_sample": {
+        "trades": 44,
+        "wins": 23,
+        "win_rate": 0.5227272727272727,
+        "compound_ret_pct": 541.1403311084341,
+        "max_dd": 13.473627929150872,
+        "pf": 4.011325995047816,
+        "knife_catchers": 11,
+        "knife_rate": 0.25,
+        "reasons": {
+          "sl": 18,
+          "tp_trail": 17,
+          "trail_stop": 6,
+          "timeout": 3
+        },
+        "trades_long": 15,
+        "trades_short": 29,
+        "final_equity": 64114.03311084341
+      },
+      "oos": {
+        "trades": 114,
+        "wins": 37,
+        "win_rate": 0.32456140350877194,
+        "compound_ret_pct": -41.884530526917644,
+        "max_dd": 36.85251783465293,
+        "pf": 1.2515366346775503,
+        "knife_catchers": 40,
+        "knife_rate": 0.3508771929824561,
+        "reasons": {
+          "sl": 71,
+          "tp_trail": 19,
+          "trail_stop": 18,
+          "timeout": 5,
+          "end": 1
+        },
+        "trades_long": 48,
+        "trades_short": 66,
+        "final_equity": 5811.546947308236
+      }
+    },
+    {
+      "name": "F3a",
+      "filt": {
+        "F3a": true
+      },
+      "in_sample": {
+        "trades": 29,
+        "wins": 15,
+        "win_rate": 0.5172413793103449,
+        "compound_ret_pct": 222.12400171000297,
+        "max_dd": 27.094266583715644,
+        "pf": 3.8260721599288217,
+        "knife_catchers": 9,
+        "knife_rate": 0.3103448275862069,
+        "reasons": {
+          "sl": 12,
+          "trail_stop": 5,
+          "tp_trail": 10,
+          "timeout": 2
+        },
+        "trades_long": 11,
+        "trades_short": 18,
+        "final_equity": 32212.400171000296
+      },
+      "oos": {
+        "trades": 61,
+        "wins": 20,
+        "win_rate": 0.32786885245901637,
+        "compound_ret_pct": -25.11167923275668,
+        "max_dd": 37.92472160804148,
+        "pf": 1.2535832366372561,
+        "knife_catchers": 22,
+        "knife_rate": 0.36065573770491804,
+        "reasons": {
+          "trail_stop": 11,
+          "tp_trail": 9,
+          "sl": 37,
+          "timeout": 4
+        },
+        "trades_long": 29,
+        "trades_short": 32,
+        "final_equity": 7488.832076724332
+      }
+    },
+    {
+      "name": "F3b",
+      "filt": {
+        "F3b": true
+      },
+      "in_sample": {
+        "trades": 27,
+        "wins": 14,
+        "win_rate": 0.5185185185185185,
+        "compound_ret_pct": 188.8807355065583,
+        "max_dd": 27.094266583715644,
+        "pf": 3.7960336577727904,
+        "knife_catchers": 8,
+        "knife_rate": 0.2962962962962963,
+        "reasons": {
+          "sl": 11,
+          "trail_stop": 5,
+          "tp_trail": 9,
+          "timeout": 2
+        },
+        "trades_long": 11,
+        "trades_short": 16,
+        "final_equity": 28888.07355065583
+      },
+      "oos": {
+        "trades": 59,
+        "wins": 18,
+        "win_rate": 0.3050847457627119,
+        "compound_ret_pct": -36.4525155289601,
+        "max_dd": 37.39264011845549,
+        "pf": 1.142449928142558,
+        "knife_catchers": 22,
+        "knife_rate": 0.3728813559322034,
+        "reasons": {
+          "trail_stop": 10,
+          "tp_trail": 8,
+          "sl": 37,
+          "timeout": 4
+        },
+        "trades_long": 29,
+        "trades_short": 30,
+        "final_equity": 6354.74844710399
+      }
+    },
+    {
+      "name": "F3c",
+      "filt": {
+        "F3c": true
+      },
+      "in_sample": {
+        "trades": 27,
+        "wins": 14,
+        "win_rate": 0.5185185185185185,
+        "compound_ret_pct": 167.0214989857883,
+        "max_dd": 27.094266583715644,
+        "pf": 3.633960841991299,
+        "knife_catchers": 8,
+        "knife_rate": 0.2962962962962963,
+        "reasons": {
+          "sl": 11,
+          "trail_stop": 4,
+          "tp_trail": 9,
+          "timeout": 2,
+          "end": 1
+        },
+        "trades_long": 11,
+        "trades_short": 16,
+        "final_equity": 26702.149898578828
+      },
+      "oos": {
+        "trades": 52,
+        "wins": 16,
+        "win_rate": 0.3076923076923077,
+        "compound_ret_pct": -23.336073704039137,
+        "max_dd": 33.41511940161278,
+        "pf": 1.2406291547623856,
+        "knife_catchers": 19,
+        "knife_rate": 0.36538461538461536,
+        "reasons": {
+          "trail_stop": 8,
+          "tp_trail": 8,
+          "sl": 32,
+          "timeout": 4
+        },
+        "trades_long": 24,
+        "trades_short": 28,
+        "final_equity": 7666.392629596086
+      }
+    },
+    {
+      "name": "F1",
+      "filt": {
+        "F1": true
+      },
+      "in_sample": {
+        "trades": 25,
+        "wins": 12,
+        "win_rate": 0.48,
+        "compound_ret_pct": 97.5043199189633,
+        "max_dd": 18.253157353200013,
+        "pf": 2.8794019853819552,
+        "knife_catchers": 6,
+        "knife_rate": 0.24,
+        "reasons": {
+          "sl": 12,
+          "trail_stop": 6,
+          "timeout": 1,
+          "tp_trail": 6
+        },
+        "trades_long": 7,
+        "trades_short": 18,
+        "final_equity": 19750.43199189633
+      },
+      "oos": {
+        "trades": 68,
+        "wins": 21,
+        "win_rate": 0.3088235294117647,
+        "compound_ret_pct": -24.657290237374063,
+        "max_dd": 28.350420414055673,
+        "pf": 1.2789491785783307,
+        "knife_catchers": 24,
+        "knife_rate": 0.35294117647058826,
+        "reasons": {
+          "sl": 41,
+          "tp_trail": 14,
+          "trail_stop": 7,
+          "timeout": 6
+        },
+        "trades_long": 27,
+        "trades_short": 41,
+        "final_equity": 7534.270976262594
+      }
+    },
+    {
+      "name": "F2",
+      "filt": {
+        "F2": true
+      },
+      "in_sample": {
+        "trades": 30,
+        "wins": 15,
+        "win_rate": 0.5,
+        "compound_ret_pct": 212.17473837258134,
+        "max_dd": 17.350257684030364,
+        "pf": 3.474255965587544,
+        "knife_catchers": 9,
+        "knife_rate": 0.3,
+        "reasons": {
+          "sl": 14,
+          "tp_trail": 10,
+          "trail_stop": 5,
+          "timeout": 1
+        },
+        "trades_long": 11,
+        "trades_short": 19,
+        "final_equity": 31217.473837258134
+      },
+      "oos": {
+        "trades": 63,
+        "wins": 18,
+        "win_rate": 0.2857142857142857,
+        "compound_ret_pct": -31.028671454471706,
+        "max_dd": 40.906033888435466,
+        "pf": 1.2154983849349374,
+        "knife_catchers": 22,
+        "knife_rate": 0.3492063492063492,
+        "reasons": {
+          "sl": 39,
+          "tp_trail": 11,
+          "trail_stop": 7,
+          "timeout": 5,
+          "end": 1
+        },
+        "trades_long": 25,
+        "trades_short": 38,
+        "final_equity": 6897.1328545528295
+      }
+    },
+    {
+      "name": "F4",
+      "filt": {
+        "F4": true
+      },
+      "in_sample": {
+        "trades": 63,
+        "wins": 24,
+        "win_rate": 0.38095238095238093,
+        "compound_ret_pct": 51.94191417610152,
+        "max_dd": 27.34177607782765,
+        "pf": 1.7415686614248145,
+        "knife_catchers": 15,
+        "knife_rate": 0.23809523809523808,
+        "reasons": {
+          "sl": 35,
+          "trail_stop": 12,
+          "timeout": 4,
+          "tp_trail": 12
+        },
+        "trades_long": 32,
+        "trades_short": 31,
+        "final_equity": 15194.191417610153
+      },
+      "oos": {
+        "trades": 185,
+        "wins": 65,
+        "win_rate": 0.35135135135135137,
+        "compound_ret_pct": -62.01739284625326,
+        "max_dd": 56.026363843049054,
+        "pf": 1.227682838972729,
+        "knife_catchers": 63,
+        "knife_rate": 0.34054054054054056,
+        "reasons": {
+          "timeout": 15,
+          "tp_trail": 19,
+          "sl": 105,
+          "trail_stop": 46
+        },
+        "trades_long": 91,
+        "trades_short": 94,
+        "final_equity": 3798.2607153746735
+      }
+    },
+    {
+      "name": "F3a+F4",
+      "filt": {
+        "F3a": true,
+        "F4": true
+      },
+      "in_sample": {
+        "trades": 41,
+        "wins": 14,
+        "win_rate": 0.34146341463414637,
+        "compound_ret_pct": 4.521195753482771,
+        "max_dd": 32.20692437883373,
+        "pf": 1.4860964663741518,
+        "knife_catchers": 12,
+        "knife_rate": 0.2926829268292683,
+        "reasons": {
+          "sl": 25,
+          "tp_trail": 7,
+          "trail_stop": 7,
+          "timeout": 2
+        },
+        "trades_long": 22,
+        "trades_short": 19,
+        "final_equity": 10452.119575348277
+      },
+      "oos": {
+        "trades": 126,
+        "wins": 50,
+        "win_rate": 0.3968253968253968,
+        "compound_ret_pct": -1.6351675171614442,
+        "max_dd": 37.35873876510119,
+        "pf": 1.4524481265979816,
+        "knife_catchers": 43,
+        "knife_rate": 0.3412698412698413,
+        "reasons": {
+          "timeout": 10,
+          "sl": 66,
+          "tp_trail": 11,
+          "trail_stop": 39
+        },
+        "trades_long": 68,
+        "trades_short": 58,
+        "final_equity": 9836.483248283856
+      }
+    },
+    {
+      "name": "F3b+F4",
+      "filt": {
+        "F3b": true,
+        "F4": true
+      },
+      "in_sample": {
+        "trades": 41,
+        "wins": 14,
+        "win_rate": 0.34146341463414637,
+        "compound_ret_pct": 4.521195753482771,
+        "max_dd": 32.20692437883373,
+        "pf": 1.4860964663741518,
+        "knife_catchers": 12,
+        "knife_rate": 0.2926829268292683,
+        "reasons": {
+          "sl": 25,
+          "tp_trail": 7,
+          "trail_stop": 7,
+          "timeout": 2
+        },
+        "trades_long": 22,
+        "trades_short": 19,
+        "final_equity": 10452.119575348277
+      },
+      "oos": {
+        "trades": 126,
+        "wins": 49,
+        "win_rate": 0.3888888888888889,
+        "compound_ret_pct": -16.726757636161945,
+        "max_dd": 36.95801848187283,
+        "pf": 1.3911361491410417,
+        "knife_catchers": 44,
+        "knife_rate": 0.3492063492063492,
+        "reasons": {
+          "timeout": 10,
+          "sl": 67,
+          "tp_trail": 10,
+          "trail_stop": 39
+        },
+        "trades_long": 68,
+        "trades_short": 58,
+        "final_equity": 8327.324236383805
+      }
+    },
+    {
+      "name": "F3c+F4",
+      "filt": {
+        "F3c": true,
+        "F4": true
+      },
+      "in_sample": {
+        "trades": 38,
+        "wins": 13,
+        "win_rate": 0.34210526315789475,
+        "compound_ret_pct": 10.448594563287243,
+        "max_dd": 29.282596927465388,
+        "pf": 1.5489851688789376,
+        "knife_catchers": 11,
+        "knife_rate": 0.2894736842105263,
+        "reasons": {
+          "sl": 23,
+          "tp_trail": 7,
+          "trail_stop": 6,
+          "timeout": 2
+        },
+        "trades_long": 21,
+        "trades_short": 17,
+        "final_equity": 11044.859456328724
+      },
+      "oos": {
+        "trades": 117,
+        "wins": 45,
+        "win_rate": 0.38461538461538464,
+        "compound_ret_pct": -31.037413188316272,
+        "max_dd": 41.696740599852255,
+        "pf": 1.311308760331425,
+        "knife_catchers": 40,
+        "knife_rate": 0.3418803418803419,
+        "reasons": {
+          "sl": 65,
+          "tp_trail": 8,
+          "trail_stop": 37,
+          "timeout": 7
+        },
+        "trades_long": 65,
+        "trades_short": 52,
+        "final_equity": 6896.258681168373
+      }
+    },
+    {
+      "name": "F1+F2",
+      "filt": {
+        "F1": true,
+        "F2": true
+      },
+      "in_sample": {
+        "trades": 17,
+        "wins": 10,
+        "win_rate": 0.5882352941176471,
+        "compound_ret_pct": 89.50753069548256,
+        "max_dd": 13.633492288640712,
+        "pf": 3.757241022774408,
+        "knife_catchers": 3,
+        "knife_rate": 0.17647058823529413,
+        "reasons": {
+          "sl": 7,
+          "trail_stop": 5,
+          "tp_trail": 5
+        },
+        "trades_long": 5,
+        "trades_short": 12,
+        "final_equity": 18950.753069548256
+      },
+      "oos": {
+        "trades": 39,
+        "wins": 14,
+        "win_rate": 0.358974358974359,
+        "compound_ret_pct": 20.3225782339503,
+        "max_dd": 25.721032180644876,
+        "pf": 1.6716391882713282,
+        "knife_catchers": 12,
+        "knife_rate": 0.3076923076923077,
+        "reasons": {
+          "sl": 21,
+          "tp_trail": 9,
+          "trail_stop": 5,
+          "timeout": 4
+        },
+        "trades_long": 16,
+        "trades_short": 23,
+        "final_equity": 12032.25782339503
+      }
+    },
+    {
+      "name": "F1+F4",
+      "filt": {
+        "F1": true,
+        "F4": true
+      },
+      "in_sample": {
+        "trades": 32,
+        "wins": 11,
+        "win_rate": 0.34375,
+        "compound_ret_pct": -13.991517913854604,
+        "max_dd": 28.49516010665738,
+        "pf": 1.2494535641378701,
+        "knife_catchers": 13,
+        "knife_rate": 0.40625,
+        "reasons": {
+          "sl": 19,
+          "trail_stop": 7,
+          "timeout": 2,
+          "tp_trail": 4
+        },
+        "trades_long": 17,
+        "trades_short": 15,
+        "final_equity": 8600.84820861454
+      },
+      "oos": {
+        "trades": 109,
+        "wins": 46,
+        "win_rate": 0.42201834862385323,
+        "compound_ret_pct": 53.13461433369358,
+        "max_dd": 30.91994556478897,
+        "pf": 1.6516118139975715,
+        "knife_catchers": 37,
+        "knife_rate": 0.3394495412844037,
+        "reasons": {
+          "sl": 55,
+          "trail_stop": 30,
+          "tp_trail": 16,
+          "timeout": 8
+        },
+        "trades_long": 57,
+        "trades_short": 52,
+        "final_equity": 15313.461433369357
+      }
+    },
+    {
+      "name": "F3a+F1",
+      "filt": {
+        "F3a": true,
+        "F1": true
+      },
+      "in_sample": {
+        "trades": 17,
+        "wins": 10,
+        "win_rate": 0.5882352941176471,
+        "compound_ret_pct": 117.96052038774674,
+        "max_dd": 14.062534200000009,
+        "pf": 4.259359075876303,
+        "knife_catchers": 4,
+        "knife_rate": 0.23529411764705882,
+        "reasons": {
+          "sl": 7,
+          "trail_stop": 4,
+          "tp_trail": 6
+        },
+        "trades_long": 5,
+        "trades_short": 12,
+        "final_equity": 21796.052038774673
+      },
+      "oos": {
+        "trades": 32,
+        "wins": 10,
+        "win_rate": 0.3125,
+        "compound_ret_pct": -14.401303397626853,
+        "max_dd": 30.93234478199381,
+        "pf": 1.2521574873731136,
+        "knife_catchers": 11,
+        "knife_rate": 0.34375,
+        "reasons": {
+          "timeout": 3,
+          "tp_trail": 6,
+          "sl": 19,
+          "trail_stop": 4
+        },
+        "trades_long": 14,
+        "trades_short": 18,
+        "final_equity": 8559.869660237315
+      }
+    },
+    {
+      "name": "F3b+F1",
+      "filt": {
+        "F3b": true,
+        "F1": true
+      },
+      "in_sample": {
+        "trades": 16,
+        "wins": 9,
+        "win_rate": 0.5625,
+        "compound_ret_pct": 85.43041577590203,
+        "max_dd": 14.062534200000009,
+        "pf": 3.6738662116341465,
+        "knife_catchers": 4,
+        "knife_rate": 0.25,
+        "reasons": {
+          "sl": 7,
+          "trail_stop": 4,
+          "tp_trail": 5
+        },
+        "trades_long": 5,
+        "trades_short": 11,
+        "final_equity": 18543.041577590204
+      },
+      "oos": {
+        "trades": 32,
+        "wins": 10,
+        "win_rate": 0.3125,
+        "compound_ret_pct": -14.401303397626853,
+        "max_dd": 30.93234478199381,
+        "pf": 1.2521574873731136,
+        "knife_catchers": 11,
+        "knife_rate": 0.34375,
+        "reasons": {
+          "timeout": 3,
+          "tp_trail": 6,
+          "sl": 19,
+          "trail_stop": 4
+        },
+        "trades_long": 14,
+        "trades_short": 18,
+        "final_equity": 8559.869660237315
+      }
+    },
+    {
+      "name": "F3c+F1",
+      "filt": {
+        "F3c": true,
+        "F1": true
+      },
+      "in_sample": {
+        "trades": 16,
+        "wins": 9,
+        "win_rate": 0.5625,
+        "compound_ret_pct": 72.3590857736447,
+        "max_dd": 14.062534200000009,
+        "pf": 3.4279919366056446,
+        "knife_catchers": 4,
+        "knife_rate": 0.25,
+        "reasons": {
+          "sl": 7,
+          "trail_stop": 3,
+          "tp_trail": 5,
+          "end": 1
+        },
+        "trades_long": 5,
+        "trades_short": 11,
+        "final_equity": 17235.90857736447
+      },
+      "oos": {
+        "trades": 27,
+        "wins": 9,
+        "win_rate": 0.3333333333333333,
+        "compound_ret_pct": -9.07908588794622,
+        "max_dd": 25.796547401447395,
+        "pf": 1.2988889072298466,
+        "knife_catchers": 10,
+        "knife_rate": 0.37037037037037035,
+        "reasons": {
+          "timeout": 1,
+          "tp_trail": 6,
+          "sl": 17,
+          "trail_stop": 3
+        },
+        "trades_long": 12,
+        "trades_short": 15,
+        "final_equity": 9092.091411205378
+      }
+    },
+    {
+      "name": "F3a+F2",
+      "filt": {
+        "F3a": true,
+        "F2": true
+      },
+      "in_sample": {
+        "trades": 21,
+        "wins": 10,
+        "win_rate": 0.47619047619047616,
+        "compound_ret_pct": 83.61620451427466,
+        "max_dd": 19.564343655859783,
+        "pf": 2.936974180211914,
+        "knife_catchers": 7,
+        "knife_rate": 0.3333333333333333,
+        "reasons": {
+          "sl": 10,
+          "trail_stop": 4,
+          "tp_trail": 6,
+          "timeout": 1
+        },
+        "trades_long": 8,
+        "trades_short": 13,
+        "final_equity": 18361.620451427465
+      },
+      "oos": {
+        "trades": 37,
+        "wins": 12,
+        "win_rate": 0.32432432432432434,
+        "compound_ret_pct": -13.033134833167079,
+        "max_dd": 26.199337968525256,
+        "pf": 1.2926878615164785,
+        "knife_catchers": 14,
+        "knife_rate": 0.3783783783783784,
+        "reasons": {
+          "trail_stop": 6,
+          "tp_trail": 6,
+          "sl": 22,
+          "timeout": 3
+        },
+        "trades_long": 17,
+        "trades_short": 20,
+        "final_equity": 8696.686516683292
+      }
+    },
+    {
+      "name": "F3b+F2",
+      "filt": {
+        "F3b": true,
+        "F2": true
+      },
+      "in_sample": {
+        "trades": 19,
+        "wins": 9,
+        "win_rate": 0.47368421052631576,
+        "compound_ret_pct": 64.66697274784016,
+        "max_dd": 19.564343655859783,
+        "pf": 2.803765623748246,
+        "knife_catchers": 6,
+        "knife_rate": 0.3157894736842105,
+        "reasons": {
+          "sl": 9,
+          "trail_stop": 4,
+          "tp_trail": 5,
+          "timeout": 1
+        },
+        "trades_long": 8,
+        "trades_short": 11,
+        "final_equity": 16466.697274784015
+      },
+      "oos": {
+        "trades": 35,
+        "wins": 11,
+        "win_rate": 0.3142857142857143,
+        "compound_ret_pct": -13.895361513510963,
+        "max_dd": 26.12416528051289,
+        "pf": 1.2738429323513834,
+        "knife_catchers": 13,
+        "knife_rate": 0.37142857142857144,
+        "reasons": {
+          "trail_stop": 5,
+          "tp_trail": 6,
+          "sl": 21,
+          "timeout": 3
+        },
+        "trades_long": 17,
+        "trades_short": 18,
+        "final_equity": 8610.463848648904
+      }
+    },
+    {
+      "name": "F3c+F2",
+      "filt": {
+        "F3c": true,
+        "F2": true
+      },
+      "in_sample": {
+        "trades": 19,
+        "wins": 9,
+        "win_rate": 0.47368421052631576,
+        "compound_ret_pct": 54.827471282820085,
+        "max_dd": 19.564343655859783,
+        "pf": 2.6471296635717723,
+        "knife_catchers": 6,
+        "knife_rate": 0.3157894736842105,
+        "reasons": {
+          "sl": 9,
+          "trail_stop": 3,
+          "tp_trail": 5,
+          "timeout": 1,
+          "end": 1
+        },
+        "trades_long": 8,
+        "trades_short": 11,
+        "final_equity": 15482.747128282008
+      },
+      "oos": {
+        "trades": 31,
+        "wins": 11,
+        "win_rate": 0.3548387096774194,
+        "compound_ret_pct": 4.494373066646094,
+        "max_dd": 22.81728287008115,
+        "pf": 1.5200482048077075,
+        "knife_catchers": 12,
+        "knife_rate": 0.3870967741935484,
+        "reasons": {
+          "trail_stop": 5,
+          "tp_trail": 6,
+          "sl": 17,
+          "timeout": 3
+        },
+        "trades_long": 14,
+        "trades_short": 17,
+        "final_equity": 10449.43730666461
+      }
+    },
+    {
+      "name": "F3a+F1+F2+F4",
+      "filt": {
+        "F3a": true,
+        "F1": true,
+        "F2": true,
+        "F4": true
+      },
+      "in_sample": {
+        "trades": 15,
+        "wins": 4,
+        "win_rate": 0.26666666666666666,
+        "compound_ret_pct": -21.24949859093982,
+        "max_dd": 19.622733969721402,
+        "pf": 0.8587196410245357,
+        "knife_catchers": 5,
+        "knife_rate": 0.3333333333333333,
+        "reasons": {
+          "sl": 10,
+          "trail_stop": 3,
+          "tp_trail": 1,
+          "timeout": 1
+        },
+        "trades_long": 7,
+        "trades_short": 8,
+        "final_equity": 7875.050140906018
+      },
+      "oos": {
+        "trades": 47,
+        "wins": 17,
+        "win_rate": 0.3617021276595745,
+        "compound_ret_pct": -35.62411270411939,
+        "max_dd": 35.256413076248414,
+        "pf": 1.0504059394913714,
+        "knife_catchers": 18,
+        "knife_rate": 0.3829787234042553,
+        "reasons": {
+          "sl": 25,
+          "trail_stop": 16,
+          "tp_trail": 1,
+          "timeout": 5
+        },
+        "trades_long": 31,
+        "trades_short": 16,
+        "final_equity": 6437.588729588061
+      }
+    },
+    {
+      "name": "F3b+F1+F2+F4",
+      "filt": {
+        "F3b": true,
+        "F1": true,
+        "F2": true,
+        "F4": true
+      },
+      "in_sample": {
+        "trades": 15,
+        "wins": 4,
+        "win_rate": 0.26666666666666666,
+        "compound_ret_pct": -21.24949859093982,
+        "max_dd": 19.622733969721402,
+        "pf": 0.8587196410245357,
+        "knife_catchers": 5,
+        "knife_rate": 0.3333333333333333,
+        "reasons": {
+          "sl": 10,
+          "trail_stop": 3,
+          "tp_trail": 1,
+          "timeout": 1
+        },
+        "trades_long": 7,
+        "trades_short": 8,
+        "final_equity": 7875.050140906018
+      },
+      "oos": {
+        "trades": 45,
+        "wins": 15,
+        "win_rate": 0.3333333333333333,
+        "compound_ret_pct": -43.88063339541507,
+        "max_dd": 43.09915810204102,
+        "pf": 0.9149756589807994,
+        "knife_catchers": 18,
+        "knife_rate": 0.4,
+        "reasons": {
+          "sl": 25,
+          "trail_stop": 14,
+          "tp_trail": 1,
+          "timeout": 5
+        },
+        "trades_long": 29,
+        "trades_short": 16,
+        "final_equity": 5611.936660458494
+      }
+    },
+    {
+      "name": "F3c+F1+F2+F4",
+      "filt": {
+        "F3c": true,
+        "F1": true,
+        "F2": true,
+        "F4": true
+      },
+      "in_sample": {
+        "trades": 13,
+        "wins": 3,
+        "win_rate": 0.23076923076923078,
+        "compound_ret_pct": -21.172826159124604,
+        "max_dd": 19.638068498991963,
+        "pf": 0.796967294057906,
+        "knife_catchers": 5,
+        "knife_rate": 0.38461538461538464,
+        "reasons": {
+          "sl": 9,
+          "trail_stop": 2,
+          "tp_trail": 1,
+          "timeout": 1
+        },
+        "trades_long": 7,
+        "trades_short": 6,
+        "final_equity": 7882.717384087539
+      },
+      "oos": {
+        "trades": 37,
+        "wins": 13,
+        "win_rate": 0.35135135135135137,
+        "compound_ret_pct": -28.56022519774021,
+        "max_dd": 30.22145841313523,
+        "pf": 1.063456069809325,
+        "knife_catchers": 14,
+        "knife_rate": 0.3783783783783784,
+        "reasons": {
+          "sl": 20,
+          "trail_stop": 12,
+          "tp_trail": 1,
+          "timeout": 4
+        },
+        "trades_long": 25,
+        "trades_short": 12,
+        "final_equity": 7143.977480225979
+      }
+    }
+  ],
+  "evaluations": [
+    {
+      "name": "F1+F2",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=17.65% >= 15%",
+        "IS PF improvement -6.3341890583584695% < 25%",
+        "IS trades 17 < 0.7x baseline 44",
+        "IS compound_ret_pct 89.51 worse than baseline 541.14 by >10%"
+      ],
+      "is_pf_improvement": -6.3341890583584695,
+      "oos_pf_improvement": 33.566940188052456
+    },
+    {
+      "name": "F3a+F1",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=23.53% >= 15%",
+        "IS PF improvement 6.183318960730111% < 25%",
+        "IS trades 17 < 0.7x baseline 44",
+        "OOS PF improvement 0.049607233089368784% < 15%",
+        "IS compound_ret_pct 117.96 worse than baseline 541.14 by >10%"
+      ],
+      "is_pf_improvement": 6.183318960730111,
+      "oos_pf_improvement": 0.049607233089368784
+    },
+    {
+      "name": "F3b+F1",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=25.00% >= 15%",
+        "IS PF improvement -8.412674109017331% < 25%",
+        "IS trades 16 < 0.7x baseline 44",
+        "OOS PF improvement 0.049607233089368784% < 15%",
+        "IS compound_ret_pct 85.43 worse than baseline 541.14 by >10%"
+      ],
+      "is_pf_improvement": -8.412674109017331,
+      "oos_pf_improvement": 0.049607233089368784
+    },
+    {
+      "name": "F3c",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=29.63% >= 15%",
+        "IS PF improvement -9.407491525804517% < 25%",
+        "IS trades 27 < 0.7x baseline 44",
+        "OOS PF improvement -0.8715270183021815% < 15%",
+        "IS compound_ret_pct 167.02 worse than baseline 541.14 by >10%"
+      ],
+      "is_pf_improvement": -9.407491525804517,
+      "oos_pf_improvement": -0.8715270183021815
+    },
+    {
+      "name": "F3c+F2",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=31.58% >= 15%",
+        "IS PF improvement -34.00861294146157% < 25%",
+        "IS trades 19 < 0.7x baseline 44",
+        "IS compound_ret_pct 54.83 worse than baseline 541.14 by >10%",
+        "IS pf 2.65 worse than baseline 4.01 by >10%"
+      ],
+      "is_pf_improvement": -34.00861294146157,
+      "oos_pf_improvement": 21.454551364318426
+    },
+    {
+      "name": "F1+F4",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=40.62% >= 15%",
+        "IS PF improvement -68.85185682538932% < 25%",
+        "IS compound_ret_pct -13.99 worse than baseline 541.14 by >10%",
+        "IS pf 1.25 worse than baseline 4.01 by >10%",
+        "IS win_rate 0.34 worse than baseline 0.52 by >10%"
+      ],
+      "is_pf_improvement": -68.85185682538932,
+      "oos_pf_improvement": 31.966717412399028
+    },
+    {
+      "name": "F3a",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=31.03% >= 15%",
+        "IS PF improvement -4.618269254298939% < 25%",
+        "IS trades 29 < 0.7x baseline 44",
+        "OOS PF improvement 0.16352713160754934% < 15%",
+        "OOS max_dd 37.92% > baseline 36.85%",
+        "IS compound_ret_pct 222.12 worse than baseline 541.14 by >10%"
+      ],
+      "is_pf_improvement": -4.618269254298939,
+      "oos_pf_improvement": 0.16352713160754934
+    },
+    {
+      "name": "F3b",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=29.63% >= 15%",
+        "IS PF improvement -5.367111462414542% < 25%",
+        "IS trades 27 < 0.7x baseline 44",
+        "OOS PF improvement -8.716221604100125% < 15%",
+        "OOS max_dd 37.39% > baseline 36.85%",
+        "IS compound_ret_pct 188.88 worse than baseline 541.14 by >10%"
+      ],
+      "is_pf_improvement": -5.367111462414542,
+      "oos_pf_improvement": -8.716221604100125
+    },
+    {
+      "name": "F3c+F1",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=25.00% >= 15%",
+        "IS PF improvement -14.54217530966884% < 25%",
+        "IS trades 16 < 0.7x baseline 44",
+        "OOS PF improvement 3.7835306806257676% < 15%",
+        "IS compound_ret_pct 72.36 worse than baseline 541.14 by >10%",
+        "IS pf 3.43 worse than baseline 4.01 by >10%"
+      ],
+      "is_pf_improvement": -14.54217530966884,
+      "oos_pf_improvement": 3.7835306806257676
+    },
+    {
+      "name": "F3a+F2",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=33.33% >= 15%",
+        "IS PF improvement -26.78295945436106% < 25%",
+        "IS trades 21 < 0.7x baseline 44",
+        "OOS PF improvement 3.288056114276717% < 15%",
+        "IS compound_ret_pct 83.62 worse than baseline 541.14 by >10%",
+        "IS pf 2.94 worse than baseline 4.01 by >10%"
+      ],
+      "is_pf_improvement": -26.78295945436106,
+      "oos_pf_improvement": 3.288056114276717
+    },
+    {
+      "name": "F1",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=24.00% >= 15%",
+        "IS PF improvement -28.218200442030337% < 25%",
+        "IS trades 25 < 0.7x baseline 44",
+        "OOS PF improvement 2.1903109458592125% < 15%",
+        "IS compound_ret_pct 97.50 worse than baseline 541.14 by >10%",
+        "IS pf 2.88 worse than baseline 4.01 by >10%"
+      ],
+      "is_pf_improvement": -28.218200442030337,
+      "oos_pf_improvement": 2.1903109458592125
+    },
+    {
+      "name": "F3b+F2",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=31.58% >= 15%",
+        "IS PF improvement -30.10377049360646% < 25%",
+        "IS trades 19 < 0.7x baseline 44",
+        "OOS PF improvement 1.7823128029792061% < 15%",
+        "IS compound_ret_pct 64.67 worse than baseline 541.14 by >10%",
+        "IS pf 2.80 worse than baseline 4.01 by >10%"
+      ],
+      "is_pf_improvement": -30.10377049360646,
+      "oos_pf_improvement": 1.7823128029792061
+    },
+    {
+      "name": "F3a+F4",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=29.27% >= 15%",
+        "IS PF improvement -62.95248832409003% < 25%",
+        "OOS max_dd 37.36% > baseline 36.85%",
+        "IS compound_ret_pct 4.52 worse than baseline 541.14 by >10%",
+        "IS pf 1.49 worse than baseline 4.01 by >10%",
+        "IS win_rate 0.34 worse than baseline 0.52 by >10%"
+      ],
+      "is_pf_improvement": -62.95248832409003,
+      "oos_pf_improvement": 16.053185048969404
+    },
+    {
+      "name": "F4",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=23.81% >= 15%",
+        "IS PF improvement -56.58371661702717% < 25%",
+        "OOS PF improvement -1.9059606442097503% < 15%",
+        "OOS max_dd 56.03% > baseline 36.85%",
+        "IS compound_ret_pct 51.94 worse than baseline 541.14 by >10%",
+        "IS pf 1.74 worse than baseline 4.01 by >10%",
+        "IS win_rate 0.38 worse than baseline 0.52 by >10%"
+      ],
+      "is_pf_improvement": -56.58371661702717,
+      "oos_pf_improvement": -1.9059606442097503
+    },
+    {
+      "name": "F3c+F4",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=28.95% >= 15%",
+        "IS PF improvement -61.38470992406906% < 25%",
+        "OOS PF improvement 4.775899002690774% < 15%",
+        "OOS max_dd 41.70% > baseline 36.85%",
+        "IS compound_ret_pct 10.45 worse than baseline 541.14 by >10%",
+        "IS pf 1.55 worse than baseline 4.01 by >10%",
+        "IS win_rate 0.34 worse than baseline 0.52 by >10%"
+      ],
+      "is_pf_improvement": -61.38470992406906,
+      "oos_pf_improvement": 4.775899002690774
+    },
+    {
+      "name": "F3b+F4",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=29.27% >= 15%",
+        "IS PF improvement -62.95248832409003% < 25%",
+        "OOS PF improvement 11.154249152239817% < 15%",
+        "OOS max_dd 36.96% > baseline 36.85%",
+        "IS compound_ret_pct 4.52 worse than baseline 541.14 by >10%",
+        "IS pf 1.49 worse than baseline 4.01 by >10%",
+        "IS win_rate 0.34 worse than baseline 0.52 by >10%"
+      ],
+      "is_pf_improvement": -62.95248832409003,
+      "oos_pf_improvement": 11.154249152239817
+    },
+    {
+      "name": "F2",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=30.00% >= 15%",
+        "IS PF improvement -13.388840251909517% < 25%",
+        "IS trades 30 < 0.7x baseline 44",
+        "OOS PF improvement -2.879520162979315% < 15%",
+        "OOS max_dd 40.91% > baseline 36.85%",
+        "IS compound_ret_pct 212.17 worse than baseline 541.14 by >10%",
+        "IS pf 3.47 worse than baseline 4.01 by >10%",
+        "OOS win_rate 0.29 worse than baseline 0.32 by >10%"
+      ],
+      "is_pf_improvement": -13.388840251909517,
+      "oos_pf_improvement": -2.879520162979315
+    },
+    {
+      "name": "F3a+F1+F2+F4",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=33.33% >= 15%",
+        "IS PF improvement -78.5926239332164% < 25%",
+        "IS trades 15 < 0.7x baseline 44",
+        "OOS PF improvement -16.070699779235692% < 15%",
+        "IS compound_ret_pct -21.25 worse than baseline 541.14 by >10%",
+        "IS pf 0.86 worse than baseline 4.01 by >10%",
+        "IS win_rate 0.27 worse than baseline 0.52 by >10%",
+        "OOS pf 1.05 worse than baseline 1.25 by >10%"
+      ],
+      "is_pf_improvement": -78.5926239332164,
+      "oos_pf_improvement": -16.070699779235692
+    },
+    {
+      "name": "F3c+F1+F2+F4",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=38.46% >= 15%",
+        "IS PF improvement -80.13207365739403% < 25%",
+        "IS trades 13 < 0.7x baseline 44",
+        "OOS PF improvement -15.027971188129301% < 15%",
+        "IS compound_ret_pct -21.17 worse than baseline 541.14 by >10%",
+        "IS pf 0.80 worse than baseline 4.01 by >10%",
+        "IS win_rate 0.23 worse than baseline 0.52 by >10%",
+        "OOS pf 1.06 worse than baseline 1.25 by >10%"
+      ],
+      "is_pf_improvement": -80.13207365739403,
+      "oos_pf_improvement": -15.027971188129301
+    },
+    {
+      "name": "F3b+F1+F2+F4",
+      "passes": false,
+      "fails": [
+        "IS knife_rate=33.33% >= 15%",
+        "IS PF improvement -78.5926239332164% < 25%",
+        "IS trades 15 < 0.7x baseline 44",
+        "OOS PF improvement -26.891819733544075% < 15%",
+        "OOS max_dd 43.10% > baseline 36.85%",
+        "IS compound_ret_pct -21.25 worse than baseline 541.14 by >10%",
+        "IS pf 0.86 worse than baseline 4.01 by >10%",
+        "IS win_rate 0.27 worse than baseline 0.52 by >10%",
+        "OOS pf 0.91 worse than baseline 1.25 by >10%"
+      ],
+      "is_pf_improvement": -78.5926239332164,
+      "oos_pf_improvement": -26.891819733544075
+    }
+  ],
+  "passing": [],
+  "decision": "NO_PROMOTE"
+}
