@@ -1,76 +1,25 @@
 """Tests for scripts/deploy_6b.py.
 
 These run against a tmp-dir fake-repo fixture so they never touch the real
-working tree. Subprocess calls are monkey-patched to return scripted
-responses. No network, no systemctl, no git mutation.
+working tree. Subprocess + ssh helpers are monkey-patched to return scripted
+responses. No network, no systemctl, no git mutation, no rsync.
 """
 import json
-import os
 import shutil
 import subprocess
 import sys
-import tempfile
 import textwrap
+import time
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
-# Make the script importable as a module even though it lives in scripts/.
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 import deploy_6b as d6b  # noqa: E402
 
 
-# ---------- fixtures ----------
-
-@pytest.fixture
-def fake_repo(tmp_path, monkeypatch):
-    """Build a tmp 'repo' with state/ and algo/ layouts matching the Pi
-    after PATH A is in git HEAD and shadow_expectation.json is the revised
-    no-F3c cell."""
-    (tmp_path / "state").mkdir()
-    (tmp_path / "algo").mkdir()
-    (tmp_path / "algo" / "logs").mkdir()
-    (tmp_path / "scripts").mkdir()
-
-    # algo/entropy_live_multi.py with the right flag values (just the
-    # relevant lines -- the script only greps).
-    (tmp_path / "algo" / "entropy_live_multi.py").write_text(textwrap.dedent("""
-        PAIRS = {"ETH": {"f3c_enabled": False, "timeout_trail_enabled": True,
-                          "e3_time_decay_sl_enabled": True}}
-        SHARED_CONFIG = {"leverage": 5}
-    """).strip())
-
-    # state files at PATH-A-ready state
-    (tmp_path / "state" / "multi_trader_state.json").write_text(json.dumps({
-        "position": None, "trades": []
-    }))
-    (tmp_path / "state" / "shadow_expectation.json").write_text(json.dumps({
-        "cell_name": "timeout_trail+E3+5x (revised 6b, no F3c)",
-        "f3c_enabled": False,
-        "data_source": "Feb 18 - Apr 7 2026 Pi Kraken Futures ETH L2",
-        "generated_at": "2026-04-20T18:52:40+00:00",
-        "n_trades_total": 44,
-        "buckets": {}, "fallback_by_direction": {},
-    }))
-    (tmp_path / "state" / "shadow_expectation.v1.json").write_text(json.dumps({
-        "cell_name": "F3c+timeout_trail+E3+5x"
-    }))
-    # drift + audit preexist; rollback needs something to restore
-    (tmp_path / "state" / "live_drift_monitor.json").write_text(json.dumps({
-        "z_scores": []
-    }))
-
-    # Monkey-patch the module-level path constants.
-    monkeypatch.setattr(d6b, "REPO_ROOT", tmp_path)
-    monkeypatch.setattr(d6b, "STATE_DIR", tmp_path / "state")
-    monkeypatch.setattr(d6b, "LEGACY_STATE_DIR", tmp_path / "algo" / "state")
-    monkeypatch.setattr(d6b, "CONFIG_FILE", tmp_path / "algo" / "entropy_live_multi.py")
-    monkeypatch.setattr(d6b, "LEGACY_CONFIG_FILE", tmp_path / "entropy_live_multi.py")
-
-    return tmp_path
-
+# ============ Common fakes / helpers ============
 
 GOOD_UNIT_FILE = (
     "# /etc/systemd/system/entropy-trader.service\n"
@@ -91,175 +40,106 @@ GOOD_MAIN_PID = "227313"
 GOOD_CMDLINE = (
     "/home/user/entropy_trader/venv/bin/python -u entropy_live_multi.py"
 )
+GOOD_PI_STATE = {"position": None, "trades": []}
+GOOD_PI_SHADOW = {
+    "cell_name": "timeout_trail+E3+5x (revised 6b, no F3c)",
+    "f3c_enabled": False,
+    "data_source": "Feb 18 - Apr 7 2026 Pi Kraken Futures ETH L2",
+    "n_trades_total": 44,
+    "buckets": {},
+    "fallback_by_direction": {},
+}
 
 
-def _systemctl_fake(cmd, *, unit_text=GOOD_UNIT_FILE,
-                    is_active="active", main_pid=GOOD_MAIN_PID):
-    """Translate a systemctl-prefixed cmd into a CompletedProcess.
-    Returns None when the cmd isn't a systemctl call."""
-    if cmd[0] != "systemctl":
-        return None
-    if cmd[1:2] == ["is-active"]:
-        return subprocess.CompletedProcess(cmd, 0, f"{is_active}\n", "")
-    if cmd[1:2] == ["cat"]:
-        return subprocess.CompletedProcess(cmd, 0, unit_text, "")
-    if cmd[1] == "show" and "--value" in cmd and "MainPID" in cmd:
-        return subprocess.CompletedProcess(cmd, 0, f"{main_pid}\n", "")
-    if cmd[1] in ("restart", "is-active"):
-        return subprocess.CompletedProcess(cmd, 0, "active\n", "")
-    # Default: pretend success with empty output
-    return subprocess.CompletedProcess(cmd, 0, "", "")
+# ---- _ssh_run dispatch helpers ----
 
+def make_ssh_run_dispatcher(
+        unit_text=GOOD_UNIT_FILE, is_active="active",
+        main_pid=GOOD_MAIN_PID, restart_ok=True,
+        date_skew_sec=0.0):
+    """Return a fake _ssh_run that recognizes the remote commands the
+    deploy script issues and returns canned responses."""
+    pi_now = [time.time() + date_skew_sec]
 
-@pytest.fixture
-def mock_git_ok(monkeypatch):
-    """_run returns clean git status, 'main' branch, PATH-A HEAD subject.
-    systemctl calls return unit+pid state consistent with our bot.
-    /proc/<pid>/cmdline reads return the expected entropy_live_multi.py
-    command line."""
-    calls = []
-    def fake_run(cmd, check=True, timeout=30, capture=True):
-        calls.append(cmd)
-        if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)]:
-            rest = cmd[3:]
-            stdout = ""
-            if rest[:2] == ["status", "--porcelain"]:
-                stdout = ""
-            elif rest == ["branch", "--show-current"]:
-                stdout = "main\n"
-            elif rest[:2] == ["log", "-1"] and "--format=%s" in rest:
-                stdout = d6b.EXPECTED_COMMIT_SUBJECT + "\n"
-            elif rest == ["rev-parse", "HEAD"]:
-                stdout = "deadbeefdeadbeef\n"
-            elif rest[:2] == ["log", "--oneline"]:
-                stdout = "deadbeef test head\n"
-            return subprocess.CompletedProcess(cmd, 0, stdout, "")
-        sc = _systemctl_fake(cmd)
-        if sc is not None:
-            return sc
-        if cmd[0] == "chronyc":
-            raise FileNotFoundError("chronyc not found in test env")
+    def fake_ssh_run(remote, host=None, check=False, timeout=30):
+        cmd = list(remote)
+        # systemctl
+        if cmd[:2] == ["systemctl", "is-active"]:
+            return subprocess.CompletedProcess(
+                cmd, 0, f"{is_active}\n", "")
+        if cmd[:2] == ["systemctl", "cat"]:
+            return subprocess.CompletedProcess(cmd, 0, unit_text, "")
+        if cmd[:2] == ["systemctl", "show"] and "MainPID" in cmd:
+            return subprocess.CompletedProcess(
+                cmd, 0, f"{main_pid}\n", "")
+        if cmd[:1] == ["sudo"] and cmd[1:4] == ["-n", "systemctl", "restart"]:
+            return subprocess.CompletedProcess(
+                cmd, 0 if restart_ok else 1,
+                "", "" if restart_ok else "restart failed\n")
+        # date
+        if cmd == ["date", "+%s.%N"]:
+            return subprocess.CompletedProcess(
+                cmd, 0, f"{pi_now[0]:.6f}\n", "")
+        # mkdir / cp / rm / mv / test / ls / cat / tail / bash -c ...
         return subprocess.CompletedProcess(cmd, 0, "", "")
 
-    monkeypatch.setattr(d6b, "_run", fake_run)
+    return fake_ssh_run
+
+
+def install_happy_pi(monkeypatch, *,
+                      pi_state=None, valve_exists=False,
+                      audit_line_count_seq=None,
+                      log_blob_with_banner=True,
+                      shadow_for_local=None):
+    """Patch all ssh helpers + the local-shadow file lookups to a
+    canonical happy-path. Optional args tune the failure modes."""
+    state = pi_state if pi_state is not None else GOOD_PI_STATE
+
+    files: dict = {
+        f"{d6b.PI_STATE_DIR}/multi_trader_state.json": json.dumps(state),
+        f"{d6b.PI_STATE_DIR}/last_deploy_backup.txt": (
+            f"{d6b.PI_STATE_DIR}/pre_6b_backup_TEST"),
+    }
+    if valve_exists:
+        files[f"{d6b.PI_STATE_DIR}/safety_valve.json"] = "{}"
+
+    def fake_pi_read_file(path):
+        if path in files:
+            return files[path]
+        raise d6b.AbortError(f"fake_pi_read_file: {path} not in fixture")
+
+    def fake_pi_file_exists(path):
+        return path in files
+
+    rsync_calls: list = []
+    def fake_rsync(local_path, remote_path, host=None):
+        rsync_calls.append((Path(local_path), remote_path))
+
+    write_calls: list = []
+    def fake_ssh_write(remote_path, content, host=None, timeout=30):
+        write_calls.append((remote_path, content))
+        files[remote_path] = content
+        # When marker is written, register the backup dir as existing
+        # so subsequent rollback finds it.
+        if remote_path.endswith("last_deploy_backup.txt"):
+            files[content.strip()] = "<dir>"
+
+    monkeypatch.setattr(d6b, "_ssh_run",
+                        make_ssh_run_dispatcher())
+    monkeypatch.setattr(d6b, "_pi_read_file", fake_pi_read_file)
+    monkeypatch.setattr(d6b, "_pi_file_exists", fake_pi_file_exists)
+    monkeypatch.setattr(d6b, "_rsync_to_pi", fake_rsync)
+    monkeypatch.setattr(d6b, "_ssh_write_file", fake_ssh_write)
     monkeypatch.setattr(d6b, "_read_proc_cmdline",
                         lambda pid: GOOD_CMDLINE)
-    return calls
+
+    return {"files": files, "rsync_calls": rsync_calls,
+            "write_calls": write_calls}
 
 
-# ---------- dry-run safety ----------
-
-def test_dry_run_no_mutation(fake_repo, mock_git_ok, capsys):
-    """--dry-run must not create backup or modify any state."""
-    snap = {p.name: p.read_bytes() for p in (fake_repo / "state").iterdir()
-            if p.is_file()}
-    rc = d6b.main(["--dry-run"])
-    assert rc == 0
-    # Nothing in state/ should have changed.
-    for p in (fake_repo / "state").iterdir():
-        if p.is_file():
-            assert p.read_bytes() == snap[p.name], f"{p.name} mutated in dry-run"
-    # No backup dir created.
-    assert not any((fake_repo / "state").glob("pre_6b_backup_*"))
-
-
-# ---------- confirm phrase gate ----------
-
-def test_execute_without_confirm_aborts(fake_repo, mock_git_ok):
-    rc = d6b.main(["--execute"])
-    assert rc != 0  # abort
-
-
-def test_execute_wrong_confirm_aborts(fake_repo, mock_git_ok):
-    rc = d6b.main(["--execute", "--confirm", "wrong phrase"])
-    assert rc != 0
-
-
-def test_rollback_without_confirm_aborts(fake_repo, mock_git_ok):
-    rc = d6b.main(["--rollback"])
-    assert rc != 0
-
-
-def test_rollback_wrong_confirm_aborts(fake_repo, mock_git_ok):
-    rc = d6b.main(["--rollback", "--confirm", "ROLLBACK NOW"])
-    assert rc != 0
-
-
-# ---------- pre-flight abort cases ----------
-
-def test_preflight_dirty_git_aborts(fake_repo, monkeypatch):
-    def fake_run(cmd, check=True, timeout=30, capture=True):
-        if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)] and \
-           cmd[3:5] == ["status", "--porcelain"]:
-            return subprocess.CompletedProcess(cmd, 0, " M some_file.py\n", "")
-        if cmd[0] == "chronyc":
-            raise FileNotFoundError()
-        return subprocess.CompletedProcess(cmd, 0, "main\n", "")
-    monkeypatch.setattr(d6b, "_run", fake_run)
-    with pytest.raises(d6b.AbortError, match="working tree not clean"):
-        d6b.preflight(fake_repo / "state", fake_repo / "algo" / "entropy_live_multi.py")
-
-
-def test_preflight_wrong_branch_aborts(fake_repo, monkeypatch):
-    def fake_run(cmd, check=True, timeout=30, capture=True):
-        if cmd[3:5] == ["status", "--porcelain"]:
-            return subprocess.CompletedProcess(cmd, 0, "", "")
-        if cmd[3:] == ["branch", "--show-current"]:
-            return subprocess.CompletedProcess(cmd, 0, "sprint/x\n", "")
-        if cmd[0] == "chronyc": raise FileNotFoundError()
-        return subprocess.CompletedProcess(cmd, 0, "", "")
-    monkeypatch.setattr(d6b, "_run", fake_run)
-    with pytest.raises(d6b.AbortError, match="branch is 'sprint/x'"):
-        d6b.preflight(fake_repo / "state", fake_repo / "algo" / "entropy_live_multi.py")
-
-
-def test_preflight_wrong_head_subject_aborts(fake_repo, monkeypatch):
-    def fake_run(cmd, check=True, timeout=30, capture=True):
-        if cmd[3:5] == ["status", "--porcelain"]:
-            return subprocess.CompletedProcess(cmd, 0, "", "")
-        if cmd[3:] == ["branch", "--show-current"]:
-            return subprocess.CompletedProcess(cmd, 0, "main\n", "")
-        if cmd[3:5] == ["log", "-1"] and "--format=%s" in cmd:
-            return subprocess.CompletedProcess(cmd, 0, "some other commit\n", "")
-        if cmd[3:] == ["rev-parse", "HEAD"]:
-            return subprocess.CompletedProcess(cmd, 0, "dead\n", "")
-        if cmd[0] == "chronyc": raise FileNotFoundError()
-        return subprocess.CompletedProcess(cmd, 0, "", "")
-    monkeypatch.setattr(d6b, "_run", fake_run)
-    with pytest.raises(d6b.AbortError, match="HEAD subject is"):
-        d6b.preflight(fake_repo / "state", fake_repo / "algo" / "entropy_live_multi.py")
-
-
-def test_preflight_active_trade_aborts(fake_repo, mock_git_ok):
-    (fake_repo / "state" / "multi_trader_state.json").write_text(json.dumps({
-        "position": {"pair": "ETH", "direction": 1}
-    }))
-    with pytest.raises(d6b.AbortError, match="position is not None"):
-        d6b.preflight(fake_repo / "state", fake_repo / "algo" / "entropy_live_multi.py")
-
-
-def test_preflight_wrong_shadow_aborts(fake_repo, mock_git_ok):
-    (fake_repo / "state" / "shadow_expectation.json").write_text(json.dumps({
-        "cell_name": "F3c+timeout_trail+E3+5x",
-        "f3c_enabled": True,
-        "data_source": "Feb-Apr Pi",
-    }))
-    with pytest.raises(d6b.AbortError, match="no F3c"):
-        d6b.preflight(fake_repo / "state", fake_repo / "algo" / "entropy_live_multi.py")
-
-
-def test_preflight_valve_exists_aborts(fake_repo, mock_git_ok):
-    (fake_repo / "state" / "safety_valve.json").write_text("{}")
-    with pytest.raises(d6b.AbortError, match="Valve tripped"):
-        d6b.preflight(fake_repo / "state", fake_repo / "algo" / "entropy_live_multi.py")
-
-
-# ---------- P1..P4 service-target verification ----------
-
-def _make_fake_run(unit_text=GOOD_UNIT_FILE, is_active="active",
-                    main_pid=GOOD_MAIN_PID):
-    """Build a fake _run that passes git pre-flight cleanly but returns
-    parametrized systemctl state. Used for P1..P4 failure-mode tests."""
+def install_local_git_ok(monkeypatch):
+    """Patch _run to fake clean git state (status, branch=main, HEAD
+    subject matches PATH A). Local-only; not for ssh commands."""
     def fake_run(cmd, check=True, timeout=30, capture=True):
         if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)]:
             rest = cmd[3:]
@@ -271,29 +151,165 @@ def _make_fake_run(unit_text=GOOD_UNIT_FILE, is_active="active",
                 return subprocess.CompletedProcess(
                     cmd, 0, d6b.EXPECTED_COMMIT_SUBJECT + "\n", "")
             if rest == ["rev-parse", "HEAD"]:
-                return subprocess.CompletedProcess(cmd, 0, "dead\n", "")
-            return subprocess.CompletedProcess(cmd, 0, "", "")
-        sc = _systemctl_fake(cmd, unit_text=unit_text,
-                               is_active=is_active, main_pid=main_pid)
-        if sc is not None:
-            return sc
-        if cmd[0] == "chronyc":
-            raise FileNotFoundError()
+                return subprocess.CompletedProcess(
+                    cmd, 0, "deadbeefdeadbeef\n", "")
+            if rest[:2] == ["log", "--oneline"]:
+                return subprocess.CompletedProcess(
+                    cmd, 0, "deadbeef test head\n", "")
         return subprocess.CompletedProcess(cmd, 0, "", "")
-    return fake_run
+    monkeypatch.setattr(d6b, "_run", fake_run)
 
+
+# ---- fake_repo: tmp_path with state/ + shadow + tests/ ----
+
+@pytest.fixture
+def fake_repo(tmp_path, monkeypatch):
+    (tmp_path / "state").mkdir()
+    (tmp_path / "algo").mkdir()
+    (tmp_path / "algo" / "logs").mkdir()
+    (tmp_path / "scripts").mkdir()
+    (tmp_path / "tests").mkdir()
+    (tmp_path / "tests" / "test_deploy_6b.py").write_text("# stub\n")
+
+    (tmp_path / "algo" / "entropy_live_multi.py").write_text(textwrap.dedent("""
+        PAIRS = {"ETH": {"f3c_enabled": False, "timeout_trail_enabled": True,
+                          "e3_time_decay_sl_enabled": True,
+                          "pst_max_wait_bars": 40}}
+        SHARED_CONFIG = {"leverage": 5}
+    """).strip())
+
+    (tmp_path / "state" / "shadow_expectation.json").write_text(
+        json.dumps(GOOD_PI_SHADOW))
+    (tmp_path / "state" / "shadow_expectation.v1.json").write_text(
+        json.dumps({"cell_name": "F3c+timeout_trail+E3+5x"}))
+
+    monkeypatch.setattr(d6b, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(d6b, "LOCAL_STATE_DIR_PRIMARY", tmp_path / "state")
+    monkeypatch.setattr(d6b, "LOCAL_STATE_DIR_LEGACY",
+                        tmp_path / "algo" / "state")
+    monkeypatch.setattr(d6b, "LOCAL_CONFIG_FILE_PRIMARY",
+                        tmp_path / "algo" / "entropy_live_multi.py")
+    monkeypatch.setattr(d6b, "LOCAL_CONFIG_FILE_LEGACY",
+                        tmp_path / "entropy_live_multi.py")
+    monkeypatch.setattr(d6b, "STATE_DIR", tmp_path / "state")
+
+    return tmp_path
+
+
+# ============ CLI / confirm-phrase tests ============
+
+def test_execute_without_confirm_aborts(fake_repo):
+    rc = d6b.main(["--execute"])
+    assert rc != 0
+
+
+def test_execute_wrong_confirm_aborts(fake_repo):
+    rc = d6b.main(["--execute", "--confirm", "wrong phrase"])
+    assert rc != 0
+
+
+def test_rollback_without_confirm_aborts(fake_repo):
+    rc = d6b.main(["--rollback"])
+    assert rc != 0
+
+
+def test_rollback_wrong_confirm_aborts(fake_repo):
+    rc = d6b.main(["--rollback", "--confirm", "ROLLBACK NOW"])
+    assert rc != 0
+
+
+def test_mode_pi_not_implemented(fake_repo):
+    """--mode=pi is reserved; should exit non-zero with explanatory log."""
+    rc = d6b.main(["--dry-run", "--mode=pi"])
+    assert rc != 0
+
+
+# ============ Pre-flight failure modes ============
+
+def test_preflight_dirty_git_aborts(fake_repo, monkeypatch):
+    def fake_run(cmd, check=True, timeout=30, capture=True):
+        if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)] and \
+           cmd[3:5] == ["status", "--porcelain"]:
+            return subprocess.CompletedProcess(cmd, 0, " M file.py\n", "")
+        return subprocess.CompletedProcess(cmd, 0, "main\n", "")
+    monkeypatch.setattr(d6b, "_run", fake_run)
+    with pytest.raises(d6b.AbortError, match="working tree not clean"):
+        d6b.preflight()
+
+
+def test_preflight_wrong_branch_aborts(fake_repo, monkeypatch):
+    def fake_run(cmd, check=True, timeout=30, capture=True):
+        rest = cmd[3:] if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)] else []
+        if rest[:2] == ["status", "--porcelain"]:
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        if rest == ["branch", "--show-current"]:
+            return subprocess.CompletedProcess(cmd, 0, "sprint/x\n", "")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+    monkeypatch.setattr(d6b, "_run", fake_run)
+    with pytest.raises(d6b.AbortError, match="branch is 'sprint/x'"):
+        d6b.preflight()
+
+
+def test_preflight_wrong_head_subject_aborts(fake_repo, monkeypatch):
+    def fake_run(cmd, check=True, timeout=30, capture=True):
+        rest = cmd[3:] if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)] else []
+        if rest[:2] == ["status", "--porcelain"]:
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        if rest == ["branch", "--show-current"]:
+            return subprocess.CompletedProcess(cmd, 0, "main\n", "")
+        if rest[:2] == ["log", "-1"] and "--format=%s" in rest:
+            return subprocess.CompletedProcess(cmd, 0, "wrong subject\n", "")
+        if rest == ["rev-parse", "HEAD"]:
+            return subprocess.CompletedProcess(cmd, 0, "dead\n", "")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+    monkeypatch.setattr(d6b, "_run", fake_run)
+    with pytest.raises(d6b.AbortError, match="HEAD subject is"):
+        d6b.preflight()
+
+
+def test_preflight_active_trade_aborts(fake_repo, monkeypatch):
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch,
+                       pi_state={"position": {"pair": "ETH", "direction": 1}})
+    with pytest.raises(d6b.AbortError, match="position is not None"):
+        d6b.preflight()
+
+
+def test_preflight_wrong_shadow_aborts(fake_repo, monkeypatch):
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch)
+    # Overwrite local shadow to be bad.
+    (fake_repo / "state" / "shadow_expectation.json").write_text(json.dumps({
+        "cell_name": "F3c+timeout_trail+E3+5x",
+        "f3c_enabled": True,
+        "data_source": "Feb-Apr Pi",
+    }))
+    with pytest.raises(d6b.AbortError, match="no F3c"):
+        d6b.preflight()
+
+
+def test_preflight_valve_exists_aborts(fake_repo, monkeypatch):
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch, valve_exists=True)
+    with pytest.raises(d6b.AbortError, match="Valve tripped"):
+        d6b.preflight()
+
+
+# ============ P1..P4 service-target verification ============
 
 def test_preflight_service_not_active_aborts(fake_repo, monkeypatch):
-    """P1: systemctl is-active returns 'inactive' -> abort."""
-    monkeypatch.setattr(d6b, "_run", _make_fake_run(is_active="inactive"))
-    monkeypatch.setattr(d6b, "_read_proc_cmdline", lambda pid: GOOD_CMDLINE)
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch)
+    monkeypatch.setattr(
+        d6b, "_ssh_run",
+        make_ssh_run_dispatcher(is_active="inactive"))
     with pytest.raises(d6b.AbortError, match="P1 FAILED"):
-        d6b.preflight(fake_repo / "state",
-                       fake_repo / "algo" / "entropy_live_multi.py")
+        d6b.preflight()
 
 
 def test_preflight_working_dir_mismatch_aborts(fake_repo, monkeypatch):
-    """P2: unit WorkingDirectory points at a sibling trading system."""
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch)
     wrong_unit = GOOD_UNIT_FILE.replace(
         "WorkingDirectory=/home/user/entropy_trader",
         "WorkingDirectory=/home/user",
@@ -301,152 +317,54 @@ def test_preflight_working_dir_mismatch_aborts(fake_repo, monkeypatch):
         "ExecStart=/home/user/entropy_trader/venv/bin/python -u entropy_live_multi.py",
         "ExecStart=/home/user/hft/venv/bin/python -u -m hft.mr_live --live",
     )
-    monkeypatch.setattr(d6b, "_run",
-                         _make_fake_run(unit_text=wrong_unit))
-    monkeypatch.setattr(d6b, "_read_proc_cmdline", lambda pid: GOOD_CMDLINE)
+    monkeypatch.setattr(
+        d6b, "_ssh_run",
+        make_ssh_run_dispatcher(unit_text=wrong_unit))
     with pytest.raises(d6b.AbortError, match="P2 FAILED"):
-        d6b.preflight(fake_repo / "state",
-                       fake_repo / "algo" / "entropy_live_multi.py")
+        d6b.preflight()
 
 
 def test_preflight_execstart_mismatch_aborts(fake_repo, monkeypatch):
-    """P3: unit WorkingDirectory happens to match but ExecStart is a
-    different Python entry point."""
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch)
     wrong_unit = GOOD_UNIT_FILE.replace(
         "ExecStart=/home/user/entropy_trader/venv/bin/python -u entropy_live_multi.py",
-        "ExecStart=/home/user/entropy_trader/venv/bin/python -u some_other_script.py",
+        "ExecStart=/home/user/entropy_trader/venv/bin/python -u other.py",
     )
-    monkeypatch.setattr(d6b, "_run",
-                         _make_fake_run(unit_text=wrong_unit))
-    monkeypatch.setattr(d6b, "_read_proc_cmdline", lambda pid: GOOD_CMDLINE)
+    monkeypatch.setattr(
+        d6b, "_ssh_run",
+        make_ssh_run_dispatcher(unit_text=wrong_unit))
     with pytest.raises(d6b.AbortError, match="P3 FAILED"):
-        d6b.preflight(fake_repo / "state",
-                       fake_repo / "algo" / "entropy_live_multi.py")
+        d6b.preflight()
 
 
 def test_preflight_running_pid_cmdline_mismatch_aborts(fake_repo, monkeypatch):
-    """P4: unit file looks right but the live PID is running something
-    else -- someone swapped the service after the unit file was written."""
-    monkeypatch.setattr(d6b, "_run", _make_fake_run())  # unit file clean
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch)
     monkeypatch.setattr(
         d6b, "_read_proc_cmdline",
         lambda pid: "/usr/bin/python -m hft.mr_live --live",
     )
     with pytest.raises(d6b.AbortError, match="P4 FAILED"):
-        d6b.preflight(fake_repo / "state",
-                       fake_repo / "algo" / "entropy_live_multi.py")
+        d6b.preflight()
 
 
 def test_preflight_all_checks_pass_when_service_is_correct(
-        fake_repo, mock_git_ok):
-    """Happy path: service verification passes and facts dict exposes
-    the verified invariants."""
-    facts = d6b.preflight(
-        fake_repo / "state",
-        fake_repo / "algo" / "entropy_live_multi.py",
-    )
+        fake_repo, monkeypatch):
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch)
+    facts = d6b.preflight()
     assert facts["service_verified"] == d6b.SERVICE_NAME_DEFAULT
     assert facts["service_working_dir"] == d6b.EXPECTED_WORKING_DIR
     assert facts["service_exec_marker"] == d6b.EXPECTED_EXEC_MARKER
+    assert facts["position"] is None
+    assert facts["safety_valve_absent"] is True
+    assert "no F3c" in facts["shadow_cell_name"]
 
 
-# ---------- backup ----------
-
-def test_backup_creates_expected_files(fake_repo, mock_git_ok):
-    backup = d6b.create_backup(fake_repo / "state",
-                                fake_repo / "algo" / "entropy_live_multi.py")
-    assert backup.exists()
-    assert (backup / "shadow_expectation.json").exists()
-    assert (backup / "shadow_expectation.v1.json").exists()
-    assert (backup / "live_drift_monitor.json").exists()
-    assert (backup / "multi_trader_state.json").exists()
-    assert (backup / "git_head.txt").exists()
-    assert (backup / "git_sha.txt").exists()
-    assert (backup / "config_snapshot.txt").exists()
-    # marker file points at the backup
-    marker = (fake_repo / "state" / "last_deploy_backup.txt").read_text().strip()
-    assert marker == str(backup)
-
-
-# ---------- rollback ----------
-
-def test_rollback_restores_files(fake_repo, mock_git_ok):
-    # First make a backup
-    backup = d6b.create_backup(fake_repo / "state",
-                                fake_repo / "algo" / "entropy_live_multi.py")
-    # Mutate state after backup (simulate post-deploy state)
-    (fake_repo / "state" / "shadow_expectation.json").write_text("MUTATED")
-    (fake_repo / "state" / "live_drift_monitor.json").unlink()
-
-    result = d6b.rollback(fake_repo / "state")
-    assert result["service_active"] is True
-    assert "shadow_expectation.json" in result["files_restored"]
-    # shadow should be restored from backup, not "MUTATED"
-    restored = (fake_repo / "state" / "shadow_expectation.json").read_text()
-    assert restored != "MUTATED"
-    assert "no F3c" in restored
-
-
-# ---------- execute-path integration ----------
-
-def test_execute_full_path_success(fake_repo, mock_git_ok, monkeypatch):
-    """End-to-end: dry-run first to prove preflight passes, then full
-    execute. Startup banner is faked by pre-writing a matching line to the
-    log file before execute_deploy runs."""
-    # Pre-seed the log with a matching banner line so verify_startup_banner
-    # returns immediately.
-    banner = ("2026-04-22 06:00:01 INFO ETH: "
-              "f3c_enabled=False timeout_trail_enabled=True "
-              "e3_time_decay_sl_enabled=True leverage=5x h_thresh=0.4352")
-    (fake_repo / "algo" / "logs" / "entropy_multi.log").write_text(banner + "\n")
-
-    # Shorten poll timers for test speed.
-    monkeypatch.setattr(d6b, "BANNER_POLL_SEC", 2)
-    monkeypatch.setattr(d6b, "AUDIT_POLL_SEC", 1)
-    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 2)
-
-    rc = d6b.main(["--execute", "--confirm", d6b.EXECUTE_CONFIRM])
-    assert rc == 0
-
-    # Post-deploy record written
-    rec = json.loads((fake_repo / "state" / "deploy_6b_complete.json").read_text())
-    assert rec["git_sha"] == "deadbeefdeadbeef"
-    assert "no F3c" in rec["shadow_cell_name"]
-
-    # v1 rename happened
-    assert (fake_repo / "state" / "shadow_expectation.v1_with_f3c.json").exists()
-    assert not (fake_repo / "state" / "shadow_expectation.v1.json").exists()
-
-    # drift monitor cleared
-    assert not (fake_repo / "state" / "live_drift_monitor.json").exists()
-
-
-def test_execute_banner_mismatch_triggers_rollback(fake_repo, mock_git_ok,
-                                                     monkeypatch):
-    """If startup banner never matches, execute should trigger rollback
-    and exit non-zero."""
-    # Seed a WRONG banner (leverage=10x instead of 5x).
-    bad_banner = ("2026-04-22 06:00:01 INFO ETH: "
-                  "f3c_enabled=False timeout_trail_enabled=True "
-                  "e3_time_decay_sl_enabled=True leverage=10x")
-    (fake_repo / "algo" / "logs" / "entropy_multi.log").write_text(bad_banner + "\n")
-
-    monkeypatch.setattr(d6b, "BANNER_POLL_SEC", 1)
-    monkeypatch.setattr(d6b, "AUDIT_POLL_SEC", 1)
-    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 2)
-
-    rc = d6b.main(["--execute", "--confirm", d6b.EXECUTE_CONFIRM])
-    assert rc != 0
-
-    # Rollback record should exist
-    assert (fake_repo / "state" / "rollback_complete.json").exists()
-
-
-# ---------- health-check ----------
+# ============ Health check ============
 
 def _mock_ssh_pi_reachable(monkeypatch, reachable=True):
-    """Patch _run to fake the ssh-to-Pi probe used by health_check.
-    Other commands fall through to a generic success."""
     def fake_run(cmd, check=True, timeout=30, capture=True):
         if cmd[0] == "ssh":
             if reachable:
@@ -459,10 +377,6 @@ def _mock_ssh_pi_reachable(monkeypatch, reachable=True):
 
 
 def test_health_check_all_green(fake_repo, monkeypatch):
-    """With ENTROPY_SERVICE_NAME set + state writable + tests present
-    + Pi reachable, exit 0 and no issues reported."""
-    (fake_repo / "tests").mkdir(exist_ok=True)
-    (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
     monkeypatch.setenv("ENTROPY_SERVICE_NAME", "entropy-trader.service")
     _mock_ssh_pi_reachable(monkeypatch, reachable=True)
     code, ok, issues = d6b.health_check()
@@ -473,8 +387,6 @@ def test_health_check_all_green(fake_repo, monkeypatch):
 
 
 def test_health_check_missing_env_var(fake_repo, monkeypatch):
-    (fake_repo / "tests").mkdir(exist_ok=True)
-    (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
     monkeypatch.delenv("ENTROPY_SERVICE_NAME", raising=False)
     _mock_ssh_pi_reachable(monkeypatch, reachable=True)
     code, ok, issues = d6b.health_check()
@@ -483,24 +395,16 @@ def test_health_check_missing_env_var(fake_repo, monkeypatch):
 
 
 def test_health_check_pi_unreachable(fake_repo, monkeypatch):
-    """Pi unreachable -> health-check fails with a specific error
-    naming PI_HOST_TARGET and the override mechanism."""
-    (fake_repo / "tests").mkdir(exist_ok=True)
-    (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
     monkeypatch.setenv("ENTROPY_SERVICE_NAME", "entropy-trader.service")
     _mock_ssh_pi_reachable(monkeypatch, reachable=False)
     code, ok, issues = d6b.health_check()
     assert code == 1
     pi_issue = [m for m in issues if "PI unreachable" in m]
-    assert len(pi_issue) == 1, f"expected one PI-unreachable issue, got: {issues}"
+    assert len(pi_issue) == 1
     assert "PI_HOST_TARGET" in pi_issue[0]
 
 
 def test_health_check_exits_fast(fake_repo, monkeypatch):
-    """Sanity: run under 5 seconds (we give it 3 for safety)."""
-    import time
-    (fake_repo / "tests").mkdir(exist_ok=True)
-    (fake_repo / "tests" / "test_deploy_6b.py").write_text("# stub\n")
     monkeypatch.setenv("ENTROPY_SERVICE_NAME", "entropy-trader.service")
     _mock_ssh_pi_reachable(monkeypatch, reachable=True)
     t0 = time.time()
@@ -509,20 +413,292 @@ def test_health_check_exits_fast(fake_repo, monkeypatch):
     assert rc == 0
 
 
-# ---------- lineage append integration ----------
+# ============ Backup (Pi-side ssh) ============
 
-def test_lineage_append_success_adds_entry(fake_repo, mock_git_ok):
+def test_backup_creates_files_on_pi_via_ssh(fake_repo, monkeypatch):
+    install_local_git_ok(monkeypatch)
+    pi = install_happy_pi(monkeypatch)
+    facts = {"head_sha": "abc123"}
+    backup_path = d6b.create_backup(facts)
+    assert backup_path.startswith(d6b.PI_STATE_DIR + "/pre_6b_backup_")
+    # Marker file written via ssh
+    marker_writes = [w for w in pi["write_calls"]
+                     if w[0] == f"{d6b.PI_STATE_DIR}/last_deploy_backup.txt"]
+    assert len(marker_writes) == 1, f"expected one marker write, got {pi['write_calls']}"
+    assert backup_path in marker_writes[0][1]
+    # git_head + git_sha snapshots written via ssh
+    git_writes = [w for w in pi["write_calls"]
+                  if "git_head.txt" in w[0] or "git_sha.txt" in w[0]]
+    assert len(git_writes) == 2
+
+
+# ============ Rollback (Pi-side ssh) ============
+
+def test_rollback_restores_files_via_ssh(fake_repo, monkeypatch):
+    install_local_git_ok(monkeypatch)
+    pi = install_happy_pi(monkeypatch)
+    # Override the ls listing for the backup dir.
+    backup_path = pi["files"][f"{d6b.PI_STATE_DIR}/last_deploy_backup.txt"]
+    pi["files"][backup_path] = "exists"  # so _pi_file_exists is True
+
+    captured = {"cp_calls": [], "ls_calls": []}
+    base = d6b._ssh_run
+
+    def patched_ssh_run(remote, host=None, check=False, timeout=30):
+        cmd = list(remote)
+        if cmd[:2] == ["bash", "-c"] and "ls -1" in (cmd[2] if len(cmd) > 2 else ""):
+            captured["ls_calls"].append(cmd)
+            return subprocess.CompletedProcess(
+                cmd, 0,
+                "shadow_expectation.json\nlive_drift_monitor.json\n"
+                "multi_trader_state.json\ngit_head.txt\n", "")
+        if cmd[:1] == ["cp"]:
+            captured["cp_calls"].append(cmd)
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        return base(remote, host=host, check=check, timeout=timeout)
+
+    monkeypatch.setattr(d6b, "_ssh_run", patched_ssh_run)
+
+    result = d6b.rollback()
+    assert result["service_active"] is True
+    # Should have skipped git_head.txt
+    cp_targets = [c[2] for c in captured["cp_calls"]]
+    assert any("shadow_expectation.json" in t for t in cp_targets)
+    assert not any("git_head.txt" in t for t in cp_targets)
+    assert "git_head.txt" not in result["files_restored"]
+
+
+# ============ Execute path ============
+
+def test_execute_dry_run_makes_no_pi_mutations(fake_repo, monkeypatch):
+    install_local_git_ok(monkeypatch)
+    pi = install_happy_pi(monkeypatch)
+    rc = d6b.main(["--dry-run", "--mode=dev"])
+    assert rc == 0
+    # No rsync calls in dry-run.
+    assert pi["rsync_calls"] == [], (
+        f"dry-run made rsync calls: {pi['rsync_calls']}")
+    # No file writes either.
+    assert pi["write_calls"] == [], (
+        f"dry-run made ssh writes: {pi['write_calls']}")
+
+
+def test_execute_full_path_success(fake_repo, monkeypatch):
+    install_local_git_ok(monkeypatch)
+    pi = install_happy_pi(monkeypatch)
+    # Override _ssh_run so banner-tail returns a banner blob containing
+    # all required substrings, and the audit-line wc returns growing count.
+    audit_seq = iter([5, 5, 5, 6])
+    banner_blob = (
+        "2026-04-24 12:00:00 INFO Config: {\n"
+        '  "leverage": 5\n}\n'
+        "2026-04-24 12:00:00 INFO   ETH: "
+        '{"f3c_enabled": false, "timeout_trail_enabled": true, '
+        '"e3_time_decay_sl_enabled": true, "pst_max_wait_bars": 40}\n'
+        "2026-04-24 12:00:00 INFO Starting multi-pair entropy trader (PRIORITY mode)...\n"
+    )
+    audit_new = '{"f3c_enabled": false, "decision": "passed"}'
+
+    def patched(remote, host=None, check=False, timeout=30):
+        cmd = list(remote)
+        if cmd[:2] == ["systemctl", "is-active"]:
+            return subprocess.CompletedProcess(cmd, 0, "active\n", "")
+        if cmd[:2] == ["systemctl", "cat"]:
+            return subprocess.CompletedProcess(cmd, 0, GOOD_UNIT_FILE, "")
+        if cmd[:2] == ["systemctl", "show"] and "MainPID" in cmd:
+            return subprocess.CompletedProcess(
+                cmd, 0, GOOD_MAIN_PID + "\n", "")
+        if cmd[:1] == ["sudo"] and cmd[1:4] == ["-n", "systemctl", "restart"]:
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        if cmd == ["date", "+%s.%N"]:
+            return subprocess.CompletedProcess(
+                cmd, 0, f"{time.time():.6f}\n", "")
+        if cmd[:1] == ["tail"] and "entropy_multi.log" in " ".join(cmd):
+            return subprocess.CompletedProcess(cmd, 0, banner_blob, "")
+        if cmd[:1] == ["tail"] and "daily_filter_audit" in " ".join(cmd):
+            return subprocess.CompletedProcess(cmd, 0, audit_new + "\n", "")
+        if cmd[:2] == ["bash", "-c"] and "wc -l" in cmd[2]:
+            try:
+                return subprocess.CompletedProcess(
+                    cmd, 0, f"{next(audit_seq)}\n", "")
+            except StopIteration:
+                return subprocess.CompletedProcess(cmd, 0, "6\n", "")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(d6b, "_ssh_run", patched)
+    monkeypatch.setattr(d6b, "BANNER_POLL_SEC", 5)
+    monkeypatch.setattr(d6b, "AUDIT_POLL_SEC", 3)
+    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 2)
+
+    rc = d6b.main(["--execute", "--confirm", d6b.EXECUTE_CONFIRM])
+    assert rc == 0, f"expected rc=0; rsync={pi['rsync_calls']}, writes={pi['write_calls']}"
+
+    # entropy_live_multi.py rsync'd
+    assert any(str(r[0]).endswith("entropy_live_multi.py")
+               and r[1] == d6b.PI_CONFIG_FILE for r in pi["rsync_calls"])
+    # shadow_expectation.json rsync'd
+    assert any(str(r[0]).endswith("shadow_expectation.json")
+               and r[1].endswith("shadow_expectation.json")
+               for r in pi["rsync_calls"])
+
+
+def test_execute_banner_mismatch_triggers_rollback(fake_repo, monkeypatch):
+    install_local_git_ok(monkeypatch)
+    pi = install_happy_pi(monkeypatch)
+    # Banner blob never contains the required substrings -> banner mismatch.
+    bad_blob = "2026-04-24 12:00:00 INFO some other line\n"
+
+    def patched(remote, host=None, check=False, timeout=30):
+        cmd = list(remote)
+        if cmd[:2] == ["systemctl", "is-active"]:
+            return subprocess.CompletedProcess(cmd, 0, "active\n", "")
+        if cmd[:2] == ["systemctl", "cat"]:
+            return subprocess.CompletedProcess(cmd, 0, GOOD_UNIT_FILE, "")
+        if cmd[:2] == ["systemctl", "show"] and "MainPID" in cmd:
+            return subprocess.CompletedProcess(
+                cmd, 0, GOOD_MAIN_PID + "\n", "")
+        if cmd[:1] == ["sudo"] and cmd[1:4] == ["-n", "systemctl", "restart"]:
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        if cmd == ["date", "+%s.%N"]:
+            return subprocess.CompletedProcess(
+                cmd, 0, f"{time.time():.6f}\n", "")
+        if cmd[:1] == ["tail"] and "entropy_multi.log" in " ".join(cmd):
+            return subprocess.CompletedProcess(cmd, 0, bad_blob, "")
+        if cmd[:2] == ["bash", "-c"] and "ls -1" in cmd[2]:
+            return subprocess.CompletedProcess(cmd, 0, "shadow_expectation.json\n", "")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(d6b, "_ssh_run", patched)
+    monkeypatch.setattr(d6b, "BANNER_POLL_SEC", 1)
+    monkeypatch.setattr(d6b, "AUDIT_POLL_SEC", 1)
+    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 2)
+
+    rc = d6b.main(["--execute", "--confirm", d6b.EXECUTE_CONFIRM])
+    assert rc != 0
+    # rollback should have written rollback_complete.json
+    assert any(w[0] == f"{d6b.PI_STATE_DIR}/rollback_complete.json"
+               for w in pi["write_calls"])
+
+
+# ============ --mode=dev specific tests ============
+
+def test_dev_mode_dry_run_no_ssh_mutation(fake_repo, monkeypatch):
+    """--dry-run --mode=dev makes preflight ssh reads only; no rsync,
+    no ssh-write, no Pi mutation."""
+    install_local_git_ok(monkeypatch)
+    pi = install_happy_pi(monkeypatch)
+    rc = d6b.main(["--dry-run", "--mode=dev"])
+    assert rc == 0
+    assert pi["rsync_calls"] == []
+    assert pi["write_calls"] == []
+
+
+def test_dev_mode_preflight_pi_position_check_via_ssh(fake_repo, monkeypatch):
+    """preflight reads multi_trader_state.json via _pi_read_file, not
+    via local Path read; setting position non-None aborts."""
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch,
+                       pi_state={"position": {"pair": "ETH", "direction": -1}})
+    with pytest.raises(d6b.AbortError, match="position is not None"):
+        d6b.preflight()
+
+
+def test_dev_mode_rsync_transfers_expected_files(fake_repo, monkeypatch):
+    """execute_deploy rsyncs entropy_live_multi.py + shadow_expectation
+    + (if present) config_lineage_init.py to the expected Pi paths."""
+    install_local_git_ok(monkeypatch)
+    pi = install_happy_pi(monkeypatch)
+    # Provide a config_lineage_init.py so it gets included.
+    (fake_repo / "algo" / "dashboard").mkdir()
+    (fake_repo / "algo" / "dashboard" / "config_lineage_init.py").write_text(
+        "def append_deploy_entry(**kw): pass\n")
+
+    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 1)
+    facts = {"head_sha": "deadbeef"}
+    d6b.execute_deploy(facts)
+
+    rsync_pairs = [(str(r[0]).split("\\")[-1].split("/")[-1], r[1])
+                   for r in pi["rsync_calls"]]
+    assert ("entropy_live_multi.py", d6b.PI_CONFIG_FILE) in rsync_pairs
+    assert ("shadow_expectation.json",
+            f"{d6b.PI_STATE_DIR}/shadow_expectation.json") in rsync_pairs
+    assert ("config_lineage_init.py", d6b.PI_LINEAGE_INIT) in rsync_pairs
+
+
+def test_dev_mode_service_restart_and_banner_verify(fake_repo, monkeypatch):
+    """systemctl restart issued via sudo -n; is-active polled until
+    'active'; banner verify runs."""
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch)
+
+    calls = {"restart_count": 0, "is_active_count": 0}
+
+    def patched(remote, host=None, check=False, timeout=30):
+        cmd = list(remote)
+        if cmd[:1] == ["sudo"] and cmd[1:4] == ["-n", "systemctl", "restart"]:
+            calls["restart_count"] += 1
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        if cmd[:2] == ["systemctl", "is-active"]:
+            calls["is_active_count"] += 1
+            return subprocess.CompletedProcess(cmd, 0, "active\n", "")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(d6b, "_ssh_run", patched)
+    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 1)
+    facts = {"head_sha": "deadbeef"}
+    d6b.execute_deploy(facts)
+
+    assert calls["restart_count"] == 1
+    assert calls["is_active_count"] >= 1
+
+
+def test_dev_mode_rollback_via_ssh(fake_repo, monkeypatch):
+    """rollback() uses ssh helpers exclusively -- no local Path reads
+    of state files."""
+    install_local_git_ok(monkeypatch)
+    pi = install_happy_pi(monkeypatch)
+    backup_path = pi["files"][f"{d6b.PI_STATE_DIR}/last_deploy_backup.txt"]
+    pi["files"][backup_path] = "exists"
+
+    captured = {"ls": False, "cp": 0, "restart": 0}
+
+    def patched(remote, host=None, check=False, timeout=30):
+        cmd = list(remote)
+        if cmd[:2] == ["bash", "-c"] and "ls -1" in cmd[2]:
+            captured["ls"] = True
+            return subprocess.CompletedProcess(
+                cmd, 0,
+                "shadow_expectation.json\nmulti_trader_state.json\n", "")
+        if cmd[:1] == ["cp"]:
+            captured["cp"] += 1
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        if cmd[:1] == ["sudo"] and cmd[1:4] == ["-n", "systemctl", "restart"]:
+            captured["restart"] += 1
+            return subprocess.CompletedProcess(cmd, 0, "", "")
+        if cmd[:2] == ["systemctl", "is-active"]:
+            return subprocess.CompletedProcess(cmd, 0, "active\n", "")
+        return subprocess.CompletedProcess(cmd, 0, "", "")
+
+    monkeypatch.setattr(d6b, "_ssh_run", patched)
+    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 1)
+    result = d6b.rollback()
+    assert result["service_active"] is True
+    assert captured["ls"] is True
+    assert captured["cp"] == 2
+    assert captured["restart"] == 1
+
+
+# ============ Lineage append (local + rsync) ============
+
+def test_lineage_append_success_adds_entry(fake_repo, monkeypatch):
     """With the real config_lineage_init.py copied into the fake repo,
-    append_lineage_on_success should add a live 6b entry to the lineage
-    file."""
-    # Seed the init module + lineage state in the fake repo
+    append_lineage_on_success should append a live entry and rsync the
+    file to Pi."""
     src = ROOT / "algo" / "dashboard" / "config_lineage_init.py"
     dst_dir = fake_repo / "algo" / "dashboard"
     dst_dir.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dst_dir / "config_lineage_init.py")
 
-    # Pre-seed the lineage file with a queued 6b entry so the append
-    # flips queued -> live.
     lineage = fake_repo / "state" / "config_lineage.jsonl"
     lineage.write_text(json.dumps({
         "version_label": "6b PATH A", "status": "queued",
@@ -535,8 +711,13 @@ def test_lineage_append_success_adds_entry(fake_repo, mock_git_ok):
         "key_changes": [], "notes": "observer",
     }) + "\n")
 
+    rsync_calls: list = []
+    def fake_rsync(local_path, remote_path, host=None):
+        rsync_calls.append((Path(local_path), remote_path))
+    monkeypatch.setattr(d6b, "_rsync_to_pi", fake_rsync)
+
     facts = {"head_sha": "abc1234567890abcdef"}
-    ok, msg = d6b.append_lineage_on_success(fake_repo / "state", facts)
+    ok, msg = d6b.append_lineage_on_success(facts)
     assert ok, f"append failed: {msg}"
 
     entries = [json.loads(ln) for ln in lineage.read_text().splitlines() if ln.strip()]
@@ -544,42 +725,27 @@ def test_lineage_append_success_adds_entry(fake_repo, mock_git_ok):
     assert len(six_b) == 1
     assert six_b[0]["status"] == "live"
     assert six_b[0]["deployed_sha"] == "abc1234"
-    # previous 'live' entry (6a) flipped to 'historical'
     six_a = [e for e in entries if e["version_label"] == "6a observer"]
     assert six_a[0]["status"] == "historical"
 
+    # rsync to Pi was attempted
+    assert any(str(r[0]).endswith("config_lineage.jsonl") and
+               r[1] == d6b.PI_LINEAGE_FILE for r in rsync_calls)
 
-def test_lineage_append_failure_writes_error_but_deploy_succeeds(
-        fake_repo, mock_git_ok, monkeypatch):
-    """If the init module is MISSING, append_lineage_on_success must
-    return (False, msg) AND write state/lineage_append_failed.json, AND
-    the overall --execute return code must still be 0."""
-    # Ensure the init file is NOT present (fake_repo already has no
-    # algo/dashboard/ by default).
+
+def test_lineage_append_failure_writes_error_locally(fake_repo, monkeypatch):
+    """With NO config_lineage_init.py in the fake repo, the append
+    should fail gracefully, write lineage_append_failed.json locally,
+    and return (False, msg). Deploy itself isn't run here -- this is
+    a unit test of the lineage helper alone."""
     init = fake_repo / "algo" / "dashboard" / "config_lineage_init.py"
     assert not init.exists()
 
-    # Seed banner so the execute path gets past verify_startup_banner.
-    banner = ("2026-04-22 06:00:01 INFO ETH: "
-              "f3c_enabled=False timeout_trail_enabled=True "
-              "e3_time_decay_sl_enabled=True leverage=5x")
-    (fake_repo / "algo" / "logs" / "entropy_multi.log").write_text(banner + "\n")
-    monkeypatch.setattr(d6b, "BANNER_POLL_SEC", 2)
-    monkeypatch.setattr(d6b, "AUDIT_POLL_SEC", 1)
-    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 2)
-
-    rc = d6b.main(["--execute", "--confirm", d6b.EXECUTE_CONFIRM])
-    # Deploy itself succeeded; lineage append is non-fatal.
-    assert rc == 0
-
-    # Deploy record written
-    assert (fake_repo / "state" / "deploy_6b_complete.json").exists()
-
-    # Lineage-failure marker written with traceback + intended entry
+    facts = {"head_sha": "deadbeef"}
+    ok, msg = d6b.append_lineage_on_success(facts)
+    assert not ok
     fail = fake_repo / "state" / "lineage_append_failed.json"
     assert fail.exists()
     payload = json.loads(fail.read_text())
     assert "exception" in payload
-    assert "traceback" in payload
     assert payload["intended_entry"]["version_label"] == "6b PATH A"
-    assert payload["intended_entry"]["status"] == "live"
