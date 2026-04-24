@@ -6,3 +6,11 @@ algo/__pycache__/
 algo/logs/
 algo/state/
 .claude/
+
+# Sprint v1: scratch / output dirs
+New Text Document*.txt
+algo/status.json
+algo/multi_exchange/
+algo/params/
+data/
+reports_out/
