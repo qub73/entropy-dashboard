@@ -106,6 +106,11 @@ Artifacts: `algo/reports/phase4_sizing_sim.json`.
 
 4. **H mechanical drift (Phase 3 E5 acceptance).** The entropy Markov transition matrix rebuilds every bar; median H crosses the `h_exit_threshold` within ~15 bars on *every* trade regardless of outcome, not just invalidated ones. Absolute-threshold E5 cannot discriminate between drift and thesis invalidation. Rejected; dH-gated E5 flagged as future-sprint candidate.
 
+5. **Verification-timeout-masquerading-as-deploy-failure (Stage 6b deploy, 2026-04-24).** `deploy_6b.py`'s banner-tail ssh timeout was 10s, insufficient for a freshly-restarted Pi building engine state post-restart. Deploy succeeded at the code level (banner printed correctly, verified by file mtime and bot's own log) but verification ssh call timed out, triggering auto-rollback. Rollback only restored state files (not code, which wasn't in the backup set), leaving code=new, state=old. Manually recovered via Option 1: scp'd correct shadow to Pi, cleared drift monitor, updated lineage, wrote deploy record. Actual deploy confirmed at 2026-04-24T13:29:39Z per Pi banner log. Follow-up sprint items for `deploy_6b.py` hardening:
+   - (a) verification timeout should be 60s+ or use polling with retry
+   - (b) rollback backup set should include code files for full symmetric revertability
+   - (c) rollback should verify ALL files reverted, not just state files
+
 ---
 
 ## Phase 6 live-promotion checklist (STAGED)
