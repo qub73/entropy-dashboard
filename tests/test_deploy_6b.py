@@ -138,8 +138,13 @@ def install_happy_pi(monkeypatch, *,
 
 
 def install_local_git_ok(monkeypatch):
-    """Patch _run to fake clean git state (status, branch=main, HEAD
-    subject matches PATH A). Local-only; not for ssh commands."""
+    """Patch _run to fake clean git state (status, branch=main, recent
+    commits include PATH A subject). Local-only; not for ssh commands."""
+    recent = (
+        "merge: sprint v1 PATH A\n"
+        + d6b.EXPECTED_COMMIT_SUBJECT + "\n"
+        + "sprint v1: gitignore tune\n"
+    )
     def fake_run(cmd, check=True, timeout=30, capture=True):
         if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)]:
             rest = cmd[3:]
@@ -147,9 +152,11 @@ def install_local_git_ok(monkeypatch):
                 return subprocess.CompletedProcess(cmd, 0, "", "")
             if rest == ["branch", "--show-current"]:
                 return subprocess.CompletedProcess(cmd, 0, "main\n", "")
+            if rest[:2] == ["log", "-10"] and "--format=%s" in rest:
+                return subprocess.CompletedProcess(cmd, 0, recent, "")
             if rest[:2] == ["log", "-1"] and "--format=%s" in rest:
                 return subprocess.CompletedProcess(
-                    cmd, 0, d6b.EXPECTED_COMMIT_SUBJECT + "\n", "")
+                    cmd, 0, "merge: sprint v1 PATH A\n", "")
             if rest == ["rev-parse", "HEAD"]:
                 return subprocess.CompletedProcess(
                     cmd, 0, "deadbeefdeadbeef\n", "")
@@ -250,20 +257,21 @@ def test_preflight_wrong_branch_aborts(fake_repo, monkeypatch):
         d6b.preflight()
 
 
-def test_preflight_wrong_head_subject_aborts(fake_repo, monkeypatch):
+def test_preflight_expected_subject_not_in_recent_aborts(fake_repo, monkeypatch):
     def fake_run(cmd, check=True, timeout=30, capture=True):
         rest = cmd[3:] if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)] else []
         if rest[:2] == ["status", "--porcelain"]:
             return subprocess.CompletedProcess(cmd, 0, "", "")
         if rest == ["branch", "--show-current"]:
             return subprocess.CompletedProcess(cmd, 0, "main\n", "")
-        if rest[:2] == ["log", "-1"] and "--format=%s" in rest:
-            return subprocess.CompletedProcess(cmd, 0, "wrong subject\n", "")
+        if rest[:2] == ["log", "-10"] and "--format=%s" in rest:
+            return subprocess.CompletedProcess(
+                cmd, 0, "wrong subject\nanother wrong\n", "")
         if rest == ["rev-parse", "HEAD"]:
             return subprocess.CompletedProcess(cmd, 0, "dead\n", "")
         return subprocess.CompletedProcess(cmd, 0, "", "")
     monkeypatch.setattr(d6b, "_run", fake_run)
-    with pytest.raises(d6b.AbortError, match="HEAD subject is"):
+    with pytest.raises(d6b.AbortError, match="not found in last 10 commits"):
         d6b.preflight()
 
 

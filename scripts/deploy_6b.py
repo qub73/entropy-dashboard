@@ -535,15 +535,21 @@ def preflight() -> dict:
         )
     facts["branch"] = branch
 
-    # 3. HEAD commit subject + SHA (LOCAL)
-    res = _run(["git", "-C", str(REPO_ROOT), "log", "-1", "--format=%s"])
-    subject = res.stdout.strip()
-    if subject != EXPECTED_COMMIT_SUBJECT:
+    # 3. PATH A commit subject present in recent history (LOCAL).
+    # Looks at the last 10 commits, not just HEAD, so a `--no-ff` merge
+    # commit at HEAD doesn't fail this check (the PATH A commit will
+    # be at HEAD~1 or HEAD^2 in that case).
+    res = _run(["git", "-C", str(REPO_ROOT), "log", "-10", "--format=%s"])
+    recent = res.stdout.strip().splitlines()
+    if EXPECTED_COMMIT_SUBJECT not in recent:
         raise AbortError(
-            f"HEAD subject is:\n  {subject!r}\nexpected:\n  "
-            f"{EXPECTED_COMMIT_SUBJECT!r}"
+            f"EXPECTED_COMMIT_SUBJECT not found in last 10 commits.\n"
+            f"  expected: {EXPECTED_COMMIT_SUBJECT!r}\n"
+            f"  recent:   {recent}"
         )
-    facts["head_subject"] = subject
+    facts["head_subject"] = recent[0]
+    facts["expected_subject_found_at_index"] = recent.index(
+        EXPECTED_COMMIT_SUBJECT)
     res = _run(["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"])
     facts["head_sha"] = res.stdout.strip()
 
