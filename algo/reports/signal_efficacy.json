@@ -1,0 +1,557 @@
+{
+  "live": [
+    {
+      "peak_abs_bps": 86.6,
+      "peak_in_dir_bps": 86.6,
+      "peak_against_bps": 26.7,
+      "actual_pnl_bps": 30.5,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 63.5,
+      "peak_in_dir_bps": 32.8,
+      "peak_against_bps": 63.5,
+      "actual_pnl_bps": -53.9,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 207.3,
+      "peak_in_dir_bps": 207.3,
+      "peak_against_bps": 44.2,
+      "actual_pnl_bps": 129.1,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 85.3,
+      "peak_in_dir_bps": 4.0,
+      "peak_against_bps": 85.3,
+      "actual_pnl_bps": -52.6,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 183.9,
+      "peak_in_dir_bps": 183.9,
+      "peak_against_bps": 161.6,
+      "actual_pnl_bps": -53.8,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 133.5,
+      "peak_in_dir_bps": 5.3,
+      "peak_against_bps": 133.5,
+      "actual_pnl_bps": -64.8,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 101.3,
+      "peak_in_dir_bps": 51.8,
+      "peak_against_bps": 101.3,
+      "actual_pnl_bps": -56.8,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 72.1,
+      "peak_in_dir_bps": 72.1,
+      "peak_against_bps": 28.6,
+      "actual_pnl_bps": 15.2,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 159.5,
+      "peak_in_dir_bps": 159.5,
+      "peak_against_bps": 2.7,
+      "actual_pnl_bps": 74.8,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 67.4,
+      "peak_in_dir_bps": 0.0,
+      "peak_against_bps": 67.4,
+      "actual_pnl_bps": -65.5,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 204.9,
+      "peak_in_dir_bps": 49.5,
+      "peak_against_bps": 204.9,
+      "actual_pnl_bps": -20.9,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 45.4,
+      "peak_in_dir_bps": 45.4,
+      "peak_against_bps": 43.0,
+      "actual_pnl_bps": -4.2,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 184.0,
+      "peak_in_dir_bps": 184.0,
+      "peak_against_bps": 10.0,
+      "actual_pnl_bps": 133.6,
+      "direction": 1
+    },
+    {
+      "peak_abs_bps": 65.0,
+      "peak_in_dir_bps": 5.0,
+      "peak_against_bps": 65.0,
+      "actual_pnl_bps": -58.2,
+      "direction": 1
+    }
+  ],
+  "backtest": [
+    {
+      "entry_bar": "31",
+      "entry_price": 1998.75,
+      "direction": 1,
+      "peak_pos_bps": -4.252657911194557,
+      "peak_neg_bps": -365.978736710445,
+      "peak_abs_bps": 365.978736710445,
+      "peak_in_dir_bps": -4.252657911194557,
+      "peak_against_bps": 365.978736710445,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "1008",
+      "entry_price": 1975.4,
+      "direction": -1,
+      "peak_pos_bps": 20.24906348081501,
+      "peak_neg_bps": -155.41156221524744,
+      "peak_abs_bps": 155.41156221524744,
+      "peak_in_dir_bps": 155.41156221524744,
+      "peak_against_bps": 20.24906348081501,
+      "actual_pnl_bps": 149.58995646451422
+    },
+    {
+      "entry_bar": "1600",
+      "entry_price": 1919.85,
+      "direction": -1,
+      "peak_pos_bps": 164.33575539755773,
+      "peak_neg_bps": -14.844909758574554,
+      "peak_abs_bps": 164.33575539755773,
+      "peak_in_dir_bps": 14.844909758574554,
+      "peak_against_bps": 164.33575539755773,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "2350",
+      "entry_price": 1949.75,
+      "direction": 1,
+      "peak_pos_bps": 112.06564944223673,
+      "peak_neg_bps": 16.155917425311195,
+      "peak_abs_bps": 112.06564944223673,
+      "peak_in_dir_bps": 112.06564944223673,
+      "peak_against_bps": -16.155917425311195,
+      "actual_pnl_bps": 97.96127708680658
+    },
+    {
+      "entry_bar": "2831",
+      "entry_price": 1950.25,
+      "direction": -1,
+      "peak_pos_bps": 140.2384309703897,
+      "peak_neg_bps": -79.73336751698312,
+      "peak_abs_bps": 140.2384309703897,
+      "peak_in_dir_bps": 79.73336751698312,
+      "peak_against_bps": 140.2384309703897,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "3578",
+      "entry_price": 1960.65,
+      "direction": 1,
+      "peak_pos_bps": 24.73669446356963,
+      "peak_neg_bps": -24.226659526177528,
+      "peak_abs_bps": 24.73669446356963,
+      "peak_in_dir_bps": 24.73669446356963,
+      "peak_against_bps": 24.226659526177528,
+      "actual_pnl_bps": -2.0401397495728446
+    },
+    {
+      "entry_bar": "5561",
+      "entry_price": 1976.35,
+      "direction": -1,
+      "peak_pos_bps": -5.81880739747298,
+      "peak_neg_bps": -159.63771599160182,
+      "peak_abs_bps": 159.63771599160182,
+      "peak_in_dir_bps": 159.63771599160182,
+      "peak_against_bps": -5.81880739747298,
+      "actual_pnl_bps": 124.47187998077203
+    },
+    {
+      "entry_bar": "6239",
+      "entry_price": 1949.85,
+      "direction": -1,
+      "peak_pos_bps": 43.84952688668342,
+      "peak_neg_bps": -494.653434879605,
+      "peak_abs_bps": 494.653434879605,
+      "peak_in_dir_bps": 494.653434879605,
+      "peak_against_bps": 43.84952688668342,
+      "actual_pnl_bps": 200
+    },
+    {
+      "entry_bar": "6594",
+      "entry_price": 1868.75,
+      "direction": -1,
+      "peak_pos_bps": 98.72909698996901,
+      "peak_neg_bps": -38.26086956521646,
+      "peak_abs_bps": 98.72909698996901,
+      "peak_in_dir_bps": 38.26086956521646,
+      "peak_against_bps": 98.72909698996901,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "7742",
+      "entry_price": 1862.05,
+      "direction": -1,
+      "peak_pos_bps": 37.32445423055175,
+      "peak_neg_bps": -258.58596707929337,
+      "peak_abs_bps": 258.58596707929337,
+      "peak_in_dir_bps": 258.58596707929337,
+      "peak_against_bps": 37.32445423055175,
+      "actual_pnl_bps": 200
+    },
+    {
+      "entry_bar": "8166",
+      "entry_price": 1829.1,
+      "direction": -1,
+      "peak_pos_bps": 30.069433054509265,
+      "peak_neg_bps": -71.07320540156392,
+      "peak_abs_bps": 71.07320540156392,
+      "peak_in_dir_bps": 71.07320540156392,
+      "peak_against_bps": 30.069433054509265,
+      "actual_pnl_bps": 43.4639986878782
+    },
+    {
+      "entry_bar": "8992",
+      "entry_price": 1848.25,
+      "direction": -1,
+      "peak_pos_bps": 319.491410793995,
+      "peak_neg_bps": -11.632625456512447,
+      "peak_abs_bps": 319.491410793995,
+      "peak_in_dir_bps": 11.632625456512447,
+      "peak_against_bps": 319.491410793995,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "10387",
+      "entry_price": 2069.2,
+      "direction": 1,
+      "peak_pos_bps": 310.2648366518479,
+      "peak_neg_bps": -158.51536825826295,
+      "peak_abs_bps": 310.2648366518479,
+      "peak_in_dir_bps": 310.2648366518479,
+      "peak_against_bps": 158.51536825826295,
+      "actual_pnl_bps": 200
+    },
+    {
+      "entry_bar": "11052",
+      "entry_price": 2058.55,
+      "direction": 1,
+      "peak_pos_bps": 116.82980738869419,
+      "peak_neg_bps": -55.62167545116847,
+      "peak_abs_bps": 116.82980738869419,
+      "peak_in_dir_bps": 116.82980738869419,
+      "peak_against_bps": 55.62167545116847,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "11711",
+      "entry_price": 2001.05,
+      "direction": 1,
+      "peak_pos_bps": 198.14597336398344,
+      "peak_neg_bps": -1.2493440943517342,
+      "peak_abs_bps": 198.14597336398344,
+      "peak_in_dir_bps": 198.14597336398344,
+      "peak_against_bps": 1.2493440943517342,
+      "actual_pnl_bps": 170.1606656505339
+    },
+    {
+      "entry_bar": "12945",
+      "entry_price": 1952.65,
+      "direction": -1,
+      "peak_pos_bps": -6.401556858628421,
+      "peak_neg_bps": -223.54236550329088,
+      "peak_abs_bps": 223.54236550329088,
+      "peak_in_dir_bps": 223.54236550329088,
+      "peak_against_bps": -6.401556858628421,
+      "actual_pnl_bps": 200
+    },
+    {
+      "entry_bar": "13482",
+      "entry_price": 1936.05,
+      "direction": 1,
+      "peak_pos_bps": -0.2582577929288732,
+      "peak_neg_bps": -80.83468918674508,
+      "peak_abs_bps": 80.83468918674508,
+      "peak_in_dir_bps": -0.2582577929288732,
+      "peak_against_bps": 80.83468918674508,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "13810",
+      "entry_price": 1920.25,
+      "direction": 1,
+      "peak_pos_bps": 0.2603827626601607,
+      "peak_neg_bps": -429.89194115349517,
+      "peak_abs_bps": 429.89194115349517,
+      "peak_in_dir_bps": 0.2603827626601607,
+      "peak_against_bps": 429.89194115349517,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "14089",
+      "entry_price": 1856.4,
+      "direction": -1,
+      "peak_pos_bps": 312.9713423831082,
+      "peak_neg_bps": -2.6933850463262132,
+      "peak_abs_bps": 312.9713423831082,
+      "peak_in_dir_bps": 2.6933850463262132,
+      "peak_against_bps": 312.9713423831082,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "14509",
+      "entry_price": 1896.45,
+      "direction": -1,
+      "peak_pos_bps": 390.4663977431522,
+      "peak_neg_bps": -35.06551715046547,
+      "peak_abs_bps": 390.4663977431522,
+      "peak_in_dir_bps": 35.06551715046547,
+      "peak_against_bps": 390.4663977431522,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "15434",
+      "entry_price": 2001.55,
+      "direction": -1,
+      "peak_pos_bps": -6.744772801078325,
+      "peak_neg_bps": -134.64564962154202,
+      "peak_abs_bps": 134.64564962154202,
+      "peak_in_dir_bps": 134.64564962154202,
+      "peak_against_bps": -6.744772801078325,
+      "actual_pnl_bps": 86.93262721390815
+    },
+    {
+      "entry_bar": "15747",
+      "entry_price": 2007.85,
+      "direction": -1,
+      "peak_pos_bps": 91.39128918992823,
+      "peak_neg_bps": -244.2911572079598,
+      "peak_abs_bps": 244.2911572079598,
+      "peak_in_dir_bps": 244.2911572079598,
+      "peak_against_bps": 91.39128918992823,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "16475",
+      "entry_price": 1948.35,
+      "direction": -1,
+      "peak_pos_bps": 172.196987194293,
+      "peak_neg_bps": -39.26399260912983,
+      "peak_abs_bps": 172.196987194293,
+      "peak_in_dir_bps": 39.26399260912983,
+      "peak_against_bps": 172.196987194293,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "16725",
+      "entry_price": 1959.35,
+      "direction": -1,
+      "peak_pos_bps": 35.981320335827235,
+      "peak_neg_bps": -172.76137494577236,
+      "peak_abs_bps": 172.76137494577236,
+      "peak_in_dir_bps": 172.76137494577236,
+      "peak_against_bps": 35.981320335827235,
+      "actual_pnl_bps": 59.20330721922995
+    },
+    {
+      "entry_bar": "17093",
+      "entry_price": 1938.25,
+      "direction": 1,
+      "peak_pos_bps": 701.4059073906865,
+      "peak_neg_bps": -84.87037275893172,
+      "peak_abs_bps": 701.4059073906865,
+      "peak_in_dir_bps": 701.4059073906865,
+      "peak_against_bps": 84.87037275893172,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "18485",
+      "entry_price": 1962.55,
+      "direction": 1,
+      "peak_pos_bps": 126.11143665129498,
+      "peak_neg_bps": -134.2640951822882,
+      "peak_abs_bps": 134.2640951822882,
+      "peak_in_dir_bps": 126.11143665129498,
+      "peak_against_bps": 134.2640951822882,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "20009",
+      "entry_price": 2057.75,
+      "direction": 1,
+      "peak_pos_bps": 476.97728101081526,
+      "peak_neg_bps": -16.27991738549328,
+      "peak_abs_bps": 476.97728101081526,
+      "peak_in_dir_bps": 476.97728101081526,
+      "peak_against_bps": 16.27991738549328,
+      "actual_pnl_bps": 200
+    },
+    {
+      "entry_bar": "20352",
+      "entry_price": 2154.6499999999996,
+      "direction": -1,
+      "peak_pos_bps": 207.69034413942398,
+      "peak_neg_bps": -85.6287564105529,
+      "peak_abs_bps": 207.69034413942398,
+      "peak_in_dir_bps": 85.6287564105529,
+      "peak_against_bps": 207.69034413942398,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "20670",
+      "entry_price": 2130.45,
+      "direction": -1,
+      "peak_pos_bps": 48.581285643880534,
+      "peak_neg_bps": -99.74418550071529,
+      "peak_abs_bps": 99.74418550071529,
+      "peak_in_dir_bps": 99.74418550071529,
+      "peak_against_bps": 48.581285643880534,
+      "actual_pnl_bps": 49.75474664976609
+    },
+    {
+      "entry_bar": "21498",
+      "entry_price": 2116.05,
+      "direction": -1,
+      "peak_pos_bps": 46.076415963705045,
+      "peak_neg_bps": -281.89314997282946,
+      "peak_abs_bps": 281.89314997282946,
+      "peak_in_dir_bps": 281.89314997282946,
+      "peak_against_bps": 46.076415963705045,
+      "actual_pnl_bps": 200
+    },
+    {
+      "entry_bar": "21842",
+      "entry_price": 2079.75,
+      "direction": 1,
+      "peak_pos_bps": 90.1550667147477,
+      "peak_neg_bps": -36.30244019714013,
+      "peak_abs_bps": 90.1550667147477,
+      "peak_in_dir_bps": 90.1550667147477,
+      "peak_against_bps": 36.30244019714013,
+      "actual_pnl_bps": -13.463156629403006
+    },
+    {
+      "entry_bar": "22916",
+      "entry_price": 2055.9,
+      "direction": -1,
+      "peak_pos_bps": -7.2960747118056,
+      "peak_neg_bps": -466.46237657473665,
+      "peak_abs_bps": 466.46237657473665,
+      "peak_in_dir_bps": 466.46237657473665,
+      "peak_against_bps": -7.2960747118056,
+      "actual_pnl_bps": 200
+    },
+    {
+      "entry_bar": "24358",
+      "entry_price": 1978.6,
+      "direction": -1,
+      "peak_pos_bps": 47.508339229758164,
+      "peak_neg_bps": -43.46507631658669,
+      "peak_abs_bps": 47.508339229758164,
+      "peak_in_dir_bps": 43.46507631658669,
+      "peak_against_bps": 47.508339229758164,
+      "actual_pnl_bps": -11.877084807441207
+    },
+    {
+      "entry_bar": "25603",
+      "entry_price": 1976.75,
+      "direction": 1,
+      "peak_pos_bps": 9.358796003542391,
+      "peak_neg_bps": -259.76982420639837,
+      "peak_abs_bps": 259.76982420639837,
+      "peak_in_dir_bps": 9.358796003542391,
+      "peak_against_bps": 259.76982420639837,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "26538",
+      "entry_price": 1944.45,
+      "direction": 1,
+      "peak_pos_bps": 353.57041837023485,
+      "peak_neg_bps": -26.48563861246234,
+      "peak_abs_bps": 353.57041837023485,
+      "peak_in_dir_bps": 353.57041837023485,
+      "peak_against_bps": 26.48563861246234,
+      "actual_pnl_bps": 200
+    },
+    {
+      "entry_bar": "26814",
+      "entry_price": 1995.5500000000002,
+      "direction": -1,
+      "peak_pos_bps": 122.52261281350928,
+      "peak_neg_bps": -152.58951166345236,
+      "peak_abs_bps": 152.58951166345236,
+      "peak_in_dir_bps": 152.58951166345236,
+      "peak_against_bps": 122.52261281350928,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "27399",
+      "entry_price": 2027.15,
+      "direction": -1,
+      "peak_pos_bps": 108.28009767407387,
+      "peak_neg_bps": -99.40063636139307,
+      "peak_abs_bps": 108.28009767407387,
+      "peak_in_dir_bps": 99.40063636139307,
+      "peak_against_bps": 108.28009767407387,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "28512",
+      "entry_price": 2061.8500000000004,
+      "direction": -1,
+      "peak_pos_bps": 115.18781676649547,
+      "peak_neg_bps": -243.22816887746623,
+      "peak_abs_bps": 243.22816887746623,
+      "peak_in_dir_bps": 243.22816887746623,
+      "peak_against_bps": 115.18781676649547,
+      "actual_pnl_bps": 200
+    },
+    {
+      "entry_bar": "29734",
+      "entry_price": 2014.95,
+      "direction": -1,
+      "peak_pos_bps": 93.55070845430413,
+      "peak_neg_bps": -29.529268716346202,
+      "peak_abs_bps": 93.55070845430413,
+      "peak_in_dir_bps": 29.529268716346202,
+      "peak_against_bps": 93.55070845430413,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "30146",
+      "entry_price": 2054.0,
+      "direction": 1,
+      "peak_pos_bps": 370.0097370983424,
+      "peak_neg_bps": -98.83154819863572,
+      "peak_abs_bps": 370.0097370983424,
+      "peak_in_dir_bps": 370.0097370983424,
+      "peak_against_bps": 98.83154819863572,
+      "actual_pnl_bps": -50
+    },
+    {
+      "entry_bar": "30483",
+      "entry_price": 2087.75,
+      "direction": -1,
+      "peak_pos_bps": 17.00395162256063,
+      "peak_neg_bps": -119.50664591066639,
+      "peak_abs_bps": 119.50664591066639,
+      "peak_in_dir_bps": 119.50664591066639,
+      "peak_against_bps": 17.00395162256063,
+      "actual_pnl_bps": 41.19267153634421
+    }
+  ],
+  "n_live": 14,
+  "n_bt": 41
+}

@@ -1,0 +1,212 @@
+
+==============================================================================================================
+IMPROVEMENT SWEEP - BTC
+==============================================================================================================
+Loading data/kaggle/BTC_USDT.csv...
+  Total columns: 202
+  Loading 41 columns (top 10 levels + timestamp)
+  Loaded 507,675 rows, 41 cols
+  Detected 10 orderbook levels
+  Valid rows: 507,675
+  Date range: 2023-10-07 11:21:00 -> 2024-10-07 22:46:00
+  Mid: $27,984.94 -> $63,048.01
+  Mean spread: 0.00 bps
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260218.jsonl.gz: 3142 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260219.jsonl.gz: 8584 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260220.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260221.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260222.jsonl.gz: 8635 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260223.jsonl.gz: 8616 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260224.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260225.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260226.jsonl.gz: 8540 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260227.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260228.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260301.jsonl.gz: 8610 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260302.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260303.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260304.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260305.jsonl.gz: 8532 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260306.jsonl.gz: 8622 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260307.jsonl.gz: 8613 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260308.jsonl.gz: 8623 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260309.jsonl.gz: 8493 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260310.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260311.jsonl: 5931 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260407.jsonl: 2225 snapshots
+Total: 183342 snapshots, 2026-02-18 15:16:04.907999992 -> 2026-04-07 15:38:41.819000006
+  Resampled Pi data: 183,342 -> 30,643 bars
+
+Name                       Tr   WR     Ret%    DD%  Calmar  AvgBps
+----------------------------------------------------------------------
+BASELINE (live)            34  53%  +294.8%  20.7% +14.21  +63.4
+I1: dH<0                   33  52%  +268.3%  20.4% +13.17  +62.6
+I2: ATR-SL                 37  32%  +120.6%  15.8%  +7.65  +39.6
+I3: VWAP trend             21  52%  +107.1%  21.8%  +4.91  +57.5
+I4: Depth guard            33  52%  +262.2%  20.7% +12.63  +62.0
+I5: Spread*imb             34  53%  +294.8%  20.7% +14.21  +63.4
+I1+I2                      34  26%   +84.9%  22.8%  +3.72  +36.2
+I1+I3                      19  47%   +84.3%  21.9%  +3.85  +55.4
+I1+I4                      32  50%  +237.9%  20.4% +11.67  +61.1
+I1+I5                      33  52%  +268.3%  20.4% +13.17  +62.6
+I2+I3                      21  38%   +86.8%  16.7%  +5.21  +50.0
+I2+I4                      34  35%  +149.4%  16.1%  +9.28  +46.2
+I3+I4                      20  55%  +122.1%  22.0%  +5.56  +63.7
+I4+I5                      33  52%  +262.2%  20.7% +12.63  +62.0
+I1+I2+I3                   19  32%   +66.1%  16.7%  +3.96  +47.0
+I1+I2+I4                   32  28%  +101.5%  16.0%  +6.32  +40.8
+I1+I3+I4                   18  50%   +97.6%  22.0%  +4.44  +62.0
+I1+I4+I5                   32  50%  +237.9%  20.4% +11.67  +61.1
+I2+I3+I4                   20  40%   +93.7%  14.1%  +6.64  +54.0
+I1+I2+I5                   34  26%   +84.9%  22.8%  +3.72  +36.2
+I1+I2+I3+I4                18  33%   +72.3%  14.2%  +5.11  +51.3
+I1+I2+I4+I5                32  28%  +101.5%  16.0%  +6.32  +40.8
+I1+I3+I4+I5                18  50%   +97.6%  22.0%  +4.44  +62.0
+ALL (I1-I5)                18  33%   +72.3%  14.2%  +5.11  +51.3
+
+RANKED BY CALMAR (BTC):
+    BASELINE (live)          Cal=+14.21 (d+0.00) Ret= +294.8% DD= 20.7%
+    I5: Spread*imb           Cal=+14.21 (d+0.00) Ret= +294.8% DD= 20.7%
+    I1: dH<0                 Cal=+13.17 (d-1.04) Ret= +268.3% DD= 20.4%
+    I1+I5                    Cal=+13.17 (d-1.04) Ret= +268.3% DD= 20.4%
+    I4: Depth guard          Cal=+12.63 (d-1.57) Ret= +262.2% DD= 20.7%
+    I4+I5                    Cal=+12.63 (d-1.57) Ret= +262.2% DD= 20.7%
+    I1+I4                    Cal=+11.67 (d-2.53) Ret= +237.9% DD= 20.4%
+    I1+I4+I5                 Cal=+11.67 (d-2.53) Ret= +237.9% DD= 20.4%
+    I2+I4                    Cal= +9.28 (d-4.93) Ret= +149.4% DD= 16.1%
+    I2: ATR-SL               Cal= +7.65 (d-6.56) Ret= +120.6% DD= 15.8%
+    I2+I3+I4                 Cal= +6.64 (d-7.57) Ret=  +93.7% DD= 14.1%
+    I1+I2+I4                 Cal= +6.32 (d-7.88) Ret= +101.5% DD= 16.0%
+    I1+I2+I4+I5              Cal= +6.32 (d-7.88) Ret= +101.5% DD= 16.0%
+    I3+I4                    Cal= +5.56 (d-8.64) Ret= +122.1% DD= 22.0%
+    I2+I3                    Cal= +5.21 (d-9.00) Ret=  +86.8% DD= 16.7%
+    I1+I2+I3+I4              Cal= +5.11 (d-9.10) Ret=  +72.3% DD= 14.2%
+    ALL (I1-I5)              Cal= +5.11 (d-9.10) Ret=  +72.3% DD= 14.2%
+    I3: VWAP trend           Cal= +4.91 (d-9.30) Ret= +107.1% DD= 21.8%
+    I1+I3+I4                 Cal= +4.44 (d-9.77) Ret=  +97.6% DD= 22.0%
+    I1+I3+I4+I5              Cal= +4.44 (d-9.77) Ret=  +97.6% DD= 22.0%
+    I1+I2+I3                 Cal= +3.96 (d-10.24) Ret=  +66.1% DD= 16.7%
+    I1+I3                    Cal= +3.85 (d-10.35) Ret=  +84.3% DD= 21.9%
+    I1+I2                    Cal= +3.72 (d-10.49) Ret=  +84.9% DD= 22.8%
+    I1+I2+I5                 Cal= +3.72 (d-10.49) Ret=  +84.9% DD= 22.8%
+
+==============================================================================================================
+IMPROVEMENT SWEEP - ETH
+==============================================================================================================
+Loading data/kaggle/ETH_USDT.csv...
+  Total columns: 202
+  Loading 41 columns (top 10 levels + timestamp)
+  Loaded 504,717 rows, 41 cols
+  Detected 10 orderbook levels
+  Valid rows: 504,717
+  Date range: 2023-10-07 11:21:00 -> 2024-10-09 17:34:00
+  Mid: $1,640.89 -> $2,439.28
+  Mean spread: 0.04 bps
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260218.jsonl.gz: 3142 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260219.jsonl.gz: 8584 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260220.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260221.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260222.jsonl.gz: 8635 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260223.jsonl.gz: 8616 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260224.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260225.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260226.jsonl.gz: 8540 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260227.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260228.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260301.jsonl.gz: 8610 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260302.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260303.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260304.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260305.jsonl.gz: 8537 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260306.jsonl.gz: 8622 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260307.jsonl.gz: 8613 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260308.jsonl.gz: 8623 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260309.jsonl.gz: 8493 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260310.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260311.jsonl: 5931 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260407.jsonl: 2225 snapshots
+Total: 183347 snapshots, 2026-02-18 15:16:04.907999992 -> 2026-04-07 15:38:41.819000006
+  Resampled Pi data: 183,347 -> 30,644 bars
+
+Name                       Tr   WR     Ret%    DD%  Calmar  AvgBps
+----------------------------------------------------------------------
+BASELINE (live)            56  45%  +333.7%  17.0% +19.60  +44.7
+I1: dH<0                   53  45%  +366.9%  13.5% +27.23  +48.2
+I2: ATR-SL                 61  31%  +118.7%  17.3%  +6.86  +27.9
+I3: VWAP trend             34  44%  +114.8%  13.8%  +8.33  +40.0
+I4: Depth guard            49  41%  +121.7%  20.7%  +5.87  +32.4
+I5: Spread*imb             56  43%  +273.9%  27.2% +10.09  +41.7
+I1+I2                      55  33%  +138.2%  20.2%  +6.85  +31.4
+I1+I3                      31  48%  +153.8%  10.3% +15.00  +48.7
+I1+I4                      47  38%   +65.0%  18.3%  +3.56  +25.9
+I1+I5                      52  44%  +325.5%  24.1% +13.50  +46.8
+I2+I3                      36  36%   +98.6%  24.3%  +4.05  +35.2
+I2+I4                      51  29%   +60.0%  19.9%  +3.01  +23.5
+I3+I4                      29  48%  +120.5%  13.6%  +8.88  +45.2
+I4+I5                      49  39%   +91.1%  30.4%  +3.00  +29.0
+I1+I2+I3                   33  39%  +121.7%  22.4%  +5.44  +41.1
+I1+I2+I4                   47  32%   +85.3%  17.5%  +4.88  +28.0
+I1+I3+I4                   27  44%   +71.2%  18.3%  +3.90  +36.5
+I1+I4+I5                   47  36%   +42.2%  27.4%  +1.54  +22.3
+I2+I3+I4                   31  39%  +103.9%  16.3%  +6.35  +39.7
+I1+I2+I5                   54  31%  +117.1%  26.8%  +4.36  +29.8
+I1+I2+I3+I4                28  43%  +127.6%  14.0%  +9.11  +47.2
+I1+I2+I4+I5                47  30%   +62.8%  23.5%  +2.67  +24.9
+I1+I3+I4+I5                27  41%   +47.6%  18.3%  +2.61  +30.3
+ALL (I1-I5)                28  39%   +99.9%  15.0%  +6.65  +41.9
+
+RANKED BY CALMAR (ETH):
+  + I1: dH<0                 Cal=+27.23 (d+7.63) Ret= +366.9% DD= 13.5%
+    BASELINE (live)          Cal=+19.60 (d+0.00) Ret= +333.7% DD= 17.0%
+    I1+I3                    Cal=+15.00 (d-4.60) Ret= +153.8% DD= 10.3%
+    I1+I5                    Cal=+13.50 (d-6.10) Ret= +325.5% DD= 24.1%
+    I5: Spread*imb           Cal=+10.09 (d-9.52) Ret= +273.9% DD= 27.2%
+    I1+I2+I3+I4              Cal= +9.11 (d-10.49) Ret= +127.6% DD= 14.0%
+    I3+I4                    Cal= +8.88 (d-10.72) Ret= +120.5% DD= 13.6%
+    I3: VWAP trend           Cal= +8.33 (d-11.27) Ret= +114.8% DD= 13.8%
+    I2: ATR-SL               Cal= +6.86 (d-12.74) Ret= +118.7% DD= 17.3%
+    I1+I2                    Cal= +6.85 (d-12.75) Ret= +138.2% DD= 20.2%
+    ALL (I1-I5)              Cal= +6.65 (d-12.96) Ret=  +99.9% DD= 15.0%
+    I2+I3+I4                 Cal= +6.35 (d-13.25) Ret= +103.9% DD= 16.3%
+    I4: Depth guard          Cal= +5.87 (d-13.73) Ret= +121.7% DD= 20.7%
+    I1+I2+I3                 Cal= +5.44 (d-14.16) Ret= +121.7% DD= 22.4%
+    I1+I2+I4                 Cal= +4.88 (d-14.72) Ret=  +85.3% DD= 17.5%
+    I1+I2+I5                 Cal= +4.36 (d-15.24) Ret= +117.1% DD= 26.8%
+    I2+I3                    Cal= +4.05 (d-15.55) Ret=  +98.6% DD= 24.3%
+    I1+I3+I4                 Cal= +3.90 (d-15.70) Ret=  +71.2% DD= 18.3%
+    I1+I4                    Cal= +3.56 (d-16.04) Ret=  +65.0% DD= 18.3%
+    I2+I4                    Cal= +3.01 (d-16.59) Ret=  +60.0% DD= 19.9%
+    I4+I5                    Cal= +3.00 (d-16.60) Ret=  +91.1% DD= 30.4%
+    I1+I2+I4+I5              Cal= +2.67 (d-16.93) Ret=  +62.8% DD= 23.5%
+    I1+I3+I4+I5              Cal= +2.61 (d-17.00) Ret=  +47.6% DD= 18.3%
+    I1+I4+I5                 Cal= +1.54 (d-18.06) Ret=  +42.2% DD= 27.4%
+
+====================================================================================================
+CROSS-PAIR COMPARISON
+====================================================================================================
+Name                     |  BTC Ret  BTC DD BTC Cal |  ETH Ret  ETH DD ETH Cal | Avg Cal   dAvg
+----------------------------------------------------------------------------------------------------
+  + I1: dH<0               |  +268.3%   20.4% +13.17 |  +366.9%   13.5% +27.23 | +20.20 +3.30
+    BASELINE (live)        |  +294.8%   20.7% +14.21 |  +333.7%   17.0% +19.60 | +16.90 +0.00
+    I1+I5                  |  +268.3%   20.4% +13.17 |  +325.5%   24.1% +13.50 | +13.33 -3.57
+    I5: Spread*imb         |  +294.8%   20.7% +14.21 |  +273.9%   27.2% +10.09 | +12.15 -4.76
+    I1+I3                  |   +84.3%   21.9%  +3.85 |  +153.8%   10.3% +15.00 |  +9.43 -7.48
+    I4: Depth guard        |  +262.2%   20.7% +12.63 |  +121.7%   20.7%  +5.87 |  +9.25 -7.65
+    I4+I5                  |  +262.2%   20.7% +12.63 |   +91.1%   30.4%  +3.00 |  +7.82 -9.09
+    I1+I4                  |  +237.9%   20.4% +11.67 |   +65.0%   18.3%  +3.56 |  +7.62 -9.29
+    I2: ATR-SL             |  +120.6%   15.8%  +7.65 |  +118.7%   17.3%  +6.86 |  +7.25 -9.65
+    I3+I4                  |  +122.1%   22.0%  +5.56 |  +120.5%   13.6%  +8.88 |  +7.22 -9.68
+    I1+I2+I3+I4            |   +72.3%   14.2%  +5.11 |  +127.6%   14.0%  +9.11 |  +7.11 -9.79
+    I3: VWAP trend         |  +107.1%   21.8%  +4.91 |  +114.8%   13.8%  +8.33 |  +6.62 -10.28
+    I1+I4+I5               |  +237.9%   20.4% +11.67 |   +42.2%   27.4%  +1.54 |  +6.61 -10.30
+    I2+I3+I4               |   +93.7%   14.1%  +6.64 |  +103.9%   16.3%  +6.35 |  +6.50 -10.41
+    I2+I4                  |  +149.4%   16.1%  +9.28 |   +60.0%   19.9%  +3.01 |  +6.15 -10.76
+    ALL (I1-I5)            |   +72.3%   14.2%  +5.11 |   +99.9%   15.0%  +6.65 |  +5.88 -11.03
+    I1+I2+I4               |  +101.5%   16.0%  +6.32 |   +85.3%   17.5%  +4.88 |  +5.60 -11.30
+    I1+I2                  |   +84.9%   22.8%  +3.72 |  +138.2%   20.2%  +6.85 |  +5.29 -11.62
+    I1+I2+I3               |   +66.1%   16.7%  +3.96 |  +121.7%   22.4%  +5.44 |  +4.70 -12.20
+    I2+I3                  |   +86.8%   16.7%  +5.21 |   +98.6%   24.3%  +4.05 |  +4.63 -12.27
+    I1+I2+I4+I5            |  +101.5%   16.0%  +6.32 |   +62.8%   23.5%  +2.67 |  +4.50 -12.41
+    I1+I3+I4               |   +97.6%   22.0%  +4.44 |   +71.2%   18.3%  +3.90 |  +4.17 -12.74
+    I1+I2+I5               |   +84.9%   22.8%  +3.72 |  +117.1%   26.8%  +4.36 |  +4.04 -12.86
+    I1+I3+I4+I5            |   +97.6%   22.0%  +4.44 |   +47.6%   18.3%  +2.61 |  +3.52 -13.38

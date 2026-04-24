@@ -1,0 +1,64 @@
+[FIT] clean days (30): 2025-12-18 -> 2026-02-14
+  2025-12-18: SKIP (161 snaps)
+  Resampled Pi data: 25,570 -> 21,146 bars
+  FIT: 21,146 bars  (56.7s)
+[EVAL] clean days (22): 2026-03-18 -> 2026-04-15
+  Resampled Pi data: 21,285 -> 17,296 bars
+  EVAL: 17,296 bars  (39.1s)
+
+[STEP 2] Kraken-native baseline refit on FIT slice
+  grid: 5 SL  x  4 TP  x  4 H  = 80 cells
+  fixed filters: knife=50.0bps  ext=100.0bps  (Pi-baseline, no F3c)
+  [ 10/80] elapsed 0s
+  [ 20/80] elapsed 0s
+  [ 30/80] elapsed 0s
+  [ 40/80] elapsed 0s
+  [ 50/80] elapsed 0s
+  [ 60/80] elapsed 0s
+  [ 70/80] elapsed 0s
+  [ 80/80] elapsed 1s
+
+  TOP 5 cells by compound return:
+    1. SL=50 TP=150 H=0.5  ret=+2471.18%  DD=30.39%  PF=3.48  trades=103  WR=40.8%
+    2. SL=50 TP=200 H=0.5  ret=+2471.18%  DD=30.39%  PF=3.48  trades=103  WR=40.8%
+    3. SL=50 TP=250 H=0.5  ret=+2471.18%  DD=30.39%  PF=3.48  trades=103  WR=40.8%
+    4. SL=50 TP=300 H=0.5  ret=+2471.18%  DD=30.39%  PF=3.48  trades=103  WR=40.8%
+    5. SL=60 TP=150 H=0.5  ret=+1724.21%  DD=37.06%  PF=3.27  trades=92  WR=40.2%
+
+Wrote D:\AI\timesFM\algo\reports\sprint_v15_kraken_native_refit.json
+
+[STEP 3] F3c confirmation on EVAL slice
+  using refit params: SL=50  TP=150  H=0.5
+
+  baseline (no F3c):
+    trades: 111
+    wins: 37
+    win_rate: 0.3333
+    compound_ret_pct: 3.5667
+    max_dd: 40.3596
+    pf: 1.4643
+    knife_catchers: 37
+    knife_rate: 0.3333
+    trades_long: 57
+    trades_short: 54
+  F3c (threshold +/-0.3):
+    trades: 97
+    wins: 31
+    win_rate: 0.3196
+    compound_ret_pct: 0.3407
+    max_dd: 41.9552
+    pf: 1.4657
+    knife_catchers: 41
+    knife_rate: 0.4227
+    trades_long: 52
+    trades_short: 45
+  delta (F3c - baseline):
+           ret_pct_delta: -3.2260
+            max_dd_delta: +1.5956
+                pf_delta: +0.0015
+        knife_rate_delta: +0.0893
+            trades_delta: -14.0000
+
+Wrote D:\AI\timesFM\algo\reports\sprint_v15_f3c_kraken_native_confirmation.json
+
+[DONE] Steps 1-3 complete in 96s

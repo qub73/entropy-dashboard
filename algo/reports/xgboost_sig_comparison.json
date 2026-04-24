@@ -1,0 +1,54 @@
+[
+  {
+    "trades": 33,
+    "wins": 17,
+    "win_rate": 0.5151515151515151,
+    "ret_pct": 268.2959828050888,
+    "max_dd": 20.37715053027439,
+    "calmar": 13.166511304241519,
+    "longs": 16,
+    "shorts": 17,
+    "long_wr": 0.4375,
+    "short_wr": 0.5882352941176471,
+    "name": "BTC_imbalance"
+  },
+  {
+    "trades": 35,
+    "wins": 15,
+    "win_rate": 0.42857142857142855,
+    "ret_pct": 82.68990968766514,
+    "max_dd": 31.25799305446088,
+    "calmar": 2.6454004754430107,
+    "longs": 25,
+    "shorts": 10,
+    "long_wr": 0.44,
+    "short_wr": 0.4,
+    "name": "BTC_xgboost_sig"
+  },
+  {
+    "trades": 53,
+    "wins": 24,
+    "win_rate": 0.4528301886792453,
+    "ret_pct": 366.94080788538355,
+    "max_dd": 13.473627929150872,
+    "calmar": 27.234001845300227,
+    "longs": 19,
+    "shorts": 34,
+    "long_wr": 0.3684210526315789,
+    "short_wr": 0.5,
+    "name": "ETH_imbalance"
+  },
+  {
+    "trades": 53,
+    "wins": 19,
+    "win_rate": 0.3584905660377358,
+    "ret_pct": 69.4500350250928,
+    "max_dd": 28.52262755746534,
+    "calmar": 2.434910138807158,
+    "longs": 43,
+    "shorts": 10,
+    "long_wr": 0.32558139534883723,
+    "short_wr": 0.5,
+    "name": "ETH_xgboost_sig"
+  }
+]

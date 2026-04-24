@@ -1,0 +1,162 @@
+Sprint v1.5 Step 0 -- F3c block-rate check
+  clean days to process: 62
+  first -> last: 2025-12-18 -> 2026-04-15
+  entropy window (bars): 30
+  live entropy percentile: 3.0
+  Pi-calibrated H_thresh: 0.4352
+  Pi baseline filters: knife<=50.0bps  ext<=100.0bps
+  F3c threshold: +/-0.3
+  MUST PASS: block rate >=15% (expected 20-45%)
+  Pi reference: 48/124 = 38.7% of trades blocked by F3c
+
+[PASS 1] Loading + featurizing 62 days...
+  [ 1/62] 2025-12-18: SKIP too_few_snapshots(161)
+  Resampled Pi data: 575 -> 483 bars
+  [ 2/62] 2025-12-19: raw=  575 bars= 483  H_valid= 452  elapsed=2s
+  Resampled Pi data: 1,003 -> 826 bars
+  [ 3/62] 2025-12-20: raw= 1003 bars= 826  H_valid= 795  elapsed=6s
+  Resampled Pi data: 720 -> 600 bars
+  [ 4/62] 2025-12-21: raw=  720 bars= 600  H_valid= 569  elapsed=59s
+  Resampled Pi data: 774 -> 658 bars
+  [ 5/62] 2025-12-23: raw=  774 bars= 658  H_valid= 627  elapsed=112s
+  Resampled Pi data: 984 -> 809 bars
+  [ 6/62] 2025-12-24: raw=  984 bars= 809  H_valid= 778  elapsed=165s
+  Resampled Pi data: 683 -> 575 bars
+  [ 7/62] 2025-12-25: raw=  683 bars= 575  H_valid= 544  elapsed=218s
+  Resampled Pi data: 988 -> 807 bars
+  [ 8/62] 2025-12-31: raw=  988 bars= 807  H_valid= 776  elapsed=269s
+  Resampled Pi data: 1,055 -> 861 bars
+  [ 9/62] 2026-01-01: raw= 1055 bars= 861  H_valid= 830  elapsed=322s
+  Resampled Pi data: 933 -> 777 bars
+  [10/62] 2026-01-02: raw=  933 bars= 777  H_valid= 746  elapsed=372s
+  Resampled Pi data: 1,002 -> 834 bars
+  [11/62] 2026-01-03: raw= 1002 bars= 834  H_valid= 803  elapsed=427s
+  Resampled Pi data: 1,003 -> 825 bars
+  [12/62] 2026-01-04: raw= 1003 bars= 825  H_valid= 794  elapsed=480s
+  Resampled Pi data: 885 -> 728 bars
+  [13/62] 2026-01-05: raw=  885 bars= 728  H_valid= 697  elapsed=535s
+  Resampled Pi data: 904 -> 750 bars
+  [14/62] 2026-01-09: raw=  904 bars= 750  H_valid= 719  elapsed=588s
+  Resampled Pi data: 1,099 -> 891 bars
+  [15/62] 2026-01-10: raw= 1099 bars= 891  H_valid= 860  elapsed=640s
+  Resampled Pi data: 1,015 -> 815 bars
+  [16/62] 2026-01-11: raw= 1015 bars= 815  H_valid= 784  elapsed=691s
+  Resampled Pi data: 881 -> 731 bars
+  [17/62] 2026-01-13: raw=  881 bars= 731  H_valid= 700  elapsed=733s
+  Resampled Pi data: 712 -> 600 bars
+  [18/62] 2026-01-14: raw=  712 bars= 600  H_valid= 569  elapsed=776s
+  Resampled Pi data: 753 -> 626 bars
+  [19/62] 2026-01-15: raw=  753 bars= 626  H_valid= 595  elapsed=817s
+  Resampled Pi data: 1,048 -> 854 bars
+  [20/62] 2026-01-17: raw= 1048 bars= 854  H_valid= 823  elapsed=859s
+  Resampled Pi data: 967 -> 799 bars
+  [21/62] 2026-01-18: raw=  967 bars= 799  H_valid= 768  elapsed=901s
+  Resampled Pi data: 893 -> 741 bars
+  [22/62] 2026-01-22: raw=  893 bars= 741  H_valid= 710  elapsed=943s
+  Resampled Pi data: 861 -> 694 bars
+  [23/62] 2026-01-24: raw=  861 bars= 694  H_valid= 663  elapsed=987s
+  Resampled Pi data: 833 -> 687 bars
+  [24/62] 2026-01-27: raw=  833 bars= 687  H_valid= 656  elapsed=1029s
+  Resampled Pi data: 948 -> 793 bars
+  [25/62] 2026-01-28: raw=  948 bars= 793  H_valid= 762  elapsed=1070s
+  Resampled Pi data: 541 -> 444 bars
+  [26/62] 2026-02-04: raw=  541 bars= 444  H_valid= 413  elapsed=1113s
+  Resampled Pi data: 868 -> 726 bars
+  [27/62] 2026-02-08: raw=  868 bars= 726  H_valid= 695  elapsed=1154s
+  Resampled Pi data: 842 -> 717 bars
+  [28/62] 2026-02-12: raw=  842 bars= 717  H_valid= 686  elapsed=1193s
+  Resampled Pi data: 911 -> 758 bars
+  [29/62] 2026-02-13: raw=  911 bars= 758  H_valid= 727  elapsed=1232s
+  Resampled Pi data: 889 -> 738 bars
+  [30/62] 2026-02-14: raw=  889 bars= 738  H_valid= 707  elapsed=1272s
+  Resampled Pi data: 888 -> 753 bars
+  [31/62] 2026-02-19: raw=  888 bars= 753  H_valid= 722  elapsed=1313s
+  Resampled Pi data: 923 -> 756 bars
+  [32/62] 2026-02-21: raw=  923 bars= 756  H_valid= 725  elapsed=1361s
+  Resampled Pi data: 944 -> 772 bars
+  [33/62] 2026-02-24: raw=  944 bars= 772  H_valid= 741  elapsed=1403s
+  Resampled Pi data: 798 -> 682 bars
+  [34/62] 2026-02-25: raw=  798 bars= 682  H_valid= 651  elapsed=1444s
+  Resampled Pi data: 759 -> 636 bars
+  [35/62] 2026-03-05: raw=  759 bars= 636  H_valid= 605  elapsed=1483s
+  Resampled Pi data: 1,009 -> 838 bars
+  [36/62] 2026-03-07: raw= 1009 bars= 838  H_valid= 807  elapsed=1525s
+  Resampled Pi data: 828 -> 699 bars
+  [37/62] 2026-03-09: raw=  828 bars= 699  H_valid= 668  elapsed=1567s
+  Resampled Pi data: 986 -> 813 bars
+  [38/62] 2026-03-11: raw=  986 bars= 813  H_valid= 782  elapsed=1610s
+  Resampled Pi data: 969 -> 793 bars
+  [39/62] 2026-03-12: raw=  969 bars= 793  H_valid= 762  elapsed=1653s
+  Resampled Pi data: 855 -> 686 bars
+  [40/62] 2026-03-15: raw=  855 bars= 686  H_valid= 655  elapsed=1698s
+  Resampled Pi data: 813 -> 665 bars
+  [41/62] 2026-03-18: raw=  813 bars= 665  H_valid= 634  elapsed=1742s
+  Resampled Pi data: 781 -> 636 bars
+  [42/62] 2026-03-19: raw=  781 bars= 636  H_valid= 605  elapsed=1785s
+  Resampled Pi data: 1,007 -> 836 bars
+  [43/62] 2026-03-20: raw= 1007 bars= 836  H_valid= 805  elapsed=1831s
+  Resampled Pi data: 1,135 -> 887 bars
+  [44/62] 2026-03-21: raw= 1135 bars= 887  H_valid= 856  elapsed=1874s
+  Resampled Pi data: 992 -> 817 bars
+  [45/62] 2026-03-25: raw=  992 bars= 817  H_valid= 786  elapsed=1917s
+  Resampled Pi data: 878 -> 716 bars
+  [46/62] 2026-03-27: raw=  878 bars= 716  H_valid= 685  elapsed=1963s
+  Resampled Pi data: 1,002 -> 798 bars
+  [47/62] 2026-03-29: raw= 1002 bars= 798  H_valid= 767  elapsed=2006s
+  Resampled Pi data: 993 -> 816 bars
+  [48/62] 2026-03-30: raw=  993 bars= 816  H_valid= 785  elapsed=2049s
+  Resampled Pi data: 966 -> 788 bars
+  [49/62] 2026-03-31: raw=  966 bars= 788  H_valid= 757  elapsed=2091s
+  Resampled Pi data: 1,023 -> 841 bars
+  [50/62] 2026-04-01: raw= 1023 bars= 841  H_valid= 810  elapsed=2133s
+  Resampled Pi data: 829 -> 677 bars
+  [51/62] 2026-04-02: raw=  829 bars= 677  H_valid= 646  elapsed=2182s
+  Resampled Pi data: 1,125 -> 919 bars
+  [52/62] 2026-04-03: raw= 1125 bars= 919  H_valid= 888  elapsed=2229s
+  Resampled Pi data: 1,027 -> 825 bars
+  [53/62] 2026-04-04: raw= 1027 bars= 825  H_valid= 794  elapsed=2277s
+  Resampled Pi data: 1,057 -> 857 bars
+  [54/62] 2026-04-05: raw= 1057 bars= 857  H_valid= 826  elapsed=2324s
+  Resampled Pi data: 898 -> 732 bars
+  [55/62] 2026-04-06: raw=  898 bars= 732  H_valid= 701  elapsed=2370s
+  Resampled Pi data: 841 -> 695 bars
+  [56/62] 2026-04-08: raw=  841 bars= 695  H_valid= 664  elapsed=2417s
+  Resampled Pi data: 1,008 -> 825 bars
+  [57/62] 2026-04-09: raw= 1008 bars= 825  H_valid= 794  elapsed=2465s
+  Resampled Pi data: 1,003 -> 826 bars
+  [58/62] 2026-04-10: raw= 1003 bars= 826  H_valid= 795  elapsed=2513s
+  Resampled Pi data: 1,065 -> 853 bars
+  [59/62] 2026-04-11: raw= 1065 bars= 853  H_valid= 822  elapsed=2561s
+  Resampled Pi data: 1,023 -> 830 bars
+  [60/62] 2026-04-13: raw= 1023 bars= 830  H_valid= 799  elapsed=2606s
+  Resampled Pi data: 824 -> 658 bars
+  [61/62] 2026-04-14: raw=  824 bars= 658  H_valid= 627  elapsed=2655s
+  Resampled Pi data: 995 -> 802 bars
+  [62/62] 2026-04-15: raw=  995 bars= 802  H_valid= 771  elapsed=2659s
+
+[PASS 1] Summary: loaded 61  skipped 1
+  aggregate H bars: 43,983
+  H min/p3/p5/p10/p50/p90/max: 0.1665 / 0.4001 / 0.4201 / 0.4392 / 0.4809 / 0.5245 / 0.6297
+  Pi-calibrated H=0.4352: 3668 of 43983 bars pass
+
+[PASS 2] Counting F3c blocks per-day at 4 H thresholds...
+     calibrated_p3  H=0.4001  cands= 182  blocked= 102  rate=56.04%
+     calibrated_p5  H=0.4201  cands= 225  blocked= 127  rate=56.44%
+    calibrated_p10  H=0.4392  cands= 353  blocked= 186  rate=52.69%
+         pi_0.4352  H=0.4352  cands= 305  blocked= 165  rate=54.10%
+
+======================================================================
+=== F3c block-rate summary (primary: calibrated_p3) ===
+  days loaded/input:    61 / 62
+  base cands (p3):      292
+  after dH<0:           186
+  after knife:          184
+  after ext cap:        182
+  final (valid EMA):    182  L=104 S=78
+  F3c blocked:          102  (L:46, S:56)
+  BLOCK RATE:           56.04%   (L:44.2%  S:71.8%)
+  verdict:              PASS (threshold >=15%)
+  Pi reference:         38.7%
+  elapsed:              2659s
+
+Wrote D:\AI\timesFM\algo\reports\sprint_v15_f3c_block_rate.json

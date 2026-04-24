@@ -1,0 +1,138 @@
+[
+  {
+    "trades": 34,
+    "wins": 18,
+    "win_rate": 0.5294117647058824,
+    "ret_pct": 294.79054937934217,
+    "max_dd": 20.749213226628846,
+    "calmar": 14.207312159721692,
+    "avg_bps": 63.402323381687374,
+    "avg_hold": 149.97058823529412,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 14,
+      "trail_stop": 7,
+      "timeout": 2
+    },
+    "name": "FIXED_KAGGLE"
+  },
+  {
+    "trades": 58,
+    "wins": 26,
+    "win_rate": 0.4482758620689655,
+    "ret_pct": 214.97253145434811,
+    "max_dd": 23.01655988401603,
+    "calmar": 9.339907116338308,
+    "avg_bps": 38.378964849844046,
+    "avg_hold": 149.0,
+    "reasons": {
+      "tp_trail": 14,
+      "sl": 26,
+      "timeout": 6,
+      "trail_stop": 12
+    },
+    "name": "FIXED_PI_3pct"
+  },
+  {
+    "trades": 66,
+    "wins": 28,
+    "win_rate": 0.42424242424242425,
+    "ret_pct": 77.74648251034306,
+    "max_dd": 48.201166442425006,
+    "calmar": 1.6129585287777037,
+    "avg_bps": 25.125202090593405,
+    "avg_hold": 140.8939393939394,
+    "reasons": {
+      "tp_trail": 12,
+      "sl": 33,
+      "timeout": 5,
+      "trail_stop": 16
+    },
+    "name": "ROLLING_500"
+  },
+  {
+    "trades": 63,
+    "wins": 27,
+    "win_rate": 0.42857142857142855,
+    "ret_pct": 90.99887182618055,
+    "max_dd": 27.6361965780663,
+    "calmar": 3.292742240023092,
+    "avg_bps": 26.982872593767915,
+    "avg_hold": 142.14285714285714,
+    "reasons": {
+      "tp_trail": 10,
+      "sl": 30,
+      "timeout": 6,
+      "trail_stop": 17
+    },
+    "name": "ROLLING_1000"
+  },
+  {
+    "trades": 54,
+    "wins": 27,
+    "win_rate": 0.5,
+    "ret_pct": 206.10575669091497,
+    "max_dd": 33.41735003211734,
+    "calmar": 6.167627190451284,
+    "avg_bps": 38.8806755010773,
+    "avg_hold": 151.24074074074073,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 23,
+      "trail_stop": 16,
+      "timeout": 4
+    },
+    "name": "ROLLING_2000"
+  },
+  {
+    "trades": 53,
+    "wins": 24,
+    "win_rate": 0.4528301886792453,
+    "ret_pct": 133.901813724876,
+    "max_dd": 32.64229913750409,
+    "calmar": 4.102095050376849,
+    "avg_bps": 33.66642033340743,
+    "avg_hold": 148.43396226415095,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 23,
+      "trail_stop": 13,
+      "timeout": 6
+    },
+    "name": "ROLLING_5000"
+  },
+  {
+    "trades": 53,
+    "wins": 24,
+    "win_rate": 0.4528301886792453,
+    "ret_pct": 166.24664582752632,
+    "max_dd": 29.636856678930222,
+    "calmar": 5.609456077901687,
+    "avg_bps": 36.87864458175778,
+    "avg_hold": 147.16981132075472,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 23,
+      "trail_stop": 13,
+      "timeout": 6
+    },
+    "name": "ROLLING_10000"
+  },
+  {
+    "trades": 50,
+    "wins": 23,
+    "win_rate": 0.46,
+    "ret_pct": 151.63711815806099,
+    "max_dd": 26.292355498883758,
+    "calmar": 5.767346260189535,
+    "avg_bps": 36.97677048978477,
+    "avg_hold": 142.34,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 23,
+      "trail_stop": 12,
+      "timeout": 4
+    },
+    "name": "EXPANDING"
+  }
+]

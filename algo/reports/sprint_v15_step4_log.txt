@@ -1,0 +1,33 @@
+[STEP 4] Live-window reconstruction from Kraken-native L2
+
+  loaded 8 live trades
+    1. pair=ETH dir=+1 exit=2026-04-13T02:20:00.368661+00:00 hold_min=241.0 reason=timeout pnl=+30.5bps
+    2. pair=ETH dir=+1 exit=2026-04-13T08:20:00.310386+00:00 hold_min=136.0 reason=sl pnl=-53.9bps
+    3. pair=ETH dir=+1 exit=2026-04-13T19:22:58.376721+00:00 hold_min=326.0 reason=manual_close pnl=+129.1bps
+    4. pair=ETH dir=+1 exit=2026-04-14T10:39:00.165235+00:00 hold_min=122.0 reason=sl pnl=-52.6bps
+    5. pair=ETH dir=+1 exit=2026-04-14T14:59:00.177638+00:00 hold_min=202.0 reason=sl pnl=-53.8bps
+    6. pair=ETH dir=+1 exit=2026-04-14T16:36:00.105606+00:00 hold_min=22.0 reason=sl pnl=-64.8bps
+    7. pair=ETH dir=+1 exit=2026-04-14T18:47:00.160948+00:00 hold_min=109.0 reason=sl pnl=-56.8bps
+    8. pair=ETH dir=+1 exit=2026-04-15T09:41:00.121416+00:00 hold_min=241.0 reason=timeout pnl=+15.2bps
+
+  loading EVAL Kraken-native slice...
+  Resampled Pi data: 21,285 -> 17,296 bars
+  loaded 17,296 bars  (44s)
+
+  per-trade F3c reconstruction:
+   #  dir   overlap  entry_date     norm  F3c       live_pnl_bps  live_reason 
+   1  LONG  partial  2026-04-12   -0.411  BLOCK            +30.5  timeout     
+   2  LONG  wholly   2026-04-13   -9.768  BLOCK            -53.9  sl          
+   3  LONG  wholly   2026-04-13    1.787  ALLOW           +129.1  manual_close
+   4  LONG  wholly   2026-04-14    5.614  ALLOW            -52.6  sl          
+   5  LONG  wholly   2026-04-14   -3.907  BLOCK            -53.8  sl          
+   6  LONG  wholly   2026-04-14    3.842  ALLOW            -64.8  sl          
+   7  LONG  wholly   2026-04-14    3.842  ALLOW            -56.8  sl          
+   8  LONG  wholly   2026-04-15   -2.789  BLOCK            +15.2  timeout     
+
+  wholly-clean overlap: 7, F3c would block: 3
+  partial overlap:      1, F3c would block: 1
+  winners blocked by F3c: 2 / 3
+  losers blocked by F3c:  2 / 5
+
+Wrote D:\AI\timesFM\algo\reports\sprint_v15_live_window_reconstruction.json

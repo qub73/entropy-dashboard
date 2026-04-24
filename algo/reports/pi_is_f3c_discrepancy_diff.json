@@ -1,0 +1,182 @@
+{
+  "generated_at_utc": "2026-04-20T21:10:00Z",
+  "purpose": "Reconcile Phase 2 v2 Pi-IS F3c numbers with the status-audit Pi-IS no-F3c replay.",
+  "scope_note": "Both runs operate on the same Pi L2 slice (Feb 18 - Apr 7 2026 Kraken Futures ETH). Only engine/config differs.",
+
+  "phase2_v2_pi_is": {
+    "source_file": "algo/reports/phase2_filter_ablation_v2.json",
+    "engine_source_file": "algo/diagnostics/phase2_filter_ablation_v2.py",
+    "config": {
+      "leverage": 10,
+      "sl_bps": 50,
+      "tp_bps": 200,
+      "knife_bps": 50,
+      "ext_cap_bps": 100,
+      "h_thresh": 0.4352,
+      "core_signal_params": {"imb_min": 0.05, "spread_max": 20, "ret_low": 20, "ret_high": 80},
+      "entropy_window_bars": 30,
+      "tp_trail_after": 150,
+      "tp_trail_bps": 50,
+      "timeout_bars": 240,
+      "timeout_on_loss_behavior": "exit at curr_bps (no post_signal_trail)",
+      "timeout_on_profit_behavior": "activate ATR trail (2*atr_bps) with SL floor = -sl",
+      "e3_time_decayed_sl_enabled": false,
+      "post_signal_trail_enabled": false,
+      "dH_5_negative_required": true,
+      "knife_filter": "ret_60[i] crosses +/- knife_bps against direction",
+      "ext_cap_filter": "ret_150[i] vs ext_cap_bps threshold",
+      "entry_sizing": "margin = equity * 0.90; notional = margin * 10 (fixed 10x)",
+      "fee_bps_per_side": 5.0,
+      "pair": "ETH (Pi Kraken Futures)",
+      "data_slice": "Feb 18 - Apr 7 2026 (~21.3 days)"
+    },
+    "metrics": {
+      "baseline_no_f3c": {
+        "trades": 43,
+        "wins": 23,
+        "win_rate": 0.5348837209302325,
+        "compound_ret_pct": 560.0844339666438,
+        "max_dd": 13.473627929150872,
+        "pf": 4.200918969150106,
+        "knife_catchers": 10,
+        "knife_rate": 0.23255813953488372,
+        "trades_long": 16,
+        "trades_short": 27,
+        "sharpe_daily": null
+      },
+      "f3c_on": {
+        "trades": 26,
+        "wins": 14,
+        "win_rate": 0.5384615384615384,
+        "compound_ret_pct": 174.91132044405572,
+        "max_dd": 23.45786909844335,
+        "pf": 3.914687286689211,
+        "knife_catchers": 8,
+        "knife_rate": 0.3076923076923077,
+        "trades_long": 11,
+        "trades_short": 15,
+        "sharpe_daily": null
+      },
+      "f3c_effect_phase2": {
+        "compound_ret_pct": -385.17311,
+        "max_dd": 9.98424,
+        "pf": -0.28623,
+        "win_rate": 0.00358,
+        "trades_delta": -17,
+        "knife_rate": 0.07513,
+        "direction": "F3c NET NEGATIVE on Pi IS at phase-2 engine"
+      }
+    }
+  },
+
+  "statusaudit_pi_is": {
+    "source_script": "algo/diagnostics/status_2026_04_21_replay.py",
+    "engine_basis": "algo/diagnostics/phase4_sizing_sim.py::run_cell (minus F3c gate)",
+    "source_f3c_off": "live replay 2026-04-20 (status audit)",
+    "source_f3c_on": "algo/reports/phase4_sizing_sim.json cell lev5x_ewoff_e3on in_sample",
+    "config": {
+      "leverage": 5,
+      "sl_bps": 50,
+      "tp_bps": 200,
+      "knife_bps": 50,
+      "ext_cap_bps": 100,
+      "h_thresh": 0.4352,
+      "core_signal_params": {"imb_min": 0.05, "spread_max": 20, "ret_low": 20, "ret_high": 80},
+      "entropy_window_bars": 30,
+      "tp_trail_after": 150,
+      "tp_trail_bps": 50,
+      "timeout_bars": 240,
+      "timeout_on_loss_behavior": "enter post_signal_trail (width=20, hard_floor=-60, max_wait=30)",
+      "timeout_on_profit_behavior": "activate ATR trail (2*atr_bps) with SL floor = sl_current",
+      "e3_time_decayed_sl_enabled": true,
+      "e3_tighten_after_bars": 60,
+      "e3_peak_threshold_bps": 50,
+      "e3_tightened_sl_bps": 25,
+      "post_signal_trail_enabled": true,
+      "post_signal_trail_width_bps": 20,
+      "post_signal_trail_hard_floor_bps": -60,
+      "post_signal_trail_max_wait_bars": 30,
+      "dH_5_negative_required": true,
+      "knife_filter": "ret_60[i] crosses +/- knife_bps against direction",
+      "ext_cap_filter": "ret_150[i] vs ext_cap_bps threshold",
+      "entry_sizing": "margin = equity * 0.90; notional = margin * leverage (5x)",
+      "fee_bps_per_side": 5.0,
+      "pair": "ETH (Pi Kraken Futures)",
+      "data_slice": "Feb 18 - Apr 7 2026 (~21.3 days)"
+    },
+    "metrics": {
+      "baseline_no_f3c": {
+        "trades": 44,
+        "wins": 24,
+        "win_rate": 0.5454545454545454,
+        "compound_ret_pct": 178.3606744452151,
+        "max_dd": 8.090530946325,
+        "pf": 3.690018899043983,
+        "knife_catchers": 10,
+        "knife_rate": 0.22727272727272727,
+        "trades_long": 16,
+        "trades_short": 28,
+        "sharpe_daily": 14.510647230487166
+      },
+      "f3c_on": {
+        "trades": 27,
+        "wins": 13,
+        "win_rate": 0.48148148148148145,
+        "compound_ret_pct": 61.3911665480639,
+        "max_dd": 12.484006288432392,
+        "pf": 3.028402134143736,
+        "knife_catchers": 8,
+        "knife_rate": 0.2962962962962963,
+        "trades_long": 12,
+        "trades_short": 15,
+        "sharpe_daily": 11.944207594380973
+      },
+      "f3c_effect_statusaudit": {
+        "compound_ret_pct": -116.96951,
+        "max_dd": 4.39348,
+        "pf": -0.66162,
+        "win_rate": -0.06397,
+        "trades_delta": -17,
+        "knife_rate": 0.06902,
+        "sharpe_daily_delta": -2.56644,
+        "direction": "F3c NET NEGATIVE on Pi IS at phase-4 engine"
+      }
+    }
+  },
+
+  "param_deltas": [
+    {"field": "leverage", "phase2_value": 10, "statusaudit_value": 5, "significance": "different sizing; affects compound return magnitude but NOT direction of F3c's effect"},
+    {"field": "e3_time_decayed_sl_enabled", "phase2_value": false, "statusaudit_value": true, "significance": "status audit uses E3; phase 2 does not"},
+    {"field": "post_signal_trail_enabled", "phase2_value": false, "statusaudit_value": true, "significance": "status audit has timeout_trail; phase 2 exits at curr on loss-timeout"},
+    {"field": "timeout_on_loss_behavior", "phase2_value": "exit at curr_bps", "statusaudit_value": "enter post_signal_trail (width=20, floor=-60, max_wait=30)", "significance": "major: phase 2 crystallizes the loss; status audit gives the trade extra room to recover"},
+    {"field": "sl_bps", "phase2_value": 50, "statusaudit_value": 50, "significance": "same"},
+    {"field": "tp_bps", "phase2_value": 200, "statusaudit_value": 200, "significance": "same"},
+    {"field": "knife_bps", "phase2_value": 50, "statusaudit_value": 50, "significance": "same"},
+    {"field": "ext_cap_bps", "phase2_value": 100, "statusaudit_value": 100, "significance": "same"},
+    {"field": "h_thresh", "phase2_value": 0.4352, "statusaudit_value": 0.4352, "significance": "same"},
+    {"field": "core_signal_params", "phase2_value": {"imb_min": 0.05, "spread_max": 20, "ret_low": 20, "ret_high": 80}, "statusaudit_value": {"imb_min": 0.05, "spread_max": 20, "ret_low": 20, "ret_high": 80}, "significance": "same"},
+    {"field": "entropy_window_bars", "phase2_value": 30, "statusaudit_value": 30, "significance": "same"},
+    {"field": "dH_5_negative_required", "phase2_value": true, "statusaudit_value": true, "significance": "same"},
+    {"field": "tp_trail_after / tp_trail_bps", "phase2_value": "150 / 50", "statusaudit_value": "150 / 50", "significance": "same"},
+    {"field": "data_slice", "phase2_value": "Feb 18 - Apr 7 2026", "statusaudit_value": "Feb 18 - Apr 7 2026", "significance": "same"},
+    {"field": "pair", "phase2_value": "ETH Pi Kraken Futures", "statusaudit_value": "ETH Pi Kraken Futures", "significance": "same"},
+    {"field": "fee_bps_per_side", "phase2_value": 5.0, "statusaudit_value": 5.0, "significance": "same"}
+  ],
+
+  "metric_deltas_f3c_effect_across_engines": [
+    {"metric": "compound_ret_pct", "phase2_f3c_effect": -385.17, "statusaudit_f3c_effect": -116.97, "both_negative": true},
+    {"metric": "max_dd", "phase2_f3c_effect": +9.98, "statusaudit_f3c_effect": +4.39, "both_negative_for_metric": true, "interpretation": "F3c INCREASES DD in both engines"},
+    {"metric": "pf", "phase2_f3c_effect": -0.29, "statusaudit_f3c_effect": -0.66, "both_negative": true},
+    {"metric": "knife_rate", "phase2_f3c_effect": +0.075, "statusaudit_f3c_effect": +0.069, "both_negative_for_metric": true, "interpretation": "F3c INCREASES knife rate in both engines"},
+    {"metric": "trades_delta", "phase2_f3c_effect": -17, "statusaudit_f3c_effect": -17, "same_value": true, "interpretation": "F3c blocks exactly the same 17 trades regardless of engine -- candidate pool and filter stack identical upstream of F3c"}
+  ],
+
+  "cross_check_conclusion": {
+    "direction_of_f3c_effect_on_pi_is": "NEGATIVE (consistent across both engines)",
+    "magnitude_varies_with_engine": true,
+    "same_candidate_pool": true,
+    "phase2_pi_is_was_net_negative_already": true,
+    "phase2_promotion_driver": "Kaggle OOS PF uplift 1.52 -> 2.14 (+40.6%)",
+    "pi_is_f3c_was_not_validated_at_promotion_time": true
+  }
+}

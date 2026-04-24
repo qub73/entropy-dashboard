@@ -1,0 +1,376 @@
+[
+  {
+    "name": "BASELINE (live)",
+    "trades": 34,
+    "wins": 18,
+    "win_rate": 0.5294117647058824,
+    "ret_pct": 294.79054937934217,
+    "max_dd": 20.749213226628846,
+    "calmar": 14.207312159721692,
+    "avg_bps": 63.402323381687374,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 14,
+      "trail_stop": 7,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "I1: dH<0",
+    "trades": 33,
+    "wins": 17,
+    "win_rate": 0.5151515151515151,
+    "ret_pct": 268.2959828050888,
+    "max_dd": 20.37715053027439,
+    "calmar": 13.166511304241519,
+    "avg_bps": 62.578639920957755,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 14,
+      "trail_stop": 6,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "I2: ATR-SL",
+    "trades": 37,
+    "wins": 12,
+    "win_rate": 0.32432432432432434,
+    "ret_pct": 120.61513927586631,
+    "max_dd": 15.772608398696436,
+    "calmar": 7.647126982867008,
+    "avg_bps": 39.581087721535326,
+    "reasons": {
+      "tp_trail": 8,
+      "sl": 24,
+      "trail_stop": 4,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I3: VWAP trend",
+    "trades": 21,
+    "wins": 11,
+    "win_rate": 0.5238095238095238,
+    "ret_pct": 107.14443994983536,
+    "max_dd": 21.81527513476381,
+    "calmar": 4.911441147909016,
+    "avg_bps": 57.52679460866908,
+    "reasons": {
+      "sl": 10,
+      "tp_trail": 7,
+      "trail_stop": 4
+    }
+  },
+  {
+    "name": "I4: Depth guard",
+    "trades": 33,
+    "wins": 17,
+    "win_rate": 0.5151515151515151,
+    "ret_pct": 262.16534592297324,
+    "max_dd": 20.749213226628846,
+    "calmar": 12.634953579180486,
+    "avg_bps": 61.98814937874519,
+    "reasons": {
+      "tp_trail": 10,
+      "sl": 14,
+      "trail_stop": 7,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "I5: Spread*imb",
+    "trades": 34,
+    "wins": 18,
+    "win_rate": 0.5294117647058824,
+    "ret_pct": 294.79054937934217,
+    "max_dd": 20.749213226628846,
+    "calmar": 14.207312159721692,
+    "avg_bps": 63.402323381687374,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 14,
+      "trail_stop": 7,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "I1+I2",
+    "trades": 34,
+    "wins": 9,
+    "win_rate": 0.2647058823529412,
+    "ret_pct": 84.87264020364935,
+    "max_dd": 22.82163023864644,
+    "calmar": 3.718956065633074,
+    "avg_bps": 36.21222315803758,
+    "reasons": {
+      "tp_trail": 8,
+      "sl": 24,
+      "trail_stop": 1,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I1+I3",
+    "trades": 19,
+    "wins": 9,
+    "win_rate": 0.47368421052631576,
+    "ret_pct": 84.25435417079802,
+    "max_dd": 21.86541043827876,
+    "calmar": 3.853316836133925,
+    "avg_bps": 55.35824720696069,
+    "reasons": {
+      "sl": 10,
+      "tp_trail": 7,
+      "trail_stop": 2
+    }
+  },
+  {
+    "name": "I1+I4",
+    "trades": 32,
+    "wins": 16,
+    "win_rate": 0.5,
+    "ret_pct": 237.86027103318963,
+    "max_dd": 20.37715053027439,
+    "calmar": 11.67289168717677,
+    "avg_bps": 61.09453287227585,
+    "reasons": {
+      "tp_trail": 10,
+      "sl": 14,
+      "trail_stop": 6,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "I1+I5",
+    "trades": 33,
+    "wins": 17,
+    "win_rate": 0.5151515151515151,
+    "ret_pct": 268.2959828050888,
+    "max_dd": 20.37715053027439,
+    "calmar": 13.166511304241519,
+    "avg_bps": 62.578639920957755,
+    "reasons": {
+      "tp_trail": 11,
+      "sl": 14,
+      "trail_stop": 6,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "I2+I3",
+    "trades": 21,
+    "wins": 8,
+    "win_rate": 0.38095238095238093,
+    "ret_pct": 86.77245869526959,
+    "max_dd": 16.65027606993211,
+    "calmar": 5.211472670532326,
+    "avg_bps": 50.00523513946229,
+    "reasons": {
+      "sl": 13,
+      "tp_trail": 5,
+      "trail_stop": 3
+    }
+  },
+  {
+    "name": "I2+I4",
+    "trades": 34,
+    "wins": 12,
+    "win_rate": 0.35294117647058826,
+    "ret_pct": 149.44380833134377,
+    "max_dd": 16.100659076124938,
+    "calmar": 9.281844154625222,
+    "avg_bps": 46.18097771260179,
+    "reasons": {
+      "tp_trail": 7,
+      "sl": 21,
+      "trail_stop": 5,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I3+I4",
+    "trades": 20,
+    "wins": 11,
+    "win_rate": 0.55,
+    "ret_pct": 122.13880959767866,
+    "max_dd": 21.954327658710362,
+    "calmar": 5.563313597955717,
+    "avg_bps": 63.65313433910253,
+    "reasons": {
+      "sl": 9,
+      "tp_trail": 7,
+      "trail_stop": 4
+    }
+  },
+  {
+    "name": "I4+I5",
+    "trades": 33,
+    "wins": 17,
+    "win_rate": 0.5151515151515151,
+    "ret_pct": 262.16534592297324,
+    "max_dd": 20.749213226628846,
+    "calmar": 12.634953579180486,
+    "avg_bps": 61.98814937874519,
+    "reasons": {
+      "tp_trail": 10,
+      "sl": 14,
+      "trail_stop": 7,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "I1+I2+I3",
+    "trades": 19,
+    "wins": 6,
+    "win_rate": 0.3157894736842105,
+    "ret_pct": 66.13353832776288,
+    "max_dd": 16.689055752000264,
+    "calmar": 3.9626890406808335,
+    "avg_bps": 47.04494463573213,
+    "reasons": {
+      "sl": 13,
+      "tp_trail": 5,
+      "trail_stop": 1
+    }
+  },
+  {
+    "name": "I1+I2+I4",
+    "trades": 32,
+    "wins": 9,
+    "win_rate": 0.28125,
+    "ret_pct": 101.50558796260987,
+    "max_dd": 16.048330646798725,
+    "calmar": 6.32499355830869,
+    "avg_bps": 40.83964324702911,
+    "reasons": {
+      "tp_trail": 7,
+      "sl": 22,
+      "trail_stop": 2,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I1+I3+I4",
+    "trades": 18,
+    "wins": 9,
+    "win_rate": 0.5,
+    "ret_pct": 97.59180071935447,
+    "max_dd": 22.001670023643854,
+    "calmar": 4.435654230541523,
+    "avg_bps": 62.04481649623628,
+    "reasons": {
+      "sl": 9,
+      "tp_trail": 7,
+      "trail_stop": 2
+    }
+  },
+  {
+    "name": "I1+I4+I5",
+    "trades": 32,
+    "wins": 16,
+    "win_rate": 0.5,
+    "ret_pct": 237.86027103318963,
+    "max_dd": 20.37715053027439,
+    "calmar": 11.67289168717677,
+    "avg_bps": 61.09453287227585,
+    "reasons": {
+      "tp_trail": 10,
+      "sl": 14,
+      "trail_stop": 6,
+      "timeout": 2
+    }
+  },
+  {
+    "name": "I2+I3+I4",
+    "trades": 20,
+    "wins": 8,
+    "win_rate": 0.4,
+    "ret_pct": 93.74736379177342,
+    "max_dd": 14.123238192192634,
+    "calmar": 6.637809439735799,
+    "avg_bps": 54.00549689643541,
+    "reasons": {
+      "sl": 12,
+      "tp_trail": 5,
+      "trail_stop": 3
+    }
+  },
+  {
+    "name": "I1+I2+I5",
+    "trades": 34,
+    "wins": 9,
+    "win_rate": 0.2647058823529412,
+    "ret_pct": 84.87264020364935,
+    "max_dd": 22.82163023864644,
+    "calmar": 3.718956065633074,
+    "avg_bps": 36.21222315803758,
+    "reasons": {
+      "tp_trail": 8,
+      "sl": 24,
+      "trail_stop": 1,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I1+I2+I3+I4",
+    "trades": 18,
+    "wins": 6,
+    "win_rate": 0.3333333333333333,
+    "ret_pct": 72.33769536074985,
+    "max_dd": 14.15613222257181,
+    "calmar": 5.109990089341503,
+    "avg_bps": 51.32521933771724,
+    "reasons": {
+      "sl": 12,
+      "tp_trail": 5,
+      "trail_stop": 1
+    }
+  },
+  {
+    "name": "I1+I2+I4+I5",
+    "trades": 32,
+    "wins": 9,
+    "win_rate": 0.28125,
+    "ret_pct": 101.50558796260987,
+    "max_dd": 16.048330646798725,
+    "calmar": 6.32499355830869,
+    "avg_bps": 40.83964324702911,
+    "reasons": {
+      "tp_trail": 7,
+      "sl": 22,
+      "trail_stop": 2,
+      "timeout": 1
+    }
+  },
+  {
+    "name": "I1+I3+I4+I5",
+    "trades": 18,
+    "wins": 9,
+    "win_rate": 0.5,
+    "ret_pct": 97.59180071935447,
+    "max_dd": 22.001670023643854,
+    "calmar": 4.435654230541523,
+    "avg_bps": 62.04481649623628,
+    "reasons": {
+      "sl": 9,
+      "tp_trail": 7,
+      "trail_stop": 2
+    }
+  },
+  {
+    "name": "ALL (I1-I5)",
+    "trades": 18,
+    "wins": 6,
+    "win_rate": 0.3333333333333333,
+    "ret_pct": 72.33769536074985,
+    "max_dd": 14.15613222257181,
+    "calmar": 5.109990089341503,
+    "avg_bps": 51.32521933771724,
+    "reasons": {
+      "sl": 12,
+      "tp_trail": 5,
+      "trail_stop": 1
+    }
+  }
+]

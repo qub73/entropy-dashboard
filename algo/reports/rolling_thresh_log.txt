@@ -1,0 +1,137 @@
+
+====================================================================================================
+ROLLING THRESHOLD TEST - BTC
+====================================================================================================
+Loading data/kaggle/BTC_USDT.csv...
+  Total columns: 202
+  Loading 41 columns (top 10 levels + timestamp)
+  Loaded 507,675 rows, 41 cols
+  Detected 10 orderbook levels
+  Valid rows: 507,675
+  Date range: 2023-10-07 11:21:00 -> 2024-10-07 22:46:00
+  Mid: $27,984.94 -> $63,048.01
+  Mean spread: 0.00 bps
+Kaggle fixed threshold: 0.4314
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260218.jsonl.gz: 3142 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260219.jsonl.gz: 8584 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260220.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260221.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260222.jsonl.gz: 8635 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260223.jsonl.gz: 8616 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260224.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260225.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260226.jsonl.gz: 8540 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260227.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260228.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260301.jsonl.gz: 8610 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260302.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260303.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260304.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260305.jsonl.gz: 8532 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260306.jsonl.gz: 8622 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260307.jsonl.gz: 8613 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260308.jsonl.gz: 8623 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260309.jsonl.gz: 8493 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260310.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260311.jsonl: 5931 snapshots
+  Loaded data/orderbook_pi\ob_PF_XBTUSD_20260407.jsonl: 2225 snapshots
+Total: 183342 snapshots, 2026-02-18 15:16:04.907999992 -> 2026-04-07 15:38:41.819000006
+  Resampled Pi data: 183,342 -> 30,643 bars
+Pi fixed 3rd pctile: 0.4396
+Pi entropy range: [0.3101, 0.6241], mean=0.4919
+
+Name                   Tr   WR    Ret%   DD%  Calmar  AvgBps AvgHold | Reasons
+----------------------------------------------------------------------------------------------------
+FIXED_KAGGLE           34  53% +294.8% 20.7% +14.21  +63.4    150m | tp_trail:11, sl:14, trail_stop:7, timeout:2
+FIXED_PI_3pct          58  45% +215.0% 23.0%  +9.34  +38.4    149m | tp_trail:14, sl:26, timeout:6, trail_stop:12
+ROLLING_500            66  42%  +77.7% 48.2%  +1.61  +25.1    141m | tp_trail:12, sl:33, timeout:5, trail_stop:16
+ROLLING_1000           63  43%  +91.0% 27.6%  +3.29  +27.0    142m | tp_trail:10, sl:30, timeout:6, trail_stop:17
+ROLLING_2000           54  50% +206.1% 33.4%  +6.17  +38.9    151m | tp_trail:11, sl:23, trail_stop:16, timeout:4
+ROLLING_5000           53  45% +133.9% 32.6%  +4.10  +33.7    148m | tp_trail:11, sl:23, trail_stop:13, timeout:6
+ROLLING_10000          53  45% +166.2% 29.6%  +5.61  +36.9    147m | tp_trail:11, sl:23, trail_stop:13, timeout:6
+EXPANDING              50  46% +151.6% 26.3%  +5.77  +37.0    142m | tp_trail:11, sl:23, trail_stop:12, timeout:4
+
+RANKED BY CALMAR (BTC):
+    FIXED_KAGGLE         Cal=+14.21 (d+0.00) Ret=+294.8% Tr=34 WR=53%
+    FIXED_PI_3pct        Cal=+9.34 (d-4.87) Ret=+215.0% Tr=58 WR=45%
+    ROLLING_2000         Cal=+6.17 (d-8.04) Ret=+206.1% Tr=54 WR=50%
+    EXPANDING            Cal=+5.77 (d-8.44) Ret=+151.6% Tr=50 WR=46%
+    ROLLING_10000        Cal=+5.61 (d-8.60) Ret=+166.2% Tr=53 WR=45%
+    ROLLING_5000         Cal=+4.10 (d-10.11) Ret=+133.9% Tr=53 WR=45%
+    ROLLING_1000         Cal=+3.29 (d-10.91) Ret=+91.0% Tr=63 WR=43%
+    ROLLING_500          Cal=+1.61 (d-12.59) Ret=+77.7% Tr=66 WR=42%
+
+====================================================================================================
+ROLLING THRESHOLD TEST - ETH
+====================================================================================================
+Loading data/kaggle/ETH_USDT.csv...
+  Total columns: 202
+  Loading 41 columns (top 10 levels + timestamp)
+  Loaded 504,717 rows, 41 cols
+  Detected 10 orderbook levels
+  Valid rows: 504,717
+  Date range: 2023-10-07 11:21:00 -> 2024-10-09 17:34:00
+  Mid: $1,640.89 -> $2,439.28
+  Mean spread: 0.04 bps
+Kaggle fixed threshold: 0.4352
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260218.jsonl.gz: 3142 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260219.jsonl.gz: 8584 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260220.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260221.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260222.jsonl.gz: 8635 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260223.jsonl.gz: 8616 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260224.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260225.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260226.jsonl.gz: 8540 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260227.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260228.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260301.jsonl.gz: 8610 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260302.jsonl.gz: 8634 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260303.jsonl.gz: 8628 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260304.jsonl.gz: 8604 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260305.jsonl.gz: 8537 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260306.jsonl.gz: 8622 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260307.jsonl.gz: 8613 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260308.jsonl.gz: 8623 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260309.jsonl.gz: 8493 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260310.jsonl.gz: 8591 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260311.jsonl: 5931 snapshots
+  Loaded data/orderbook_pi\ob_PF_ETHUSD_20260407.jsonl: 2225 snapshots
+Total: 183347 snapshots, 2026-02-18 15:16:04.907999992 -> 2026-04-07 15:38:41.819000006
+  Resampled Pi data: 183,347 -> 30,644 bars
+Pi fixed 3rd pctile: 0.4371
+Pi entropy range: [0.2570, 0.6170], mean=0.4921
+
+Name                   Tr   WR    Ret%   DD%  Calmar  AvgBps AvgHold | Reasons
+----------------------------------------------------------------------------------------------------
+FIXED_KAGGLE           56  45% +333.7% 17.0% +19.60  +44.7    101m | sl:28, tp_trail:18, trail_stop:7, timeout:3
+FIXED_PI_3pct          61  43% +275.1% 23.8% +11.54  +39.4     99m | sl:32, tp_trail:18, trail_stop:8, timeout:3
+ROLLING_500            79  43% +401.9% 22.9% +17.57  +37.6    103m | sl:41, tp_trail:23, trail_stop:11, timeout:4
+ROLLING_1000           71  44% +396.8% 17.2% +23.01  +40.3    103m | sl:36, tp_trail:20, trail_stop:11, timeout:4
+ROLLING_2000           59  44% +291.2% 16.5% +17.65  +40.8    103m | sl:30, tp_trail:17, trail_stop:9, timeout:3
+ROLLING_5000           61  41% +216.9% 18.1% +11.98  +36.3     91m | sl:34, tp_trail:17, trail_stop:8, timeout:2
+ROLLING_10000          60  40% +140.6% 26.9%  +5.22  +31.0     91m | sl:34, tp_trail:16, trail_stop:8, timeout:2
+EXPANDING              56  41% +163.3% 24.0%  +6.80  +34.1     93m | sl:31, tp_trail:16, trail_stop:7, timeout:2
+
+RANKED BY CALMAR (ETH):
+  + ROLLING_1000         Cal=+23.01 (d+3.40) Ret=+396.8% Tr=71 WR=44%
+    FIXED_KAGGLE         Cal=+19.60 (d+0.00) Ret=+333.7% Tr=56 WR=45%
+    ROLLING_2000         Cal=+17.65 (d-1.95) Ret=+291.2% Tr=59 WR=44%
+    ROLLING_500          Cal=+17.57 (d-2.03) Ret=+401.9% Tr=79 WR=43%
+    ROLLING_5000         Cal=+11.98 (d-7.62) Ret=+216.9% Tr=61 WR=41%
+    FIXED_PI_3pct        Cal=+11.54 (d-8.06) Ret=+275.1% Tr=61 WR=43%
+    EXPANDING            Cal=+6.80 (d-12.80) Ret=+163.3% Tr=56 WR=41%
+    ROLLING_10000        Cal=+5.22 (d-14.38) Ret=+140.6% Tr=60 WR=40%
+
+================================================================================
+CROSS-PAIR
+================================================================================
+Name                 BTC Cal ETH Cal     Avg   dAvg BTC Tr ETH Tr
+    FIXED_KAGGLE       +14.21 +19.60 +16.90 +0.00     34     56
+    FIXED_PI_3pct       +9.34 +11.54 +10.44 -6.46     58     61
+    ROLLING_500         +1.61 +17.57  +9.59 -7.31     66     79
+    ROLLING_1000        +3.29 +23.01 +13.15 -3.76     63     71
+    ROLLING_2000        +6.17 +17.65 +11.91 -4.99     54     59
+    ROLLING_5000        +4.10 +11.98  +8.04 -8.86     53     61
+    ROLLING_10000       +5.61  +5.22  +5.41 -11.49     53     60
+    EXPANDING           +5.77  +6.80  +6.28 -10.62     50     56

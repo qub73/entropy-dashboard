@@ -1,0 +1,99 @@
+{
+  "split_bar": 15322,
+  "split_time_note": "mid of bar index; approximate halfway through window",
+  "full_window_price_bps": 467.18856193520566,
+  "first_half_price_bps": 66.45354544768,
+  "second_half_price_bps": 398.08957015328383,
+  "first_half": {
+    "n_trades": 24,
+    "long": {
+      "n": 10,
+      "wins": 5,
+      "losses": 5,
+      "win_rate": 0.5,
+      "avg_winner_bps": 163.28191384369353,
+      "avg_loser_bps": -40.40802794991457,
+      "total_bps_gross": 614.3694294688949,
+      "mean_bps": 61.43694294688949,
+      "pf": 4.040828571146312,
+      "reasons": {
+        "sl": 4,
+        "trail_stop": 2,
+        "tp_trail": 3,
+        "timeout": 1
+      },
+      "usd_total": 9943.216887112621
+    },
+    "short": {
+      "n": 14,
+      "wins": 7,
+      "losses": 7,
+      "win_rate": 0.5,
+      "avg_winner_bps": 182.4628528501284,
+      "avg_loser_bps": -50.0,
+      "total_bps_gross": 927.2399699508987,
+      "mean_bps": 66.2314264250642,
+      "pf": 3.649257057002568,
+      "reasons": {
+        "tp_trail": 6,
+        "trail_stop": 1,
+        "sl": 7
+      },
+      "usd_total": 9620.88053561425
+    },
+    "compound": {
+      "final_equity": 29564.097422726867,
+      "compound_ret_pct": 195.64097422726866,
+      "long_usd_contrib": 9943.216887112621,
+      "short_usd_contrib": 9620.88053561425,
+      "long_share_of_gross": 0.5082379561022817,
+      "short_share_of_gross": 0.4917620438977183
+    }
+  },
+  "second_half": {
+    "n_trades": 20,
+    "long": {
+      "n": 5,
+      "wins": 2,
+      "losses": 3,
+      "win_rate": 0.4,
+      "avg_winner_bps": 223.52662741980004,
+      "avg_loser_bps": -37.821052209801,
+      "total_bps_gross": 333.5900982101971,
+      "mean_bps": 66.71801964203942,
+      "pf": 3.9400741890143225,
+      "reasons": {
+        "sl": 2,
+        "tp_trail": 2,
+        "timeout": 1
+      },
+      "usd_total": 10620.555328053559
+    },
+    "short": {
+      "n": 15,
+      "wins": 9,
+      "losses": 6,
+      "win_rate": 0.6,
+      "avg_winner_bps": 131.03580403794,
+      "avg_loser_bps": -43.6461808012402,
+      "total_bps_gross": 917.445151534019,
+      "mean_bps": 61.16301010226793,
+      "pf": 4.503342616665443,
+      "reasons": {
+        "sl": 5,
+        "trail_stop": 3,
+        "tp_trail": 6,
+        "timeout": 1
+      },
+      "usd_total": 29396.40761143989
+    },
+    "compound": {
+      "final_equity": 50016.96293949345,
+      "compound_ret_pct": 400.1696293949346,
+      "long_usd_contrib": 10620.555328053559,
+      "short_usd_contrib": 29396.40761143989,
+      "long_share_of_gross": 0.2654013335322843,
+      "short_share_of_gross": 0.7345986664677158
+    }
+  }
+}

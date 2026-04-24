@@ -1,0 +1,326 @@
+{
+  "BTC": [
+    {
+      "trades": 1,
+      "wins": 0,
+      "win_rate": 0.0,
+      "ret_pct": -6.75,
+      "max_dd": 6.3,
+      "calmar": -1.0714285714285714,
+      "pf": 0.0,
+      "final_equity": 9325.0,
+      "skip_f1": 0,
+      "skip_f3": 0,
+      "skip_f5": 0,
+      "name": "A_baseline",
+      "pair": "BTC",
+      "filters": {
+        "f1": false,
+        "f3": false,
+        "f5": false
+      }
+    },
+    {
+      "trades": 0,
+      "wins": 0,
+      "win_rate": 0,
+      "ret_pct": 0,
+      "max_dd": 0,
+      "calmar": 0,
+      "pf": 0,
+      "final_equity": 10000.0,
+      "skip_f1": 1,
+      "skip_f3": 0,
+      "skip_f5": 0,
+      "name": "B_F1_only",
+      "pair": "BTC",
+      "filters": {
+        "f1": true,
+        "f3": false,
+        "f5": false
+      }
+    },
+    {
+      "trades": 0,
+      "wins": 0,
+      "win_rate": 0,
+      "ret_pct": 0,
+      "max_dd": 0,
+      "calmar": 0,
+      "pf": 0,
+      "final_equity": 10000.0,
+      "skip_f1": 0,
+      "skip_f3": 1,
+      "skip_f5": 0,
+      "name": "C_F3_only",
+      "pair": "BTC",
+      "filters": {
+        "f1": false,
+        "f3": true,
+        "f5": false
+      }
+    },
+    {
+      "trades": 0,
+      "wins": 0,
+      "win_rate": 0,
+      "ret_pct": 0,
+      "max_dd": 0,
+      "calmar": 0,
+      "pf": 0,
+      "final_equity": 10000.0,
+      "skip_f1": 0,
+      "skip_f3": 0,
+      "skip_f5": 1,
+      "name": "D_F5_only",
+      "pair": "BTC",
+      "filters": {
+        "f1": false,
+        "f3": false,
+        "f5": true
+      }
+    },
+    {
+      "trades": 0,
+      "wins": 0,
+      "win_rate": 0,
+      "ret_pct": 0,
+      "max_dd": 0,
+      "calmar": 0,
+      "pf": 0,
+      "final_equity": 10000.0,
+      "skip_f1": 1,
+      "skip_f3": 0,
+      "skip_f5": 0,
+      "name": "E_F1_F3",
+      "pair": "BTC",
+      "filters": {
+        "f1": true,
+        "f3": true,
+        "f5": false
+      }
+    },
+    {
+      "trades": 0,
+      "wins": 0,
+      "win_rate": 0,
+      "ret_pct": 0,
+      "max_dd": 0,
+      "calmar": 0,
+      "pf": 0,
+      "final_equity": 10000.0,
+      "skip_f1": 1,
+      "skip_f3": 0,
+      "skip_f5": 0,
+      "name": "F_F1_F5",
+      "pair": "BTC",
+      "filters": {
+        "f1": true,
+        "f3": false,
+        "f5": true
+      }
+    },
+    {
+      "trades": 0,
+      "wins": 0,
+      "win_rate": 0,
+      "ret_pct": 0,
+      "max_dd": 0,
+      "calmar": 0,
+      "pf": 0,
+      "final_equity": 10000.0,
+      "skip_f1": 0,
+      "skip_f3": 1,
+      "skip_f5": 0,
+      "name": "G_F3_F5",
+      "pair": "BTC",
+      "filters": {
+        "f1": false,
+        "f3": true,
+        "f5": true
+      }
+    },
+    {
+      "trades": 0,
+      "wins": 0,
+      "win_rate": 0,
+      "ret_pct": 0,
+      "max_dd": 0,
+      "calmar": 0,
+      "pf": 0,
+      "final_equity": 10000.0,
+      "skip_f1": 1,
+      "skip_f3": 0,
+      "skip_f5": 0,
+      "name": "H_F1_F3_F5",
+      "pair": "BTC",
+      "filters": {
+        "f1": true,
+        "f3": true,
+        "f5": true
+      }
+    }
+  ],
+  "ETH": [
+    {
+      "trades": 51,
+      "wins": 24,
+      "win_rate": 0.47058823529411764,
+      "ret_pct": 421.77054369950196,
+      "max_dd": 13.473627929150872,
+      "calmar": 31.30341329872856,
+      "pf": 3.1616594719858733,
+      "final_equity": 52177.054369950194,
+      "skip_f1": 0,
+      "skip_f3": 0,
+      "skip_f5": 0,
+      "name": "A_baseline",
+      "pair": "ETH",
+      "filters": {
+        "f1": false,
+        "f3": false,
+        "f5": false
+      }
+    },
+    {
+      "trades": 37,
+      "wins": 16,
+      "win_rate": 0.43243243243243246,
+      "ret_pct": 149.44552462800652,
+      "max_dd": 18.253157353200013,
+      "calmar": 8.187379407092374,
+      "pf": 2.5269012626595675,
+      "final_equity": 24944.552462800653,
+      "skip_f1": 28,
+      "skip_f3": 0,
+      "skip_f5": 0,
+      "name": "B_F1_only",
+      "pair": "ETH",
+      "filters": {
+        "f1": true,
+        "f3": false,
+        "f5": false
+      }
+    },
+    {
+      "trades": 35,
+      "wins": 16,
+      "win_rate": 0.45714285714285713,
+      "ret_pct": 205.4046031926716,
+      "max_dd": 17.822562689191805,
+      "calmar": 11.524975772268473,
+      "pf": 3.0669217876321997,
+      "final_equity": 30540.46031926716,
+      "skip_f1": 0,
+      "skip_f3": 27,
+      "skip_f5": 0,
+      "name": "C_F3_only",
+      "pair": "ETH",
+      "filters": {
+        "f1": false,
+        "f3": true,
+        "f5": false
+      }
+    },
+    {
+      "trades": 33,
+      "wins": 16,
+      "win_rate": 0.48484848484848486,
+      "ret_pct": 258.05137432517637,
+      "max_dd": 17.808255477647368,
+      "calmar": 14.490547636688964,
+      "pf": 3.539548973222373,
+      "final_equity": 35805.13743251764,
+      "skip_f1": 0,
+      "skip_f3": 0,
+      "skip_f5": 30,
+      "name": "D_F5_only",
+      "pair": "ETH",
+      "filters": {
+        "f1": false,
+        "f3": false,
+        "f5": true
+      }
+    },
+    {
+      "trades": 30,
+      "wins": 14,
+      "win_rate": 0.4666666666666667,
+      "ret_pct": 157.23265053224327,
+      "max_dd": 13.815735207904192,
+      "calmar": 11.38069369209451,
+      "pf": 2.926650152518344,
+      "final_equity": 25723.265053224328,
+      "skip_f1": 34,
+      "skip_f3": 8,
+      "skip_f5": 0,
+      "name": "E_F1_F3",
+      "pair": "ETH",
+      "filters": {
+        "f1": true,
+        "f3": true,
+        "f5": false
+      }
+    },
+    {
+      "trades": 29,
+      "wins": 14,
+      "win_rate": 0.4827586206896552,
+      "ret_pct": 185.29029331955954,
+      "max_dd": 13.793637060757405,
+      "calmar": 13.433026583445955,
+      "pf": 3.2014330925820746,
+      "final_equity": 28529.029331955953,
+      "skip_f1": 34,
+      "skip_f3": 0,
+      "skip_f5": 10,
+      "name": "F_F1_F5",
+      "pair": "ETH",
+      "filters": {
+        "f1": true,
+        "f3": false,
+        "f5": true
+      }
+    },
+    {
+      "trades": 32,
+      "wins": 15,
+      "win_rate": 0.46875,
+      "ret_pct": 212.11216825610757,
+      "max_dd": 17.822562689191805,
+      "calmar": 11.901328218345359,
+      "pf": 3.3157216052765457,
+      "final_equity": 31211.216825610758,
+      "skip_f1": 0,
+      "skip_f3": 27,
+      "skip_f5": 4,
+      "name": "G_F3_F5",
+      "pair": "ETH",
+      "filters": {
+        "f1": false,
+        "f3": true,
+        "f5": true
+      }
+    },
+    {
+      "trades": 27,
+      "wins": 13,
+      "win_rate": 0.48148148148148145,
+      "ret_pct": 162.88222071503637,
+      "max_dd": 13.848551764895763,
+      "calmar": 11.76167901743496,
+      "pf": 3.1821892199046644,
+      "final_equity": 26288.22207150364,
+      "skip_f1": 34,
+      "skip_f3": 8,
+      "skip_f5": 4,
+      "name": "H_F1_F3_F5",
+      "pair": "ETH",
+      "filters": {
+        "f1": true,
+        "f3": true,
+        "f5": true
+      }
+    }
+  ]
+}

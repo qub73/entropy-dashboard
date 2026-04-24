@@ -1,0 +1,202 @@
+[
+  {
+    "strategy": "baseline",
+    "trades": 32,
+    "wins": 18,
+    "losses": 14,
+    "win_rate": 0.5625,
+    "ret_pct": 171.64961996391864,
+    "pnl_usd": 19756.302569137973,
+    "max_dd": 20.77745386168668,
+    "calmar": 8.261340446551923,
+    "avg_hold": 150.53125,
+    "avg_pnl_bps": 50.45626996508744,
+    "reasons": {
+      "tp": 9,
+      "sl": 12,
+      "timeout": 11
+    },
+    "signals_taken": 32
+  },
+  {
+    "strategy": "A_spread_retrace10",
+    "trades": 42,
+    "wins": 16,
+    "losses": 26,
+    "win_rate": 0.38095238095238093,
+    "ret_pct": -28.789831439622287,
+    "pnl_usd": -1313.4515976366754,
+    "max_dd": 17.681993660424226,
+    "calmar": -1.6282005294493225,
+    "avg_hold": 10.261904761904763,
+    "avg_pnl_bps": 1.4705341096131543,
+    "reasons": {
+      "spread_retrace": 39,
+      "sl": 3
+    },
+    "signals_taken": 42
+  },
+  {
+    "strategy": "A_spread_retrace20",
+    "trades": 37,
+    "wins": 17,
+    "losses": 20,
+    "win_rate": 0.4594594594594595,
+    "ret_pct": 9.537745843132251,
+    "pnl_usd": 2789.9961078176552,
+    "max_dd": 10.076569136594719,
+    "calmar": 0.9465271079711405,
+    "avg_hold": 25.64864864864865,
+    "avg_pnl_bps": 13.615523158784438,
+    "reasons": {
+      "spread_retrace": 35,
+      "sl": 2
+    },
+    "signals_taken": 37
+  },
+  {
+    "strategy": "A_spread_retrace40",
+    "trades": 35,
+    "wins": 15,
+    "losses": 20,
+    "win_rate": 0.42857142857142855,
+    "ret_pct": 18.521741545345286,
+    "pnl_usd": 3730.1456566870456,
+    "max_dd": 12.228677364078326,
+    "calmar": 1.5146152763628224,
+    "avg_hold": 52.65714285714286,
+    "avg_pnl_bps": 17.197857493834643,
+    "reasons": {
+      "spread_retrace": 29,
+      "sl": 3,
+      "tp": 1,
+      "timeout": 2
+    },
+    "signals_taken": 35
+  },
+  {
+    "strategy": "B_entropy_retrace20",
+    "trades": 37,
+    "wins": 18,
+    "losses": 19,
+    "win_rate": 0.4864864864864865,
+    "ret_pct": 7.132702115635348,
+    "pnl_usd": 2525.156586760101,
+    "max_dd": 10.072169017377735,
+    "calmar": 0.7081594940800874,
+    "avg_hold": 25.054054054054053,
+    "avg_pnl_bps": 12.896770948446783,
+    "reasons": {
+      "entropy_retrace": 35,
+      "sl": 2
+    },
+    "signals_taken": 37
+  },
+  {
+    "strategy": "C_chandelier_2.0x",
+    "trades": 41,
+    "wins": 15,
+    "losses": 26,
+    "win_rate": 0.36585365853658536,
+    "ret_pct": 12.136178442951186,
+    "pnl_usd": 3248.8053730426736,
+    "max_dd": 8.666173039884288,
+    "calmar": 1.4004080448309661,
+    "avg_hold": 8.902439024390244,
+    "avg_pnl_bps": 13.814091194121726,
+    "reasons": {
+      "chandelier": 41
+    },
+    "signals_taken": 41
+  },
+  {
+    "strategy": "C_chandelier_3.0x",
+    "trades": 38,
+    "wins": 16,
+    "losses": 22,
+    "win_rate": 0.42105263157894735,
+    "ret_pct": 29.148035624095463,
+    "pnl_usd": 5001.257216460062,
+    "max_dd": 10.601958612440209,
+    "calmar": 2.7493066790407497,
+    "avg_hold": 15.421052631578947,
+    "avg_pnl_bps": 18.3023492958952,
+    "reasons": {
+      "chandelier": 38
+    },
+    "signals_taken": 38
+  },
+  {
+    "strategy": "C_chandelier_2.0x_asym",
+    "trades": 39,
+    "wins": 16,
+    "losses": 23,
+    "win_rate": 0.41025641025641024,
+    "ret_pct": 25.89166675391394,
+    "pnl_usd": 4670.015894084196,
+    "max_dd": 10.570535688664659,
+    "calmar": 2.4494186024724303,
+    "avg_hold": 13.205128205128204,
+    "avg_pnl_bps": 17.331067734485202,
+    "reasons": {
+      "chandelier": 39
+    },
+    "signals_taken": 39
+  },
+  {
+    "strategy": "D_time_decay_tp",
+    "trades": 34,
+    "wins": 18,
+    "losses": 16,
+    "win_rate": 0.5294117647058824,
+    "ret_pct": 61.472222276199886,
+    "pnl_usd": 8247.313188006112,
+    "max_dd": 20.662514290474192,
+    "calmar": 2.9750601215332124,
+    "avg_hold": 126.73529411764706,
+    "avg_pnl_bps": 29.458204531726143,
+    "reasons": {
+      "tp_decayed": 16,
+      "sl": 14,
+      "timeout": 4
+    },
+    "signals_taken": 34
+  },
+  {
+    "strategy": "D_time_decay_tp",
+    "trades": 33,
+    "wins": 18,
+    "losses": 15,
+    "win_rate": 0.5454545454545454,
+    "ret_pct": 97.22857471257808,
+    "pnl_usd": 11926.224225650094,
+    "max_dd": 20.68267178446866,
+    "calmar": 4.700967830741791,
+    "avg_hold": 128.87878787878788,
+    "avg_pnl_bps": 37.1382289984973,
+    "reasons": {
+      "tp_decayed": 15,
+      "sl": 13,
+      "timeout": 5
+    },
+    "signals_taken": 33
+  },
+  {
+    "strategy": "E_combined_best",
+    "trades": 37,
+    "wins": 27,
+    "losses": 10,
+    "win_rate": 0.7297297297297297,
+    "ret_pct": 17.146775061319367,
+    "pnl_usd": 3646.825937874366,
+    "max_dd": 17.100250388593352,
+    "calmar": 1.0027207012569272,
+    "avg_hold": 38.83783783783784,
+    "avg_pnl_bps": 16.055555155940116,
+    "reasons": {
+      "chandelier": 29,
+      "sl": 8
+    },
+    "signals_taken": 37
+  }
+]

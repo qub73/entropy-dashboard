@@ -1,0 +1,362 @@
+{
+  "n_trades": 19,
+  "mode_counts": {
+    "clean": 13,
+    "a_too_soon": 4,
+    "b_at_bottom": 2
+  },
+  "combined_mode_freq": {
+    "clean": 13,
+    "a_too_soon": 4,
+    "b_at_bottom": 2
+  },
+  "money_on_the_table_estimates_bps": {
+    "a_forward_fav_missed": 848.7,
+    "b_recovery_missed": 90.9,
+    "c_slow_bleed_realized": 0
+  },
+  "trades": [
+    {
+      "order_id": "a187cfdd-418b-4899-9e8f-7acbb7e8d2de",
+      "entry_ts_utc": "2026-04-12T22:19:00.722562+00:00",
+      "direction": 1,
+      "hold_min": 240.99410165548323,
+      "reason_live": "timeout",
+      "pnl_bps_live": 30.514339976761562,
+      "entry_price": 2190.4114183123875,
+      "exit_price": 2197.0953141831237,
+      "mfe_during_hold_bps": 85.1,
+      "mae_during_hold_bps": -29.3,
+      "forward_fav_from_exit_bps": 30.3,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a188509c-1e14-461d-ba12-c9b40d336ba7",
+      "entry_ts_utc": "2026-04-13T06:04:00.800116+00:00",
+      "direction": 1,
+      "hold_min": 135.99183783928552,
+      "reason_live": "sl",
+      "pnl_bps_live": -53.85091129079478,
+      "entry_price": 2194.102676527558,
+      "exit_price": 2182.2872336678997,
+      "mfe_during_hold_bps": 33.5,
+      "mae_during_hold_bps": -57.2,
+      "forward_fav_from_exit_bps": 59.8,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a1893db4-945f-4aba-b20e-e1c7ad44b5d6",
+      "entry_ts_utc": "2026-04-13T13:57:00.739281+00:00",
+      "direction": 1,
+      "hold_min": 325.9606240034103,
+      "reason_live": "manual_close",
+      "pnl_bps_live": 129.13420153878752,
+      "entry_price": 2210.461335317091,
+      "exit_price": 2239.0059512739444,
+      "mfe_during_hold_bps": 146.8,
+      "mae_during_hold_bps": -49.5,
+      "forward_fav_from_exit_bps": 425.3,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "a_too_soon"
+      ]
+    },
+    {
+      "order_id": "a18a854d-9851-4bfd-8760-94eb48ce75c0",
+      "entry_ts_utc": "2026-04-14T08:37:00.252924+00:00",
+      "direction": 1,
+      "hold_min": 121.99853851795197,
+      "reason_live": "sl",
+      "pnl_bps_live": -52.56016114096984,
+      "entry_price": 2394.4305469178707,
+      "exit_price": 2381.8453813791843,
+      "mfe_during_hold_bps": 6.7,
+      "mae_during_hold_bps": -70.5,
+      "forward_fav_from_exit_bps": 55.2,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a18ae249-51da-4a57-910a-c5854b4fdd25",
+      "entry_ts_utc": "2026-04-14T11:37:00.258947+00:00",
+      "direction": 1,
+      "hold_min": 201.99864485263825,
+      "reason_live": "sl",
+      "pnl_bps_live": -53.798122178840835,
+      "entry_price": 2373.356781434278,
+      "exit_price": 2360.58856762412,
+      "mfe_during_hold_bps": 177.6,
+      "mae_during_hold_bps": -87.5,
+      "forward_fav_from_exit_bps": 48.8,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a18b04f9-d617-4b60-82f9-a50fd534449b",
+      "entry_ts_utc": "2026-04-14T16:14:00.249285+00:00",
+      "direction": 1,
+      "hold_min": 21.99760534763336,
+      "reason_live": "sl",
+      "pnl_bps_live": -64.8101026027137,
+      "entry_price": 2361.366977205154,
+      "exit_price": 2346.0629335976214,
+      "mfe_during_hold_bps": 2.7,
+      "mae_during_hold_bps": -69.3,
+      "forward_fav_from_exit_bps": 30.8,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a18b33d3-52fb-49aa-9bd8-474257b16229",
+      "entry_ts_utc": "2026-04-14T16:58:00.316840+00:00",
+      "direction": 1,
+      "hold_min": 108.99740179777146,
+      "reason_live": "sl",
+      "pnl_bps_live": -56.751223630070456,
+      "entry_price": 2333.6425876010785,
+      "exit_price": 2320.398880364918,
+      "mfe_during_hold_bps": 50.8,
+      "mae_during_hold_bps": -83.0,
+      "forward_fav_from_exit_bps": 24.1,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a18c738b-66bc-4843-bd50-be3fe57b3e9c",
+      "entry_ts_utc": "2026-04-15T05:40:00.263124+00:00",
+      "direction": 1,
+      "hold_min": 240.99763820171356,
+      "reason_live": "timeout",
+      "pnl_bps_live": 15.221789804718,
+      "entry_price": 2316.4739121021867,
+      "exit_price": 2320.0,
+      "mfe_during_hold_bps": 71.3,
+      "mae_during_hold_bps": -34.4,
+      "forward_fav_from_exit_bps": 86.2,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a18d82fc-01a3-4b1b-8b66-b439d3f17557",
+      "entry_ts_utc": "2026-04-15T18:10:00.319267+00:00",
+      "direction": 1,
+      "hold_min": 249.99744715690613,
+      "reason_live": "trail_stop",
+      "pnl_bps_live": 74.76748737778038,
+      "entry_price": 2348.540552389303,
+      "exit_price": 2366.1,
+      "mfe_during_hold_bps": 157.8,
+      "mae_during_hold_bps": -4.5,
+      "forward_fav_from_exit_bps": 60.2,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "a_too_soon"
+      ]
+    },
+    {
+      "order_id": "a18d9702-e245-434b-846f-46b088db4f85",
+      "entry_ts_utc": "2026-04-15T22:56:00.242829+00:00",
+      "direction": 1,
+      "hold_min": 19.997909530003867,
+      "reason_live": "sl",
+      "pnl_bps_live": -65.53447578988569,
+      "entry_price": 2366.3926634433465,
+      "exit_price": 2350.8846331721675,
+      "mfe_during_hold_bps": 1.0,
+      "mae_during_hold_bps": -71.0,
+      "forward_fav_from_exit_bps": 53.8,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a18ece25-be34-4d61-992a-9380a5df4fca",
+      "entry_ts_utc": "2026-04-16T09:45:00.321883+00:00",
+      "direction": 1,
+      "hold_min": 240.996388789018,
+      "reason_live": "timeout",
+      "pnl_bps_live": -20.915599173215725,
+      "entry_price": 2339.9,
+      "exit_price": 2335.0059589494595,
+      "mfe_during_hold_bps": 50.9,
+      "mae_during_hold_bps": -48.1,
+      "forward_fav_from_exit_bps": 63.5,
+      "forward_recovery_to_entry": true,
+      "forward_fav_at_recovery_bps": 42.5,
+      "failure_modes": [
+        "b_at_bottom"
+      ]
+    },
+    {
+      "order_id": "a18fb9d3-44dd-4828-beeb-85e7ad521db8",
+      "entry_ts_utc": "2026-04-16T20:35:00.241471+00:00",
+      "direction": 1,
+      "hold_min": 250.00077232519786,
+      "reason_live": "trail_stop",
+      "pnl_bps_live": -4.243360517598438,
+      "entry_price": 2346.5,
+      "exit_price": 2345.5042954545456,
+      "mfe_during_hold_bps": 42.7,
+      "mae_during_hold_bps": -43.7,
+      "forward_fav_from_exit_bps": 14.9,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a190dac9-9e0e-487c-8d67-5af0998ea996",
+      "entry_ts_utc": "2026-04-17T13:12:00.263830+00:00",
+      "direction": 1,
+      "hold_min": 60.997456300258634,
+      "reason_live": "tp_trail",
+      "pnl_bps_live": 133.63857749360665,
+      "entry_price": 2395.8609237875285,
+      "exit_price": 2427.878868360277,
+      "mfe_during_hold_bps": 215.8,
+      "mae_during_hold_bps": -26.3,
+      "forward_fav_from_exit_bps": 152.5,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "a_too_soon"
+      ]
+    },
+    {
+      "order_id": "a1911f73-d6b4-4864-95af-5a261463ea43",
+      "entry_ts_utc": "2026-04-17T17:09:00.267723+00:00",
+      "direction": 1,
+      "hold_min": 15.998507026831309,
+      "reason_live": "sl",
+      "pnl_bps_live": -58.249866430051256,
+      "entry_price": 2440.928320693391,
+      "exit_price": 2426.709945828819,
+      "mfe_during_hold_bps": 6.4,
+      "mae_during_hold_bps": -72.1,
+      "forward_fav_from_exit_bps": 74.7,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a191b93b-6522-46e6-ab44-fc681e74c525",
+      "entry_ts_utc": "2026-04-17T22:15:00.305944+00:00",
+      "direction": 1,
+      "hold_min": 139.99655552307766,
+      "reason_live": "sl",
+      "pnl_bps_live": -54.779484953654254,
+      "entry_price": 2426.7633150934794,
+      "exit_price": 2413.469630642955,
+      "mfe_during_hold_bps": 72.4,
+      "mae_during_hold_bps": -68.8,
+      "forward_fav_from_exit_bps": 58.7,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a1920066-645b-42f8-85cd-508ba7fd5209",
+      "entry_ts_utc": "2026-04-18T01:07:00.254409+00:00",
+      "direction": 1,
+      "hold_min": 166.9974514245987,
+      "reason_live": "sl",
+      "pnl_bps_live": -63.64022844808525,
+      "entry_price": 2423.900693613968,
+      "exit_price": 2408.4749342262617,
+      "mfe_during_hold_bps": 15.4,
+      "mae_during_hold_bps": -79.3,
+      "forward_fav_from_exit_bps": 21.0,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    },
+    {
+      "order_id": "a19481fc-4324-4b8c-93c6-9a010c3cf92d",
+      "entry_ts_utc": "2026-04-19T08:38:00.487908+00:00",
+      "direction": 1,
+      "hold_min": 69.99639711380004,
+      "reason_live": "sl",
+      "pnl_bps_live": -48.46057479886423,
+      "entry_price": 2319.9017048222117,
+      "exit_price": 2308.6593278129567,
+      "mfe_during_hold_bps": 4.6,
+      "mae_during_hold_bps": -58.1,
+      "forward_fav_from_exit_bps": 118.1,
+      "forward_recovery_to_entry": true,
+      "forward_fav_at_recovery_bps": 48.4,
+      "failure_modes": [
+        "b_at_bottom"
+      ]
+    },
+    {
+      "order_id": "a1964b08-b0ed-43b4-bea9-04bc588da6f7",
+      "entry_ts_utc": "2026-04-20T00:07:00.257471+00:00",
+      "direction": 1,
+      "hold_min": 419.0005445520083,
+      "reason_live": "trail_stop",
+      "pnl_bps_live": 59.82503967764785,
+      "entry_price": 2271.1615481276704,
+      "exit_price": 2284.748781100779,
+      "mfe_during_hold_bps": 101.9,
+      "mae_during_hold_bps": -35.1,
+      "forward_fav_from_exit_bps": 210.7,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "a_too_soon"
+      ]
+    },
+    {
+      "order_id": "a196edc0-e587-43ad-a62e-fdadda478b2b",
+      "entry_ts_utc": "2026-04-20T14:22:00.394914+00:00",
+      "direction": 1,
+      "hold_min": 18.995215511322023,
+      "reason_live": "sl",
+      "pnl_bps_live": -54.97596776633529,
+      "entry_price": 2314.3810361681326,
+      "exit_price": 2301.657502443793,
+      "mfe_during_hold_bps": 32.8,
+      "mae_during_hold_bps": -82.0,
+      "forward_fav_from_exit_bps": 90.1,
+      "forward_recovery_to_entry": false,
+      "forward_fav_at_recovery_bps": null,
+      "failure_modes": [
+        "clean"
+      ]
+    }
+  ]
+}
