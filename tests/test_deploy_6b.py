@@ -233,15 +233,37 @@ def test_mode_pi_not_implemented(fake_repo):
 
 # ============ Pre-flight failure modes ============
 
-def test_preflight_dirty_git_aborts(fake_repo, monkeypatch):
+def test_preflight_modified_files_aborts(fake_repo, monkeypatch):
+    """A modified-but-uncommitted file blocks deploy."""
     def fake_run(cmd, check=True, timeout=30, capture=True):
         if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)] and \
            cmd[3:5] == ["status", "--porcelain"]:
             return subprocess.CompletedProcess(cmd, 0, " M file.py\n", "")
         return subprocess.CompletedProcess(cmd, 0, "main\n", "")
     monkeypatch.setattr(d6b, "_run", fake_run)
-    with pytest.raises(d6b.AbortError, match="working tree not clean"):
+    with pytest.raises(d6b.AbortError,
+                        match="uncommitted modifications"):
         d6b.preflight()
+
+
+def test_preflight_untracked_only_does_not_abort(fake_repo, monkeypatch):
+    """Untracked files alone don't block deploy -- they don't get
+    shipped (not in git), so they're benign for deploy purposes."""
+    install_local_git_ok(monkeypatch)
+    install_happy_pi(monkeypatch)
+    # Override _run to simulate untracked-only working tree.
+    base = d6b._run
+    def fake_run(cmd, check=True, timeout=30, capture=True):
+        if cmd[:3] == ["git", "-C", str(d6b.REPO_ROOT)] and \
+           cmd[3:5] == ["status", "--porcelain"]:
+            return subprocess.CompletedProcess(
+                cmd, 0,
+                "?? untracked1.py\n?? untracked2.md\n", "")
+        return base(cmd, check=check, timeout=timeout, capture=capture)
+    monkeypatch.setattr(d6b, "_run", fake_run)
+    facts = d6b.preflight()
+    assert facts["git_clean"] is True
+    assert facts["untracked_count"] == 2
 
 
 def test_preflight_wrong_branch_aborts(fake_repo, monkeypatch):

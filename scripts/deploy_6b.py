@@ -515,16 +515,26 @@ def preflight() -> dict:
     """
     facts: dict = {}
 
-    # 1. git status clean (LOCAL)
+    # 1. git status: no uncommitted MODIFICATIONS (LOCAL).
+    # We block on tracked-but-modified / staged-but-uncommitted files,
+    # but tolerate untracked files (they don't ship anywhere; they're
+    # not in git). This handles repos that carry legacy untracked .py
+    # files / scratch .md files alongside the tracked work.
     try:
         res = _run(["git", "-C", str(REPO_ROOT), "status", "--porcelain"])
     except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
         raise AbortError(f"git status failed: {e}")
-    if res.stdout.strip():
+    dirty_lines = [ln for ln in res.stdout.splitlines()
+                    if ln and not ln.startswith("??")]
+    if dirty_lines:
         raise AbortError(
-            f"working tree not clean:\n{res.stdout.strip()}"
+            f"working tree has uncommitted modifications:\n"
+            + "\n".join(dirty_lines)
         )
+    untracked_count = sum(1 for ln in res.stdout.splitlines()
+                            if ln.startswith("??"))
     facts["git_clean"] = True
+    facts["untracked_count"] = untracked_count
 
     # 2. branch == main (LOCAL)
     res = _run(["git", "-C", str(REPO_ROOT), "branch", "--show-current"])
