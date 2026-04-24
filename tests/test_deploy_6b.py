@@ -476,18 +476,22 @@ def test_rollback_restores_files_via_ssh(fake_repo, monkeypatch):
 
     def patched_ssh_run(remote, host=None, check=False, timeout=30):
         cmd = list(remote)
-        if cmd[:2] == ["bash", "-c"] and "ls -1" in (cmd[2] if len(cmd) > 2 else ""):
-            captured["ls_calls"].append(cmd)
-            return subprocess.CompletedProcess(
-                cmd, 0,
-                "shadow_expectation.json\nlive_drift_monitor.json\n"
-                "multi_trader_state.json\ngit_head.txt\n", "")
         if cmd[:1] == ["cp"]:
             captured["cp_calls"].append(cmd)
             return subprocess.CompletedProcess(cmd, 0, "", "")
         return base(remote, host=host, check=check, timeout=timeout)
 
+    def patched_ssh_shell(shell_cmd, host=None, check=False, timeout=30):
+        if "ls -1" in shell_cmd:
+            captured["ls_calls"].append(shell_cmd)
+            return subprocess.CompletedProcess(
+                ["ssh"], 0,
+                "shadow_expectation.json\nlive_drift_monitor.json\n"
+                "multi_trader_state.json\ngit_head.txt\n", "")
+        return subprocess.CompletedProcess(["ssh"], 0, "", "")
+
     monkeypatch.setattr(d6b, "_ssh_run", patched_ssh_run)
+    monkeypatch.setattr(d6b, "_ssh_shell", patched_ssh_shell)
 
     result = d6b.rollback()
     assert result["service_active"] is True
@@ -694,11 +698,6 @@ def test_dev_mode_rollback_via_ssh(fake_repo, monkeypatch):
 
     def patched(remote, host=None, check=False, timeout=30):
         cmd = list(remote)
-        if cmd[:2] == ["bash", "-c"] and "ls -1" in cmd[2]:
-            captured["ls"] = True
-            return subprocess.CompletedProcess(
-                cmd, 0,
-                "shadow_expectation.json\nmulti_trader_state.json\n", "")
         if cmd[:1] == ["cp"]:
             captured["cp"] += 1
             return subprocess.CompletedProcess(cmd, 0, "", "")
@@ -709,7 +708,16 @@ def test_dev_mode_rollback_via_ssh(fake_repo, monkeypatch):
             return subprocess.CompletedProcess(cmd, 0, "active\n", "")
         return subprocess.CompletedProcess(cmd, 0, "", "")
 
+    def patched_shell(shell_cmd, host=None, check=False, timeout=30):
+        if "ls -1" in shell_cmd:
+            captured["ls"] = True
+            return subprocess.CompletedProcess(
+                ["ssh"], 0,
+                "shadow_expectation.json\nmulti_trader_state.json\n", "")
+        return subprocess.CompletedProcess(["ssh"], 0, "", "")
+
     monkeypatch.setattr(d6b, "_ssh_run", patched)
+    monkeypatch.setattr(d6b, "_ssh_shell", patched_shell)
     monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 1)
     result = d6b.rollback()
     assert result["service_active"] is True

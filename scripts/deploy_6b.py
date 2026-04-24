@@ -212,16 +212,36 @@ def _ssh_run(remote: List[str], host: Optional[str] = None,
              ) -> subprocess.CompletedProcess:
     """Run a command on the Pi via ssh. Returns CompletedProcess.
     By design: check defaults to False because most callers want to
-    inspect rc + stderr to make a decision rather than throw."""
+    inspect rc + stderr to make a decision rather than throw.
+
+    NOTE: ssh joins multiple remote-args with plain spaces; quotes are
+    NOT preserved through that join. So a remote like
+    `["bash", "-c", "[ -e foo ] && bar"]` arrives as
+    `bash -c [ -e foo ] && bar`, which the remote shell mis-parses.
+    Use `_ssh_shell(shell_cmd_string)` for any command containing
+    shell metachars or `bash -c '<script>'` patterns."""
     return _run(_ssh_cmd(remote, host), check=check, timeout=timeout)
+
+
+def _ssh_shell(shell_cmd: str, host: Optional[str] = None,
+                check: bool = False, timeout: int = 30
+                ) -> subprocess.CompletedProcess:
+    """Send a single shell-command string to the Pi via ssh. The string
+    is passed as one argv element to ssh, so the remote login shell
+    parses it intact (preserving quotes, redirects, conditionals)."""
+    h = host or _pi_host_target()
+    full = ["ssh"] + SSH_OPTS + [h, shell_cmd]
+    return _run(full, check=check, timeout=timeout)
 
 
 def _ssh_write_file(remote_path: str, content: str,
                     host: Optional[str] = None, timeout: int = 30) -> None:
-    """Write content to a Pi file via ssh stdin (single round-trip)."""
+    """Write content to a Pi file via ssh stdin (single round-trip).
+    Uses single-string shell-form so the `>` redirect survives transport."""
+    import shlex
     h = host or _pi_host_target()
-    cmd = ["ssh"] + SSH_OPTS + [h, "--", "bash", "-c",
-                                  f"cat > {remote_path}"]
+    shell_cmd = f"cat > {shlex.quote(remote_path)}"
+    cmd = ["ssh"] + SSH_OPTS + [h, shell_cmd]
     _log(f"exec: {' '.join(cmd)} (with stdin {len(content)} bytes)", "DEBUG")
     res = subprocess.run(
         cmd, input=content, text=True,
@@ -288,17 +308,17 @@ def _extract_unit_key(unit_text: str, key: str) -> Optional[str]:
 
 def _read_proc_cmdline(pid: int) -> str:
     """Read /proc/<pid>/cmdline on the Pi via ssh, with NULs translated
-    to spaces. Broken out so tests can monkeypatch."""
-    res = _ssh_run(
-        ["bash", "-c", f"tr '\\0' ' ' < /proc/{pid}/cmdline"],
-        check=False, timeout=10,
-    )
+    to spaces. Uses plain `cat` (no shell metachars to preserve through
+    ssh transport), translates NULs locally. Broken out so tests can
+    monkeypatch."""
+    res = _ssh_run(["cat", f"/proc/{pid}/cmdline"],
+                    check=False, timeout=10)
     if res.returncode != 0:
         raise OSError(
             f"could not read /proc/{pid}/cmdline on Pi: "
             f"{(res.stderr or '').strip()!r}"
         )
-    return res.stdout.strip()
+    return res.stdout.replace("\x00", " ").strip()
 
 
 def verify_service_targets_expected_bot(
@@ -663,10 +683,9 @@ def create_backup(facts: dict) -> str:
     ]
     for name in files_to_back_up:
         # cp -p preserves mtime; suppress error if file absent.
-        _ssh_run(
-            ["bash", "-c",
-             f"[ -e {PI_STATE_DIR}/{name} ] && "
-             f"cp -p {PI_STATE_DIR}/{name} {backup_remote}/{name} || true"],
+        _ssh_shell(
+            f"[ -e {PI_STATE_DIR}/{name} ] && "
+            f"cp -p {PI_STATE_DIR}/{name} {backup_remote}/{name} || true",
             check=False, timeout=15,
         )
 
@@ -713,13 +732,12 @@ def execute_deploy(facts: dict) -> None:
     # 12. rename v1 -> v1_with_f3c (idempotent)
     v1 = f"{PI_STATE_DIR}/shadow_expectation.v1.json"
     v1f3c = f"{PI_STATE_DIR}/shadow_expectation.v1_with_f3c.json"
-    _ssh_run(
-        ["bash", "-c",
-         f"if [ -e {v1} ] && [ ! -e {v1f3c} ]; then "
-         f"  mv {v1} {v1f3c}; "
-         f"elif [ -e {v1} ] && [ -e {v1f3c} ]; then "
-         f"  rm {v1}; "
-         f"fi"],
+    _ssh_shell(
+        f"if [ -e {v1} ] && [ ! -e {v1f3c} ]; then "
+        f"  mv {v1} {v1f3c}; "
+        f"elif [ -e {v1} ] && [ -e {v1f3c} ]; then "
+        f"  rm {v1}; "
+        f"fi",
         check=False, timeout=10,
     )
     _log("v1 shadow rename: idempotent op done")
@@ -810,9 +828,8 @@ def verify_first_audit_line() -> dict:
     """Poll the Pi audit file via ssh for a new line within
     AUDIT_POLL_SEC. If none (market dormant), that's OK -- we just log
     it. If any, confirm f3c_enabled=False."""
-    res = _ssh_run(
-        ["bash", "-c",
-         f"[ -e {PI_AUDIT_FILE} ] && wc -l < {PI_AUDIT_FILE} || echo 0"],
+    res = _ssh_shell(
+        f"[ -e {PI_AUDIT_FILE} ] && wc -l < {PI_AUDIT_FILE} || echo 0",
         check=False, timeout=10,
     )
     try:
@@ -822,9 +839,8 @@ def verify_first_audit_line() -> dict:
 
     deadline = time.time() + AUDIT_POLL_SEC
     while time.time() < deadline:
-        res = _ssh_run(
-            ["bash", "-c",
-             f"[ -e {PI_AUDIT_FILE} ] && wc -l < {PI_AUDIT_FILE} || echo 0"],
+        res = _ssh_shell(
+            f"[ -e {PI_AUDIT_FILE} ] && wc -l < {PI_AUDIT_FILE} || echo 0",
             check=False, timeout=10,
         )
         try:
@@ -965,8 +981,8 @@ def rollback() -> dict:
         )
 
     # List files in the backup
-    res = _ssh_run(["bash", "-c", f"ls -1 {backup_remote}"],
-                    check=False, timeout=10)
+    res = _ssh_shell(f"ls -1 {backup_remote}",
+                       check=False, timeout=10)
     files = res.stdout.strip().splitlines()
     skip = {"git_head.txt", "git_sha.txt", "config_snapshot.txt"}
     restored: List[str] = []
