@@ -111,9 +111,9 @@ def install_happy_pi(monkeypatch, *,
     def fake_pi_file_exists(path):
         return path in files
 
-    rsync_calls: list = []
-    def fake_rsync(local_path, remote_path, host=None):
-        rsync_calls.append((Path(local_path), remote_path))
+    scp_calls: list = []
+    def fake_scp(local_path, remote_path, host=None):
+        scp_calls.append((Path(local_path), remote_path))
 
     write_calls: list = []
     def fake_ssh_write(remote_path, content, host=None, timeout=30):
@@ -128,12 +128,12 @@ def install_happy_pi(monkeypatch, *,
                         make_ssh_run_dispatcher())
     monkeypatch.setattr(d6b, "_pi_read_file", fake_pi_read_file)
     monkeypatch.setattr(d6b, "_pi_file_exists", fake_pi_file_exists)
-    monkeypatch.setattr(d6b, "_rsync_to_pi", fake_rsync)
+    monkeypatch.setattr(d6b, "_scp_to_pi", fake_scp)
     monkeypatch.setattr(d6b, "_ssh_write_file", fake_ssh_write)
     monkeypatch.setattr(d6b, "_read_proc_cmdline",
                         lambda pid: GOOD_CMDLINE)
 
-    return {"files": files, "rsync_calls": rsync_calls,
+    return {"files": files, "scp_calls": scp_calls,
             "write_calls": write_calls}
 
 
@@ -510,8 +510,8 @@ def test_execute_dry_run_makes_no_pi_mutations(fake_repo, monkeypatch):
     rc = d6b.main(["--dry-run", "--mode=dev"])
     assert rc == 0
     # No rsync calls in dry-run.
-    assert pi["rsync_calls"] == [], (
-        f"dry-run made rsync calls: {pi['rsync_calls']}")
+    assert pi["scp_calls"] == [], (
+        f"dry-run made rsync calls: {pi['scp_calls']}")
     # No file writes either.
     assert pi["write_calls"] == [], (
         f"dry-run made ssh writes: {pi['write_calls']}")
@@ -565,15 +565,15 @@ def test_execute_full_path_success(fake_repo, monkeypatch):
     monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 2)
 
     rc = d6b.main(["--execute", "--confirm", d6b.EXECUTE_CONFIRM])
-    assert rc == 0, f"expected rc=0; rsync={pi['rsync_calls']}, writes={pi['write_calls']}"
+    assert rc == 0, f"expected rc=0; rsync={pi['scp_calls']}, writes={pi['write_calls']}"
 
     # entropy_live_multi.py rsync'd
     assert any(str(r[0]).endswith("entropy_live_multi.py")
-               and r[1] == d6b.PI_CONFIG_FILE for r in pi["rsync_calls"])
+               and r[1] == d6b.PI_CONFIG_FILE for r in pi["scp_calls"])
     # shadow_expectation.json rsync'd
     assert any(str(r[0]).endswith("shadow_expectation.json")
                and r[1].endswith("shadow_expectation.json")
-               for r in pi["rsync_calls"])
+               for r in pi["scp_calls"])
 
 
 def test_execute_banner_mismatch_triggers_rollback(fake_repo, monkeypatch):
@@ -623,7 +623,7 @@ def test_dev_mode_dry_run_no_ssh_mutation(fake_repo, monkeypatch):
     pi = install_happy_pi(monkeypatch)
     rc = d6b.main(["--dry-run", "--mode=dev"])
     assert rc == 0
-    assert pi["rsync_calls"] == []
+    assert pi["scp_calls"] == []
     assert pi["write_calls"] == []
 
 
@@ -637,12 +637,11 @@ def test_dev_mode_preflight_pi_position_check_via_ssh(fake_repo, monkeypatch):
         d6b.preflight()
 
 
-def test_dev_mode_rsync_transfers_expected_files(fake_repo, monkeypatch):
-    """execute_deploy rsyncs entropy_live_multi.py + shadow_expectation
+def test_dev_mode_scp_transfers_expected_files(fake_repo, monkeypatch):
+    """execute_deploy scp's entropy_live_multi.py + shadow_expectation
     + (if present) config_lineage_init.py to the expected Pi paths."""
     install_local_git_ok(monkeypatch)
     pi = install_happy_pi(monkeypatch)
-    # Provide a config_lineage_init.py so it gets included.
     (fake_repo / "algo" / "dashboard").mkdir()
     (fake_repo / "algo" / "dashboard" / "config_lineage_init.py").write_text(
         "def append_deploy_entry(**kw): pass\n")
@@ -651,12 +650,36 @@ def test_dev_mode_rsync_transfers_expected_files(fake_repo, monkeypatch):
     facts = {"head_sha": "deadbeef"}
     d6b.execute_deploy(facts)
 
-    rsync_pairs = [(str(r[0]).split("\\")[-1].split("/")[-1], r[1])
-                   for r in pi["rsync_calls"]]
-    assert ("entropy_live_multi.py", d6b.PI_CONFIG_FILE) in rsync_pairs
+    scp_pairs = [(str(r[0]).split("\\")[-1].split("/")[-1], r[1])
+                  for r in pi["scp_calls"]]
+    assert ("entropy_live_multi.py", d6b.PI_CONFIG_FILE) in scp_pairs
     assert ("shadow_expectation.json",
-            f"{d6b.PI_STATE_DIR}/shadow_expectation.json") in rsync_pairs
-    assert ("config_lineage_init.py", d6b.PI_LINEAGE_INIT) in rsync_pairs
+            f"{d6b.PI_STATE_DIR}/shadow_expectation.json") in scp_pairs
+    assert ("config_lineage_init.py", d6b.PI_LINEAGE_INIT) in scp_pairs
+
+
+def test_dev_mode_scp_failure_triggers_rollback(fake_repo, monkeypatch):
+    """If _scp_to_pi raises (e.g. scp not on PATH, network failure),
+    execute aborts mid-deploy and auto-rollback fires."""
+    install_local_git_ok(monkeypatch)
+    pi = install_happy_pi(monkeypatch)
+
+    def failing_scp(local_path, remote_path, host=None, timeout=30):
+        raise d6b.AbortError(
+            f"scp failed for {local_path} -> {remote_path}: "
+            "rc=1, stderr='Connection refused'")
+
+    monkeypatch.setattr(d6b, "_scp_to_pi", failing_scp)
+    monkeypatch.setattr(d6b, "STARTUP_WAIT_SEC", 1)
+
+    rc = d6b.main(["--execute", "--confirm", d6b.EXECUTE_CONFIRM])
+    assert rc != 0, "scp failure should yield non-zero exit"
+    # rollback should have written rollback_complete.json
+    assert any(w[0] == f"{d6b.PI_STATE_DIR}/rollback_complete.json"
+                for w in pi["write_calls"]), (
+        f"rollback record missing; writes={pi['write_calls']}")
+    # No scp calls succeeded (since the helper always raised)
+    assert pi["scp_calls"] == []
 
 
 def test_dev_mode_service_restart_and_banner_verify(fake_repo, monkeypatch):
@@ -749,10 +772,10 @@ def test_lineage_append_success_adds_entry(fake_repo, monkeypatch):
         "key_changes": [], "notes": "observer",
     }) + "\n")
 
-    rsync_calls: list = []
-    def fake_rsync(local_path, remote_path, host=None):
-        rsync_calls.append((Path(local_path), remote_path))
-    monkeypatch.setattr(d6b, "_rsync_to_pi", fake_rsync)
+    scp_calls: list = []
+    def fake_scp(local_path, remote_path, host=None):
+        scp_calls.append((Path(local_path), remote_path))
+    monkeypatch.setattr(d6b, "_scp_to_pi", fake_scp)
 
     facts = {"head_sha": "abc1234567890abcdef"}
     ok, msg = d6b.append_lineage_on_success(facts)
@@ -768,7 +791,7 @@ def test_lineage_append_success_adds_entry(fake_repo, monkeypatch):
 
     # rsync to Pi was attempted
     assert any(str(r[0]).endswith("config_lineage.jsonl") and
-               r[1] == d6b.PI_LINEAGE_FILE for r in rsync_calls)
+               r[1] == d6b.PI_LINEAGE_FILE for r in scp_calls)
 
 
 def test_lineage_append_failure_writes_error_locally(fake_repo, monkeypatch):

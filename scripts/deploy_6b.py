@@ -29,10 +29,12 @@ Design
 - --mode=dev (default): script runs on the dev workstation. LOCAL git
   pre-flight (clean tree, on main, HEAD subject matches PATH A) plus
   REMOTE state/service pre-flight via ssh against the Pi. Phase 2 deploy
-  is rsync (config + shadow + lineage init) + ssh (rename, drift clear,
+  is scp (config + shadow + lineage init) + ssh (rename, drift clear,
   systemctl restart, banner verify, audit verify). Backup, rollback,
   deploy-record write are all ssh-based against PI_STATE_DIR. The dev
   repo is the source of truth for what gets deployed; the Pi has no .git.
+  scp is used instead of rsync because rsync is not shipped with
+  Windows OpenSSH; scp is, so this works cross-platform.
 - --mode=pi: reserved, not implemented (would run the script on the Pi
   itself; currently raises NotImplementedError).
 - Systemd service name resolved from $ENTROPY_SERVICE_NAME, default
@@ -48,8 +50,8 @@ Design
   to use the raw Tailscale IP if MagicDNS is unavailable. ssh uses
   ControlMaster for connection multiplexing across the many calls in
   one deploy.
-- Every Pi-side file mutation that overwrites is rsync (atomic on
-  rename); state writes use 'cat > path' via ssh stdin (single fsync).
+- Every Pi-side file mutation that overwrites is scp (SFTP-based on
+  OpenSSH 9.0+); state writes use 'cat > path' via ssh stdin.
 - On any exception during Phase 3 (execute path), an automatic
   rollback is attempted.
 - Exits with code 0 on success, non-zero on any abort.
@@ -161,7 +163,7 @@ _resolve_state_dir = _local_state_dir
 
 
 def _local_config_file() -> Path:
-    """Resolve the local entropy_live_multi.py to be rsync'd to Pi."""
+    """Resolve the local entropy_live_multi.py to be scp'd to Pi."""
     if LOCAL_CONFIG_FILE_PRIMARY.exists():
         return LOCAL_CONFIG_FILE_PRIMARY
     if LOCAL_CONFIG_FILE_LEGACY.exists():
@@ -199,7 +201,7 @@ def _atomic_write(path: Path, data: str) -> None:
     os.replace(tmp, path)
 
 
-# ------------ ssh + rsync helpers ------------
+# ------------ ssh + scp helpers ------------
 
 def _ssh_cmd(remote: List[str], host: Optional[str] = None) -> List[str]:
     """Build the full ssh command list for a given remote command."""
@@ -268,23 +270,29 @@ def _pi_read_file(remote_path: str) -> str:
     return res.stdout
 
 
-def _rsync_to_pi(local_path: Path, remote_path: str,
-                 host: Optional[str] = None) -> None:
-    """rsync a local file to the Pi. Raises AbortError on failure."""
+def _scp_to_pi(local_path: Path, remote_path: str,
+                host: Optional[str] = None,
+                timeout: int = 30) -> None:
+    """Copy a local file to the Pi via scp. Uses default SFTP protocol
+    (OpenSSH 9.0+); add `-O` here if a target ever needs legacy SCP.
+    Raises AbortError on failure.
+
+    Replaces the earlier rsync-based helper because rsync.exe is not
+    shipped with Windows OpenSSH. scp.exe is, so this is the
+    cross-platform substitute. We forfeit rsync's checksum-delta
+    optimization, but the deploy only ships ~3 small files so the
+    saving was negligible anyway."""
     h = host or _pi_host_target()
-    ssh_str = "ssh " + " ".join(SSH_OPTS)
-    cmd = [
-        "rsync", "-az", "--checksum",
-        "-e", ssh_str,
+    cmd = ["scp", "-p"] + SSH_OPTS + [
         str(local_path), f"{h}:{remote_path}",
     ]
     _log(f"exec: {' '.join(cmd)}", "DEBUG")
     res = subprocess.run(
-        cmd, capture_output=True, text=True, timeout=60,
+        cmd, capture_output=True, text=True, timeout=timeout,
     )
     if res.returncode != 0:
         raise AbortError(
-            f"rsync failed for {local_path} -> {h}:{remote_path}: "
+            f"scp failed for {local_path} -> {h}:{remote_path}: "
             f"rc={res.returncode}, stderr={(res.stderr or '').strip()!r}"
         )
 
@@ -433,6 +441,14 @@ def health_check() -> Tuple[int, List[str], List[str]]:
         ok.append("git available in PATH")
     else:
         issues.append("git not found in PATH")
+
+    # 2b. scp in PATH (deploy ships files via scp; rsync is not on
+    # Windows so we picked scp instead; if neither exists, deploy fails).
+    if shutil.which("scp"):
+        ok.append("scp available in PATH")
+    else:
+        issues.append("scp not found in PATH (Phase 3 file transfer "
+                       "requires scp)")
 
     # 3. python version
     if sys.version_info >= (3, 8):
@@ -598,7 +614,7 @@ def preflight() -> dict:
         )
     facts["position"] = None
 
-    # 5. local shadow_expectation.json (the one we will rsync) -- PATH A metadata
+    # 5. local shadow_expectation.json (the one we will scp) -- PATH A metadata
     local_shadow = _local_state_dir() / "shadow_expectation.json"
     if not local_shadow.exists():
         raise AbortError(f"local shadow {local_shadow} not found")
@@ -704,30 +720,30 @@ def create_backup(facts: dict) -> str:
     return backup_remote
 
 
-# ------------ phase 3: execute (rsync + ssh) ------------
+# ------------ phase 3: execute (scp + ssh) ------------
 
 def execute_deploy(facts: dict) -> None:
-    """Phase 3. Push new config + shadow + lineage init via rsync,
+    """Phase 3. Push new config + shadow + lineage init via scp,
     rename v1 shadow, clear drift monitor, restart service. Invoked
     only with --execute + correct confirm phrase, after preflight +
     backup have succeeded."""
-    # 9. rsync the new entropy_live_multi.py to Pi (top-level location).
+    # 9. scp the new entropy_live_multi.py to Pi (top-level location).
     local_config = _local_config_file()
-    _rsync_to_pi(local_config, PI_CONFIG_FILE)
-    _log(f"rsync'd {local_config} -> Pi {PI_CONFIG_FILE}")
+    _scp_to_pi(local_config, PI_CONFIG_FILE)
+    _log(f"scp'd {local_config} -> Pi {PI_CONFIG_FILE}")
 
-    # 10. rsync shadow_expectation.json
+    # 10. scp shadow_expectation.json
     local_shadow = _local_state_dir() / "shadow_expectation.json"
-    _rsync_to_pi(local_shadow, f"{PI_STATE_DIR}/shadow_expectation.json")
-    _log("rsync'd shadow_expectation.json")
+    _scp_to_pi(local_shadow, f"{PI_STATE_DIR}/shadow_expectation.json")
+    _log("scp'd shadow_expectation.json")
 
-    # 11. rsync config_lineage_init.py to Pi (mkdir parent if needed).
+    # 11. scp config_lineage_init.py to Pi (mkdir parent if needed).
     lineage_init = REPO_ROOT / "algo" / "dashboard" / "config_lineage_init.py"
     if lineage_init.exists():
         _ssh_run(["mkdir", "-p", f"{PI_HOME}/algo/dashboard"],
                  check=False, timeout=10)
-        _rsync_to_pi(lineage_init, PI_LINEAGE_INIT)
-        _log("rsync'd config_lineage_init.py")
+        _scp_to_pi(lineage_init, PI_LINEAGE_INIT)
+        _log("scp'd config_lineage_init.py")
 
     # 12. rename v1 -> v1_with_f3c (idempotent)
     v1 = f"{PI_STATE_DIR}/shadow_expectation.v1.json"
@@ -913,7 +929,7 @@ PATH_A_LINEAGE_ENTRY = {
 
 def append_lineage_on_success(facts: dict) -> Tuple[bool, str]:
     """Run lineage append LOCALLY (dev's algo/dashboard/config_lineage_init.py)
-    then rsync the updated state/config_lineage.jsonl to the Pi.
+    then scp the updated state/config_lineage.jsonl to the Pi.
     Non-fatal: any failure writes a LOUD error file and returns False."""
     try:
         init_path = REPO_ROOT / "algo" / "dashboard" / "config_lineage_init.py"
@@ -931,15 +947,15 @@ def append_lineage_on_success(facts: dict) -> Tuple[bool, str]:
             key_changes=PATH_A_LINEAGE_ENTRY["key_changes"],
             notes=PATH_A_LINEAGE_ENTRY["notes"],
         )
-        # rsync the updated lineage to Pi (best-effort).
+        # scp the updated lineage to Pi (best-effort).
         local_lineage = _local_state_dir() / "config_lineage.jsonl"
         if local_lineage.exists():
             try:
-                _rsync_to_pi(local_lineage, PI_LINEAGE_FILE)
+                _scp_to_pi(local_lineage, PI_LINEAGE_FILE)
             except Exception as rerr:
-                _log(f"lineage rsync to Pi failed (non-fatal): {rerr}",
+                _log(f"lineage scp to Pi failed (non-fatal): {rerr}",
                      "ERROR")
-        return True, "lineage appended locally + rsync'd to Pi"
+        return True, "lineage appended locally + scp'd to Pi"
     except Exception as e:
         fail = {
             "failed_at": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -1041,7 +1057,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                     help="exact confirmation phrase")
     ap.add_argument("--mode", choices=["dev", "pi"], default="dev",
                     help="dev (default): script runs on dev, Pi ops via "
-                         "ssh+rsync. pi: reserved (NotImplementedError)")
+                         "ssh+scp. pi: reserved (NotImplementedError)")
     args = ap.parse_args(argv)
 
     if args.mode == "pi":
@@ -1086,7 +1102,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     for k, v in facts.items(): _log(f"  {k}: {v}")
 
     if args.dry_run:
-        _log("DRY-RUN: would create Pi backup, rsync entropy_live_multi.py "
+        _log("DRY-RUN: would create Pi backup, scp entropy_live_multi.py "
              "+ shadow_expectation.json + config_lineage_init.py, rename "
              "v1 shadow, clear drift, sudo systemctl restart, verify "
              "banner, verify first audit line, write Pi deploy_6b_complete.json.")
