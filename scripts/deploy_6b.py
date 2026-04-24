@@ -112,14 +112,14 @@ BANNER_POLL_SEC = 120
 AUDIT_POLL_SEC = 600
 STARTUP_WAIT_SEC = 30
 
-# ssh options used for every remote call. ControlMaster multiplexes a
-# single TCP connection across many ssh invocations within one deploy.
+# ssh options used for every remote call. ControlMaster connection
+# multiplexing was originally enabled but Windows OpenSSH's ControlMaster
+# is unreliable (the master socket flaps under concurrent ssh calls and
+# yields 'mux_client_request_session: Connection reset by peer'). The
+# per-call connection overhead is the price of cross-platform robustness.
 SSH_OPTS = [
     "-o", "ConnectTimeout=10",
     "-o", "BatchMode=yes",
-    "-o", "ControlMaster=auto",
-    "-o", "ControlPath=" + str(Path.home() / ".ssh" / "cm-%r@%h-%p"),
-    "-o", "ControlPersist=60s",
 ]
 
 # Banner verification: substrings that must appear together in the
