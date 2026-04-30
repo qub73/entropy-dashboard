@@ -393,6 +393,21 @@ details > *:not(summary) { padding: 0 14px 14px; }
   </div>
 </div>
 
+<!-- EXIT TRANSFORMER (shadow, log-only) -->
+<div class="card" id="shadowExitCard" style="display:none;">
+  <h2>Exit transformer · Shadow <span class="sub" id="shadowMeta">(log-only, no act)</span></h2>
+  <div class="stat-grid">
+    <div class="stat"><span class="k">Current pnl (open)</span><span class="v num" id="shadowNow">–</span></div>
+    <div class="stat"><span class="k">Pred 60m</span><span class="v num" id="shadowPred60">–</span></div>
+    <div class="stat"><span class="k">Adj 60m (×dir)</span><span class="v num" id="shadowAdj">–</span></div>
+    <div class="stat"><span class="k">Decision</span><span class="v num" id="shadowWould">–</span></div>
+    <div class="stat"><span class="k">Decisions logged</span><span class="v num" id="shadowN">–</span></div>
+    <div class="stat"><span class="k">Closed trades · model better</span><span class="v num" id="shadowMVA">–</span></div>
+  </div>
+  <div class="sub" id="shadowPolicy" style="margin-top:8px;"></div>
+  <div id="shadowTimeline" style="margin-top:10px;"></div>
+</div>
+
 <!-- DIRECTION AUDIT PANEL (Phase 5) -->
 <div class="card">
   <h2>Direction Audit <span class="sub" id="daMeta">(7-day rolling)</span></h2>
@@ -670,6 +685,9 @@ function render(data) {
   // Position
   renderPosition(data);
 
+  // Exit-transformer shadow (Phase 6c)
+  renderShadowExit(data.shadow_exit);
+
   // Signal / entropy state
   const eth = data.ETH || {};
   renderEntropy(eth);
@@ -800,6 +818,82 @@ function renderPosition(data) {
     </div>`;
   $('posChartCard').style.display = 'block';
   renderPosChart(p, mid);
+}
+
+// ---- Exit-transformer shadow ----
+function renderShadowExit(shadow) {
+  const card = document.getElementById('shadowExitCard');
+  if (!shadow) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+
+  const last = shadow.last_decision;
+  if (last && last.kind === 'decision') {
+    const cp = last.current_pnl_bps;
+    document.getElementById('shadowNow').innerHTML =
+      `<span class="${cp>=0?'up':'down'}">${cp>=0?'+':''}${cp.toFixed(1)} bps</span>` +
+      ` <span class="dim">@${Math.round(last.elapsed_min)}m</span>`;
+    const p60 = (last.pred_bps && last.pred_bps['60m']) || 0;
+    document.getElementById('shadowPred60').innerHTML =
+      `<span class="${p60>=0?'up':'down'}">${p60>=0?'+':''}${p60.toFixed(1)}</span>`;
+    const adj = last.adj_pred_60m_bps;
+    document.getElementById('shadowAdj').innerHTML =
+      `<span class="${adj>=0?'up':'down'}">${adj>=0?'+':''}${adj.toFixed(1)}</span>`;
+    document.getElementById('shadowWould').innerHTML = last.would_exit
+      ? '<span class="down">EXIT</span>'
+      : '<span class="up">HOLD</span>';
+  } else {
+    document.getElementById('shadowNow').textContent = '–';
+    document.getElementById('shadowPred60').textContent = '–';
+    document.getElementById('shadowAdj').textContent = '–';
+    document.getElementById('shadowWould').textContent = '–';
+  }
+  document.getElementById('shadowN').textContent = shadow.n_decisions_total || 0;
+  const mva = shadow.model_vs_actual || {};
+  if (shadow.n_trade_closes_total) {
+    const sign = mva.delta_sum_bps >= 0 ? '+' : '';
+    document.getElementById('shadowMVA').innerHTML =
+      `${mva.model_better_count || 0}/${shadow.n_trade_closes_total} ` +
+      `<span class="${mva.delta_sum_bps>=0?'up':'down'}">(${sign}${mva.delta_sum_bps} bps)</span>`;
+  } else {
+    document.getElementById('shadowMVA').textContent = 'no closes yet';
+  }
+
+  const p = shadow.policy || {};
+  const updated = shadow.updated_at ? new Date(shadow.updated_at).toLocaleString() : '–';
+  document.getElementById('shadowPolicy').textContent =
+    `Policy: exit if pred ${p.horizon_min}m × dir < ${p.threshold_bps} bps after ${p.min_hold_min}min hold · last update ${updated}`;
+
+  // Paired trades table
+  const paired = shadow.paired_trades || [];
+  const tl = document.getElementById('shadowTimeline');
+  if (!paired.length) {
+    tl.innerHTML = '<div class="dim" style="padding:6px 0;">No closed trades since shadow install — first comparisons land after the next exit.</div>';
+    return;
+  }
+  let html = '<div style="overflow-x:auto;"><table style="width:100%; font-size:13px; border-collapse:collapse;">' +
+    '<thead><tr style="border-bottom:1px solid #30363d; text-align:left;">' +
+    '<th style="padding:6px 4px;">Trade</th><th>Dir</th><th>Actual exit</th><th>Actual pnl</th>' +
+    '<th>Model exit min</th><th>Model pnl</th><th>Δ vs actual</th></tr></thead><tbody>';
+  for (const r of paired.slice().reverse()) {
+    const oid = (r.order_id || '').slice(0, 8);
+    const dir = r.direction > 0 ? 'L' : (r.direction < 0 ? 'S' : '–');
+    const ar = r.actual_reason || '–';
+    const ap = r.actual_pnl_bps != null ? r.actual_pnl_bps.toFixed(1) : '–';
+    const mm = r.model_exit_min != null ? Math.round(r.model_exit_min) + 'm' : '—';
+    const mp = r.model_pnl_bps != null ? r.model_pnl_bps.toFixed(1) : '–';
+    const d = r.delta_bps;
+    const dStr = d != null ? `${d>=0?'+':''}${d.toFixed(1)}` : '–';
+    const dCls = d != null ? (d > 0 ? 'up' : (d < 0 ? 'down' : '')) : '';
+    html += `<tr style="border-bottom:1px solid #21262d;">` +
+      `<td style="padding:5px 4px;">${oid}</td><td>${dir}</td>` +
+      `<td>${ar}</td><td class="${r.actual_pnl_bps>=0?'up':'down'}">${ap}</td>` +
+      `<td>${mm}</td><td>${mp}</td><td class="${dCls}">${dStr}</td></tr>`;
+  }
+  html += '</tbody></table></div>';
+  tl.innerHTML = html;
 }
 
 // ---- Entropy ----

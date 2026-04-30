@@ -1,0 +1,19 @@
+[Unit]
+Description=Exit Transformer Shadow Runner (log-only, no act)
+After=network-online.target entropy-trader.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=user
+WorkingDirectory=/home/user/entropy_trader
+ExecStart=/home/user/entropy_trader/venv/bin/python -u shadow_exit_runner.py
+Restart=always
+RestartSec=60
+TimeoutStopSec=10
+Environment=PYTHONUNBUFFERED=1
+StandardOutput=append:/home/user/entropy_trader/logs/shadow_exit.log
+StandardError=append:/home/user/entropy_trader/logs/shadow_exit.log
+
+[Install]
+WantedBy=multi-user.target

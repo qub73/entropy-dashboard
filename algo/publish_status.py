@@ -242,6 +242,15 @@ def build_status():
     # Get latest STATUS from log
     log_status = get_latest_status_from_log()
 
+    # Shadow exit-model summary (sidecar daemon writes this; absent => not running)
+    shadow_exit = None
+    shadow_path = STATE_DIR / "exit_shadow_summary.json"
+    if shadow_path.exists():
+        try:
+            shadow_exit = json.loads(shadow_path.read_text())
+        except Exception:
+            shadow_exit = None
+
     # Merge
     status = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -256,6 +265,7 @@ def build_status():
         # BTC field intentionally omitted (BTC pair disabled)
         "ETH": log_status.get("ETH", {}),
         "direction_audit": direction_audit,  # Phase 5 dashboard panel
+        "shadow_exit": shadow_exit,          # exit-transformer shadow output
     }
 
     # Get equity from account if possible
