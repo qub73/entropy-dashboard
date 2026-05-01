@@ -217,7 +217,10 @@ def update_summary() -> None:
     delta_sum_bps = 0.0
     for c in closes:
         actual = c.get("actual_trade") or {}
-        oid = actual.get("order_id") or (c.get("closed_position") or {}).get("order_id")
+        # Pair by the ENTRY order_id (closed_position.order_id) which matches
+        # what was recorded in `by_trade` from decision events. The actual
+        # trade row uses a DIFFERENT (exit) order_id from Kraken.
+        oid = (c.get("closed_position") or {}).get("order_id")
         if not oid:
             continue
         ds = by_trade.get(oid, [])
@@ -246,8 +249,21 @@ def update_summary() -> None:
 
     last_decision = decisions[-1] if decisions else None
 
-    state_msg = "awaiting open position" if last_decision is None else \
-        ("open position" if last_decision.get("kind") == "decision" else "between trades")
+    # Determine runner state from last shadow log entry (decision OR trade_close)
+    last_log_entry = None
+    if SHADOW_LOG.exists():
+        with open(SHADOW_LOG) as f:
+            for line in f:
+                try:
+                    last_log_entry = json.loads(line.strip())
+                except Exception:
+                    pass
+    if last_log_entry is None:
+        state_msg = "awaiting first trade"
+    elif last_log_entry.get("kind") == "decision":
+        state_msg = "open position"
+    else:
+        state_msg = "between trades"
 
     summary = {
         "updated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -362,7 +378,11 @@ def run() -> None:
             else:
                 # No position. If we just had one, log a trade_close.
                 if last_pos_order_id is not None:
-                    # Try to find the exit in trade_history.jsonl
+                    # The LAST trade in trade_history.jsonl is almost certainly
+                    # the trade we just observed close (its order_id is the
+                    # EXIT order id, distinct from our position.order_id which
+                    # is the ENTRY id). Pair by entry_price + entry_time match
+                    # to be safe in case of unusual timing.
                     hist = STATE_DIR / "trade_history.jsonl"
                     last_trade = None
                     if hist.exists():
@@ -372,12 +392,19 @@ def run() -> None:
                                     last_trade = json.loads(line)
                                 except Exception:
                                     pass
+                    matched = None
+                    if last_trade and last_pos_summary:
+                        ep_match = (abs(last_trade.get("entry_price", 0) -
+                                        last_pos_summary.get("entry_price", -1)) < 0.01
+                                    and last_trade.get("direction") ==
+                                        last_pos_summary.get("direction"))
+                        if ep_match:
+                            matched = last_trade
                     closing = {
                         "kind": "trade_close",
                         "ts": dt.datetime.now(dt.timezone.utc).isoformat(),
                         "closed_position": last_pos_summary,
-                        "actual_trade": last_trade if (last_trade and
-                                last_trade.get("order_id") == last_pos_order_id) else None,
+                        "actual_trade": matched,
                     }
                     append_log(closing)
                     update_summary()
