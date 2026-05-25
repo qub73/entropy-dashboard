@@ -393,9 +393,9 @@ details > *:not(summary) { padding: 0 14px 14px; }
   </div>
 </div>
 
-<!-- ANTI-LOTTERY ENTRY FILTER (Phase 8 shadow, log-only) -->
+<!-- ANTI-LOTTERY ENTRY FILTER (Phase 8 — shadow or active veto) -->
 <div class="card" id="antiLotteryCard" style="display:none;">
-  <h2>Anti-lottery entry filter · Shadow <span class="sub" id="alMeta">(log-only, no veto)</span></h2>
+  <h2>Anti-lottery entry filter <span class="sub" id="alMeta">(log-only, no veto)</span></h2>
   <div class="stat-grid">
     <div class="stat"><span class="k">Entries audited (30d)</span><span class="v num" id="alN">–</span></div>
     <div class="stat"><span class="k">Would-veto rate</span><span class="v num" id="alRate">–</span></div>
@@ -406,6 +406,26 @@ details > *:not(summary) { padding: 0 14px 14px; }
   </div>
   <div class="sub" id="alPolicy" style="margin-top:8px;"></div>
   <div id="alTimeline" style="margin-top:10px;"></div>
+</div>
+
+<!-- PHASE 8 — ALGO VINTAGE PERFORMANCE -->
+<div class="card" id="vintagesCard" style="display:none;">
+  <h2>Performance by algo vintage <span class="sub">(every config change is a new row)</span></h2>
+  <div id="vintageTable" style="margin-top:6px;"></div>
+  <div class="sub" style="margin-top:6px;">Compound % is lifetime equivalent at 100% allocation, 5× baseline leverage. Best/worst show leveraged-bps of single trade.</div>
+</div>
+
+<!-- PHASE 8 — PERFORMANCE BY MARKET DIRECTION -->
+<div class="card" id="marketDirCard" style="display:none;">
+  <h2>Performance by market direction <span class="sub">(bucketed by ret_1440 at entry; inferred from neighbouring prices for older trades)</span></h2>
+  <div id="marketDirTable" style="margin-top:6px;"></div>
+  <div class="sub" id="marketDirNote" style="margin-top:6px;"></div>
+</div>
+
+<!-- PHASE 8 — LIVE ENTRY FILTER AUDIT (full feature row per audit) -->
+<div class="card" id="entryAuditCard" style="display:none;">
+  <h2>Entry filter audit <span class="sub" id="entryAuditMeta">(last 10 audited entries)</span></h2>
+  <div id="entryAuditTable" style="margin-top:6px;"></div>
 </div>
 
 <!-- DIRECTION AUDIT PANEL (Phase 5) -->
@@ -688,6 +708,11 @@ function render(data) {
   // Anti-lottery entry filter shadow (Phase 8) — read from path_a.antilottery_shadow
   renderAntiLottery((data.path_a || {}).antilottery_shadow);
 
+  // Phase 8 dashboard rebuild: vintages + market direction + entry audit
+  renderVintages(data.vintages);
+  renderMarketDirection(data.market_direction);
+  renderEntryAudit((data.path_a || {}).entry_filter_audit);
+
   // Signal / entropy state
   const eth = data.ETH || {};
   renderEntropy(eth);
@@ -894,6 +919,142 @@ function renderAntiLottery(al) {
   }
   html += '</tbody></table></div>';
   tl.innerHTML = html;
+}
+
+// ---- Phase 8: algo vintage P&L table ----
+// Each vintage = a config epoch (boundaries set in publish_status.compute_vintage_stats).
+// Renders: start date, label/description, n_trades, win rate, mean+sum bps lev,
+// compound % at 100% alloc, max DD, best/worst single trade.
+function renderVintages(vintages) {
+  const card = document.getElementById('vintagesCard');
+  if (!vintages || !vintages.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const el = document.getElementById('vintageTable');
+  let html = '<div style="overflow-x:auto;"><table style="width:100%; font-size:13px; border-collapse:collapse;">' +
+    '<thead><tr style="border-bottom:1px solid #30363d; text-align:left;">' +
+    '<th style="padding:6px 4px;">Vintage</th><th>Active since</th>' +
+    '<th class="num">n</th><th class="num">WR</th>' +
+    '<th class="num">Mean (bps lev)</th><th class="num">Sum (bps lev)</th>' +
+    '<th class="num">Compound %</th><th class="num">Max DD %</th>' +
+    '<th class="num">Best</th><th class="num">Worst</th>' +
+    '<th>Description</th></tr></thead><tbody>';
+  for (const v of vintages) {
+    const since = v.start ? new Date(v.start).toLocaleDateString([], {month:'short', day:'numeric'}) : '–';
+    const wrCls = v.win_rate >= 0.5 ? 'up' : (v.win_rate >= 0.3 ? '' : 'down');
+    const cmpCls = v.compound_pct > 0 ? 'up' : (v.compound_pct < 0 ? 'down' : '');
+    const meanCls = v.mean_bps_lev > 0 ? 'up' : (v.mean_bps_lev < 0 ? 'down' : '');
+    const isCurrent = (v.end === null || v.end === undefined);
+    const labelHtml = isCurrent ? `<strong>${v.label}</strong> <span class="dim">(active)</span>` : v.label;
+    html += `<tr style="border-bottom:1px solid #21262d;${isCurrent?' background:rgba(46,160,67,0.05);':''}">` +
+      `<td style="padding:5px 4px;">${labelHtml}</td>` +
+      `<td>${since}</td>` +
+      `<td class="num">${v.n_trades}</td>` +
+      `<td class="num ${wrCls}">${(v.win_rate*100).toFixed(0)}%</td>` +
+      `<td class="num ${meanCls}">${v.mean_bps_lev>=0?'+':''}${v.mean_bps_lev.toFixed(1)}</td>` +
+      `<td class="num ${meanCls}">${v.sum_bps_lev>=0?'+':''}${v.sum_bps_lev.toFixed(0)}</td>` +
+      `<td class="num ${cmpCls}">${v.compound_pct>=0?'+':''}${v.compound_pct.toFixed(2)}%</td>` +
+      `<td class="num">${v.max_dd_pct.toFixed(2)}%</td>` +
+      `<td class="num up">${v.best_bps_lev>=0?'+':''}${v.best_bps_lev.toFixed(0)}</td>` +
+      `<td class="num down">${v.worst_bps_lev>=0?'+':''}${v.worst_bps_lev.toFixed(0)}</td>` +
+      `<td><span class="dim" style="font-size:12px;">${v.description||''}</span></td>` +
+      `</tr>`;
+  }
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+
+// ---- Phase 8: performance by market direction (ret_1440 bucket at entry) ----
+function renderMarketDirection(buckets) {
+  const card = document.getElementById('marketDirCard');
+  if (!buckets || !buckets.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  const el = document.getElementById('marketDirTable');
+  // Total of total_n across buckets
+  const total_n = buckets.reduce((a, b) => a + (b.n_total||0), 0);
+  const total_sum = buckets.reduce((a, b) => a + (b.sum_bps_lev||0), 0);
+  let html = '<div style="overflow-x:auto;"><table style="width:100%; font-size:13px; border-collapse:collapse;">' +
+    '<thead><tr style="border-bottom:1px solid #30363d; text-align:left;">' +
+    '<th style="padding:6px 4px;">Regime (ret_1440 at entry)</th>' +
+    '<th class="num">Range (bps)</th>' +
+    '<th class="num">n</th>' +
+    '<th class="num">L / S</th>' +
+    '<th class="num">WR</th>' +
+    '<th class="num">Mean (bps lev)</th>' +
+    '<th class="num">Sum (bps lev)</th>' +
+    '<th>P&L vs total</th></tr></thead><tbody>';
+  const label_color = {
+    'strong_down': '#3fb950',  // counter-trend longs at deep down ARE winning
+    'down':        '#ff7b72',
+    'flat':        '#8b949e',
+    'up':          '#3fb950',
+    'strong_up':   '#ff7b72',
+  };
+  for (const b of buckets) {
+    const range = `${b.ret_1440_range_bps[0]===null?'-∞':b.ret_1440_range_bps[0]} … ${b.ret_1440_range_bps[1]===null?'+∞':b.ret_1440_range_bps[1]}`;
+    const wrCls = b.win_rate >= 0.5 ? 'up' : (b.win_rate >= 0.3 ? '' : 'down');
+    const sumCls = b.sum_bps_lev > 0 ? 'up' : (b.sum_bps_lev < 0 ? 'down' : '');
+    const pct_share = total_sum !== 0 ? (b.sum_bps_lev / Math.abs(total_sum) * 100) : 0;
+    const bar_pct = Math.min(100, Math.abs(pct_share));
+    const bar_color = b.sum_bps_lev >= 0 ? '#3fb950' : '#ff7b72';
+    html += `<tr style="border-bottom:1px solid #21262d;">` +
+      `<td style="padding:5px 4px;"><span style="color:${label_color[b.name]||'#c9d1d9'};font-weight:bold;">${b.name}</span></td>` +
+      `<td class="num dim" style="font-size:12px;">${range}</td>` +
+      `<td class="num">${b.n_total}</td>` +
+      `<td class="num dim" style="font-size:12px;">${b.n_long}/${b.n_short}</td>` +
+      `<td class="num ${wrCls}">${(b.win_rate*100).toFixed(0)}%</td>` +
+      `<td class="num ${sumCls}">${b.mean_bps_lev>=0?'+':''}${b.mean_bps_lev.toFixed(1)}</td>` +
+      `<td class="num ${sumCls}">${b.sum_bps_lev>=0?'+':''}${b.sum_bps_lev.toFixed(0)}</td>` +
+      `<td><div style="width:120px; background:#161b22; border-radius:2px; height:14px; position:relative;"><div style="position:absolute; ${pct_share>=0?'left:50%':'right:50%'}; width:${bar_pct/2}%; height:100%; background:${bar_color};"></div><div style="position:absolute; left:50%; top:0; width:1px; height:100%; background:#30363d;"></div></div></td>` +
+      `</tr>`;
+  }
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+  // Note line
+  const worst = buckets.reduce((a,b)=> b.sum_bps_lev < (a?.sum_bps_lev??0) ? b : a, null);
+  const best  = buckets.reduce((a,b)=> b.sum_bps_lev > (a?.sum_bps_lev??0) ? b : a, null);
+  document.getElementById('marketDirNote').innerHTML =
+    `Best regime: <strong>${best?.name||'?'}</strong> ` +
+    `<span class="up">(${best?.sum_bps_lev>=0?'+':''}${(best?.sum_bps_lev||0).toFixed(0)} bps lev)</span>; ` +
+    `worst regime: <strong>${worst?.name||'?'}</strong> ` +
+    `<span class="down">(${worst?.sum_bps_lev>=0?'+':''}${(worst?.sum_bps_lev||0).toFixed(0)} bps lev)</span>. ` +
+    `Total ${total_n} trades.`;
+}
+
+// ---- Phase 8: live entry filter audit table ----
+function renderEntryAudit(ea) {
+  const card = document.getElementById('entryAuditCard');
+  if (!ea || !(ea.recent_decisions || []).length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  document.getElementById('entryAuditMeta').textContent =
+    `(${ea.window_days}d window: ${ea.pass_count} passed, ${ea.veto_count} vetoed, rate ${(ea.veto_rate*100).toFixed(0)}%)`;
+  const el = document.getElementById('entryAuditTable');
+  const rows = (ea.recent_decisions || []).slice().reverse();
+  let html = '<div style="overflow-x:auto;"><table style="width:100%; font-size:12px; border-collapse:collapse;">' +
+    '<thead><tr style="border-bottom:1px solid #30363d; text-align:left;">' +
+    '<th style="padding:6px 4px;">When</th><th>Dir</th>' +
+    '<th class="num">adj60</th><th class="num">ret240</th><th class="num">ret_1440</th>' +
+    '<th class="num">hilo240</th><th class="num">r5_aln</th>' +
+    '<th>Decision</th></tr></thead><tbody>';
+  for (const r of rows) {
+    const ts = r.ts ? new Date(r.ts).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '–';
+    const dir = r.direction > 0 ? 'L' : (r.direction < 0 ? 'S' : '–');
+    const fmt = (v, suf = '') => v == null ? '–' : (v >= 0 ? '+' : '') + v.toFixed(1) + suf;
+    const fmt2 = (v) => v == null ? '–' : v.toFixed(2);
+    let decClass = 'up'; let decTxt = r.decision || '–';
+    if (r.decision && r.decision !== 'pass') { decClass = 'down'; }
+    html += `<tr style="border-bottom:1px solid #21262d;">` +
+      `<td style="padding:5px 4px;">${ts}</td>` +
+      `<td>${dir}</td>` +
+      `<td class="num">${fmt(r.adj60_bps)}</td>` +
+      `<td class="num">${fmt(r.ret240_bps)}</td>` +
+      `<td class="num">${fmt(r.ret_1440m_bps)}</td>` +
+      `<td class="num">${fmt2(r.hilo240)}</td>` +
+      `<td class="num">${fmt(r.r5_aligned_bps)}</td>` +
+      `<td class="${decClass}">${decTxt}</td>` +
+      `</tr>`;
+  }
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
 }
 
 // ---- Entropy ----
