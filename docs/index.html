@@ -393,19 +393,20 @@ details > *:not(summary) { padding: 0 14px 14px; }
   </div>
 </div>
 
-<!-- ANTI-LOTTERY ENTRY FILTER (Phase 8 — shadow or active veto) -->
-<div class="card" id="antiLotteryCard" style="display:none;">
-  <h2>Anti-lottery entry filter <span class="sub" id="alMeta">(log-only, no veto)</span></h2>
+<!-- MERGED ENTRY FILTER (Phase 12 — combines audit + anti-lottery + foregone-PnL sim) -->
+<div class="card" id="entryFilterCard" style="display:none;">
+  <h2>Entry filter <span class="sub" id="efMeta">(7d)</span></h2>
   <div class="stat-grid">
-    <div class="stat"><span class="k">Entries audited (30d)</span><span class="v num" id="alN">–</span></div>
-    <div class="stat"><span class="k">Would-veto rate</span><span class="v num" id="alRate">–</span></div>
-    <div class="stat"><span class="k">By hilo240 rule</span><span class="v num" id="alHiloN">–</span></div>
-    <div class="stat"><span class="k">By r5 rule</span><span class="v num" id="alR5N">–</span></div>
-    <div class="stat"><span class="k">hilo240 threshold</span><span class="v num" id="alHiloThr">–</span></div>
-    <div class="stat"><span class="k">r5_aln threshold (bps)</span><span class="v num" id="alR5Thr">–</span></div>
+    <div class="stat"><span class="k">Passed</span><span class="v num" id="efPass">–</span></div>
+    <div class="stat"><span class="k">Vetoed</span><span class="v num" id="efVeto">–</span></div>
+    <div class="stat"><span class="k">Veto rate</span><span class="v num" id="efRate">–</span></div>
+    <div class="stat"><span class="k">Realized (passes)</span><span class="v num" id="efRealized">–</span></div>
+    <div class="stat"><span class="k">Foregone (vetoes)</span><span class="v num" id="efForegone">–</span></div>
+    <div class="stat"><span class="k">Filter net effect</span><span class="v num" id="efNet">–</span></div>
   </div>
-  <div class="sub" id="alPolicy" style="margin-top:8px;"></div>
-  <div id="alTimeline" style="margin-top:10px;"></div>
+  <div class="sub" id="efPolicy" style="margin-top:8px;"></div>
+  <div id="efTable" style="margin-top:10px;"></div>
+  <div class="sub" id="efFootnote" style="margin-top:8px;"></div>
 </div>
 
 <!-- PHASE 8 — ALGO VINTAGE PERFORMANCE -->
@@ -422,11 +423,7 @@ details > *:not(summary) { padding: 0 14px 14px; }
   <div class="sub" id="marketDirNote" style="margin-top:6px;"></div>
 </div>
 
-<!-- PHASE 8 — LIVE ENTRY FILTER AUDIT (full feature row per audit) -->
-<div class="card" id="entryAuditCard" style="display:none;">
-  <h2>Entry filter audit <span class="sub" id="entryAuditMeta">(last 10 audited entries)</span></h2>
-  <div id="entryAuditTable" style="margin-top:6px;"></div>
-</div>
+<!-- (Phase 12) entry-filter-audit + anti-lottery merged into #entryFilterCard above -->
 
 <!-- DIRECTION AUDIT PANEL (Phase 5) -->
 <div class="card">
@@ -705,13 +702,12 @@ function render(data) {
   // Position
   renderPosition(data);
 
-  // Anti-lottery entry filter shadow (Phase 8) — read from path_a.antilottery_shadow
-  renderAntiLottery((data.path_a || {}).antilottery_shadow);
+  // Phase 12 (2026-06-01): merged entry-filter card (replaces antilottery_shadow + entry_filter_audit panels)
+  renderEntryFilter((data.path_a || {}).entry_filter);
 
-  // Phase 8 dashboard rebuild: vintages + market direction + entry audit
+  // Phase 8 dashboard rebuild: vintages + market direction
   renderVintages(data.vintages);
   renderMarketDirection(data.market_direction);
-  renderEntryAudit((data.path_a || {}).entry_filter_audit);
 
   // Signal / entropy state
   const eth = data.ETH || {};
@@ -845,80 +841,133 @@ function renderPosition(data) {
   renderPosChart(p, mid);
 }
 
-// ---- Anti-lottery entry filter (Phase 8 shadow) ----
-// Source: results/anti_lottery_analysis.md. Two features each independently
-// separated all 3 BIG_WINS from all 3 LOSSES in the n=12 model_exit sample:
-//   hilo240 < 0.40    => would_veto_hilo (longs only; entry near 4h-range bottom)
-//   r5_aligned <= 0   => would_veto_r5   (5-min pre-entry momentum against direction)
-// "Would-veto" is logged ONLY — the bot still takes every entry. After ~20
-// out-of-sample audits, promote to actual veto by setting
-// ENTROPY_PATH_A_FILTER_ANTILOTTERY_ENABLE=veto on the Pi.
-function renderAntiLottery(al) {
-  const card = document.getElementById('antiLotteryCard');
-  if (!al) { card.style.display = 'none'; return; }
+// ---- Merged entry filter (Phase 12, 2026-06-01) ----
+// Replaces the separate "entry_filter_audit" and "antilottery_shadow" cards.
+// For every PATH-A audit row in the last 7 days:
+//   - if decision == 'pass'   -> shows the realized PnL of the actual trade
+//   - if decision == veto     -> shows a strictly-causal forward sim PnL
+//                                (emergency SL -50 bps, otherwise close at +30m)
+// This is the "what would have happened" view that lets us see whether each
+// filter veto saved or cost the bot, in bps. Source: data.path_a.entry_filter
+// (built by publish_status._build_entry_filter_panel; sim uses Kraken Futures
+// 5m OHLC public endpoint).
+function renderEntryFilter(ef) {
+  const card = document.getElementById('entryFilterCard');
+  if (!ef || ef.n_total === 0) { card.style.display = 'none'; return; }
   card.style.display = 'block';
 
-  const n = al.n_audited || 0;
-  const vh = al.would_veto_hilo || 0;
-  const vr = al.would_veto_r5 || 0;
-  const ve = al.would_veto_either || 0;
+  const mode = ef.antilottery_mode;
+  const modeBadge = mode === 'veto'
+    ? '<span class="down" style="font-weight:bold;">ACTIVE VETO</span>'
+    : (mode === 'off' ? '<span class="dim">disabled</span>'
+                      : '<span class="yellow">shadow</span>');
+  document.getElementById('efMeta').innerHTML =
+    `(${ef.window_days || 7}d &middot; anti-lottery ${modeBadge})`;
 
-  document.getElementById('alN').textContent = n;
-  document.getElementById('alRate').innerHTML = n
-    ? `<span class="${ve>0?'down':'dim'}">${(al.veto_rate_either*100).toFixed(0)}%</span> ` +
-      `<span class="dim">(${ve}/${n})</span>`
-    : '–';
-  document.getElementById('alHiloN').innerHTML = `${vh} / ${n}`;
-  document.getElementById('alR5N').innerHTML   = `${vr} / ${n}`;
-  document.getElementById('alHiloThr').textContent = al.thresh_hilo240_min != null
-    ? al.thresh_hilo240_min.toFixed(2) : '–';
-  document.getElementById('alR5Thr').textContent = al.thresh_r5_min_bps != null
-    ? al.thresh_r5_min_bps.toFixed(1) : '–';
+  document.getElementById('efPass').textContent = ef.n_pass || 0;
+  document.getElementById('efVeto').textContent = ef.n_veto || 0;
+  document.getElementById('efRate').innerHTML =
+    `${(ef.veto_rate*100).toFixed(0)}%`;
 
-  // Meta label reflects mode (shadow vs veto)
-  const modeLabel = al.mode === 'veto'
-    ? '(ACTIVE VETO)'
-    : (al.mode === 'off' ? '(disabled)' : '(log-only, no veto)');
-  document.getElementById('alMeta').textContent = modeLabel;
+  const fmtBps = (v) => v == null ? '–' : `${v>=0?'+':''}${v.toFixed(0)} bps`;
+  const realized = ef.cum_realized_pass_bps;
+  const foregone = ef.cum_foregone_veto_bps;
+  document.getElementById('efRealized').innerHTML =
+    realized != null
+      ? `<span class="${realized>=0?'up':'down'}">${fmtBps(realized)}</span> <span class="dim">(${ef.n_passes_matched||0} trades)</span>`
+      : '–';
+  // Foregone = sum of (sim PnL on vetoes). Positive foregone = filter blocked WINNERS (bad).
+  // Negative foregone = filter blocked LOSERS (good). Color is inverted: negative is good.
+  document.getElementById('efForegone').innerHTML =
+    foregone != null
+      ? `<span class="${foregone<=0?'up':'down'}">${fmtBps(foregone)}</span> <span class="dim">(${ef.n_vetoes_simmed||0} sim)</span>`
+      : '–';
+  // Net filter effect = realized PnL minus what the bot WOULD have made on vetoes.
+  // Positive = filter helped. Negative = filter cost. Note: this uses simulated PnL
+  // for the veto branch and actual PnL for the pass branch, so it's a hybrid estimate.
+  const net = (realized != null && foregone != null) ? (realized - foregone) : null;
+  document.getElementById('efNet').innerHTML = net != null
+    ? `<span class="${net>=0?'up':'down'}">${fmtBps(net)}</span>` : '–';
 
-  document.getElementById('alPolicy').textContent =
-    `Rule: VETO long if hilo240 < ${al.thresh_hilo240_min ?? '?'}; ` +
-    `VETO any dir if r5_aligned <= ${al.thresh_r5_min_bps ?? '?'} bps. ` +
-    `n=${n} since Phase 8 deploy · need ~20 OOS audits before promoting to active veto.`;
+  document.getElementById('efPolicy').innerHTML =
+    `Anti-lottery: VETO long if hilo240 &lt; ${ef.thresh_hilo240 ?? '?'}; ` +
+    `VETO any dir if r5_aligned &le; ${ef.thresh_r5_bps ?? '?'} bps. ` +
+    `Sym-trend: VETO if |ret_1440| &gt; 100 bps against direction. ` +
+    `Asym: VETO if adj60 &lt; 3.5 and ret240 &gt; 100. ` +
+    `Veto sim: emergency SL -50 bps or close at +30 min (model-stale fallback). ` +
+    (ef.ohlc_coverage_ok ? '' : '<span class="down">OHLC fetch failed — sims unavailable.</span>');
 
-  // Recent decisions table
-  const recent = al.recent || [];
-  const tl = document.getElementById('alTimeline');
-  if (!recent.length) {
-    tl.innerHTML = '<div class="dim" style="padding:6px 0;">No anti-lottery audits yet — first entries land after the next trade signal fires post-Phase-8 deploy.</div>';
+  const rows = ef.rows || [];
+  const tl = document.getElementById('efTable');
+  if (!rows.length) {
+    tl.innerHTML = '<div class="dim" style="padding:6px 0;">No audited entries in the last 7 days.</div>';
     return;
   }
-  let html = '<div style="overflow-x:auto;"><table style="width:100%; font-size:13px; border-collapse:collapse;">' +
+  const fmt = (v, suf='') => v == null ? '–' : (v >= 0 ? '+' : '') + v.toFixed(1) + suf;
+  const fmt2 = (v) => v == null ? '–' : v.toFixed(2);
+  // Pretty-print decision labels
+  const decLabel = (d) => {
+    if (!d) return '–';
+    if (d === 'pass') return '<span class="up">pass</span>';
+    if (d === 'antilottery_veto') return '<span class="down">AL veto</span>';
+    if (d === 'sym_ret1440_uptrend' || d === 'sym_ret1440_downtrend')
+      return `<span class="down">sym veto</span>`;
+    if (d === 'veto') return '<span class="down">asym veto</span>';
+    return `<span class="down">${d}</span>`;
+  };
+  let html = '<div style="overflow-x:auto;"><table style="width:100%; font-size:12px; border-collapse:collapse;">' +
     '<thead><tr style="border-bottom:1px solid #30363d; text-align:left;">' +
     '<th style="padding:6px 4px;">When</th><th>Dir</th>' +
-    '<th>hilo240</th><th>r5_aln (bps)</th>' +
-    '<th>would-veto</th><th>actual</th></tr></thead><tbody>';
-  for (const r of recent.slice().reverse()) {
+    '<th class="num">adj60</th><th class="num">ret240</th><th class="num">ret_1440</th>' +
+    '<th class="num">hilo240</th><th class="num">r5_aln</th>' +
+    '<th>Decision</th><th class="num">Outcome (bps)</th><th class="dim">Reason</th></tr></thead><tbody>';
+  for (const r of rows) {
     const ts = r.ts ? new Date(r.ts).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '–';
     const dir = r.direction > 0 ? 'L' : (r.direction < 0 ? 'S' : '–');
-    const hl = r.hilo240 != null ? r.hilo240.toFixed(2) : '–';
-    const r5 = r.r5_aligned_bps != null ? (r.r5_aligned_bps>=0?'+':'') + r.r5_aligned_bps.toFixed(1) : '–';
-    const wv = r.would_veto_either ? '<span class="down">VETO</span>' : '<span class="up">pass</span>';
-    const wvSub = [];
-    if (r.would_veto_hilo) wvSub.push('hilo');
-    if (r.would_veto_r5)   wvSub.push('r5');
-    const wvLabel = wv + (wvSub.length ? ` <span class="dim">(${wvSub.join('+')})</span>` : '');
-    const actCls = r.actual_decision === 'pass' ? 'up' : 'down';
+    // Decide which outcome to show
+    let outcomeBps = null, outcomeReason = '';
+    if (r.decision === 'pass') {
+      if (r.actual_pnl_bps != null) {
+        outcomeBps = r.actual_pnl_bps;
+        outcomeReason = `actual: ${r.actual_reason || '?'}`;
+      } else if (r.sim_pnl_bps != null) {
+        // Pass-without-fill (e.g. lev rejected) — fall back to sim
+        outcomeBps = r.sim_pnl_bps;
+        outcomeReason = `sim — no fill (${r.sim_reason || '?'})`;
+      } else {
+        outcomeReason = 'pending';
+      }
+    } else {
+      outcomeBps = r.sim_pnl_bps;
+      outcomeReason = r.sim_reason ? `sim: ${r.sim_reason}` : 'no sim';
+    }
+    const outClass = outcomeBps == null ? 'dim' : (outcomeBps >= 0 ? 'up' : 'down');
+    const outTxt = outcomeBps == null ? '–' : `${outcomeBps >= 0 ? '+' : ''}${outcomeBps.toFixed(0)}`;
     html += `<tr style="border-bottom:1px solid #21262d;">` +
       `<td style="padding:5px 4px;">${ts}</td>` +
       `<td>${dir}</td>` +
-      `<td>${hl}</td><td>${r5}</td>` +
-      `<td>${wvLabel}</td>` +
-      `<td class="${actCls}">${r.actual_decision || '–'}</td>` +
+      `<td class="num">${fmt(r.adj60_bps)}</td>` +
+      `<td class="num">${fmt(r.ret240_bps)}</td>` +
+      `<td class="num">${fmt(r.ret_1440m_bps)}</td>` +
+      `<td class="num">${fmt2(r.hilo240)}</td>` +
+      `<td class="num">${fmt(r.r5_aligned_bps)}</td>` +
+      `<td>${decLabel(r.decision)}</td>` +
+      `<td class="num ${outClass}">${outTxt}</td>` +
+      `<td class="dim" style="font-size:11px;">${outcomeReason}</td>` +
       `</tr>`;
   }
   html += '</tbody></table></div>';
   tl.innerHTML = html;
+  // Footnote interpretation
+  let foot = '';
+  if (foregone != null && foregone < -30) {
+    foot = `<span class="up">Filter is paying its way:</span> blocked vetoes would have lost ${(-foregone).toFixed(0)} bps over the window.`;
+  } else if (foregone != null && foregone > 30) {
+    foot = `<span class="down">Filter is costing us:</span> blocked vetoes would have gained ${foregone.toFixed(0)} bps. Consider relaxing.`;
+  } else if (foregone != null) {
+    foot = `<span class="dim">Mixed/neutral filter effect (foregone ${foregone.toFixed(0)} bps).</span>`;
+  }
+  document.getElementById('efFootnote').innerHTML = foot;
 }
 
 // ---- Phase 8: algo vintage P&L table ----
@@ -1020,42 +1069,7 @@ function renderMarketDirection(buckets) {
     `Total ${total_n} trades.`;
 }
 
-// ---- Phase 8: live entry filter audit table ----
-function renderEntryAudit(ea) {
-  const card = document.getElementById('entryAuditCard');
-  if (!ea || !(ea.recent_decisions || []).length) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-  document.getElementById('entryAuditMeta').textContent =
-    `(${ea.window_days}d window: ${ea.pass_count} passed, ${ea.veto_count} vetoed, rate ${(ea.veto_rate*100).toFixed(0)}%)`;
-  const el = document.getElementById('entryAuditTable');
-  const rows = (ea.recent_decisions || []).slice().reverse();
-  let html = '<div style="overflow-x:auto;"><table style="width:100%; font-size:12px; border-collapse:collapse;">' +
-    '<thead><tr style="border-bottom:1px solid #30363d; text-align:left;">' +
-    '<th style="padding:6px 4px;">When</th><th>Dir</th>' +
-    '<th class="num">adj60</th><th class="num">ret240</th><th class="num">ret_1440</th>' +
-    '<th class="num">hilo240</th><th class="num">r5_aln</th>' +
-    '<th>Decision</th></tr></thead><tbody>';
-  for (const r of rows) {
-    const ts = r.ts ? new Date(r.ts).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '–';
-    const dir = r.direction > 0 ? 'L' : (r.direction < 0 ? 'S' : '–');
-    const fmt = (v, suf = '') => v == null ? '–' : (v >= 0 ? '+' : '') + v.toFixed(1) + suf;
-    const fmt2 = (v) => v == null ? '–' : v.toFixed(2);
-    let decClass = 'up'; let decTxt = r.decision || '–';
-    if (r.decision && r.decision !== 'pass') { decClass = 'down'; }
-    html += `<tr style="border-bottom:1px solid #21262d;">` +
-      `<td style="padding:5px 4px;">${ts}</td>` +
-      `<td>${dir}</td>` +
-      `<td class="num">${fmt(r.adj60_bps)}</td>` +
-      `<td class="num">${fmt(r.ret240_bps)}</td>` +
-      `<td class="num">${fmt(r.ret_1440m_bps)}</td>` +
-      `<td class="num">${fmt2(r.hilo240)}</td>` +
-      `<td class="num">${fmt(r.r5_aligned_bps)}</td>` +
-      `<td class="${decClass}">${decTxt}</td>` +
-      `</tr>`;
-  }
-  html += '</tbody></table></div>';
-  el.innerHTML = html;
-}
+// (Phase 12: renderEntryAudit and renderAntiLottery folded into renderEntryFilter above)
 
 // ---- Entropy ----
 function renderEntropy(eth) {
