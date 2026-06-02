@@ -425,6 +425,23 @@ details > *:not(summary) { padding: 0 14px 14px; }
 
 <!-- (Phase 12) entry-filter-audit + anti-lottery merged into #entryFilterCard above -->
 
+<!-- PHASE 13 — MFE-PEAK LEARNER (replaces ML exit model) -->
+<div class="card" id="learnerCard" style="display:none;">
+  <h2>Exit policy: MFE-peak learner <span class="sub" id="learnerMeta">(active)</span></h2>
+  <div class="stat-grid">
+    <div class="stat"><span class="k">Target exit min</span><span class="v num" id="lrnTarget">–</span></div>
+    <div class="stat"><span class="k">Deque size</span><span class="v num" id="lrnN">–</span></div>
+    <div class="stat"><span class="k">Window cap</span><span class="v num" id="lrnCap">–</span></div>
+    <div class="stat"><span class="k">Min floor</span><span class="v num" id="lrnFloor">–</span></div>
+    <div class="stat"><span class="k">Realized exits</span><span class="v num" id="lrnTotalExits">–</span></div>
+    <div class="stat"><span class="k">Bootstrap</span><span class="v num" id="lrnBootstrap">–</span></div>
+  </div>
+  <div class="sub" id="lrnPolicy" style="margin-top:8px;"></div>
+  <div id="lrnHistogram" style="margin-top:10px;"></div>
+  <div id="lrnRecentTable" style="margin-top:10px;"></div>
+  <div class="sub" id="lrnFootnote" style="margin-top:8px;"></div>
+</div>
+
 <!-- DIRECTION AUDIT PANEL (Phase 5) -->
 <div class="card">
   <h2>Direction Audit <span class="sub" id="daMeta">(7-day rolling)</span></h2>
@@ -704,6 +721,8 @@ function render(data) {
 
   // Phase 12 (2026-06-01): merged entry-filter card (replaces antilottery_shadow + entry_filter_audit panels)
   renderEntryFilter((data.path_a || {}).entry_filter);
+  // Phase 13 (2026-06-02): MFE-peak learner card (replaces ML-exit visibility)
+  renderLearner((data.path_a || {}).learner);
 
   // Phase 8 dashboard rebuild: vintages + market direction
   renderVintages(data.vintages);
@@ -889,7 +908,9 @@ function renderEntryFilter(ef) {
   document.getElementById('efNet').innerHTML = net != null
     ? `<span class="${net>=0?'up':'down'}">${fmtBps(net)}</span>` : '–';
 
+  const feeRT = ef.fee_bps_round_trip != null ? ef.fee_bps_round_trip : 10;
   document.getElementById('efPolicy').innerHTML =
+    `<strong>All bps below are NET</strong> (gross minus ${feeRT.toFixed(0)} bps round-trip taker fees). ` +
     `Anti-lottery: VETO long if hilo240 &lt; ${ef.thresh_hilo240 ?? '?'}; ` +
     `VETO any dir if r5_aligned &le; ${ef.thresh_r5_bps ?? '?'} bps. ` +
     `Sym-trend: VETO if |ret_1440| &gt; 100 bps against direction. ` +
@@ -1071,6 +1092,95 @@ function renderMarketDirection(buckets) {
 
 // (Phase 12: renderEntryAudit and renderAntiLottery folded into renderEntryFilter above)
 
+// ---- Phase 13 (2026-06-02): MFE-peak learner card ----
+function renderLearner(l) {
+  const card = document.getElementById('learnerCard');
+  if (!l) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  document.getElementById('learnerMeta').innerHTML = l.active
+    ? '<span class="up" style="font-weight:bold;">ACTIVE</span> (EXIT_DECIDER=learner)'
+    : `<span class="dim">inactive — mode=${l.mode}</span>`;
+  document.getElementById('lrnTarget').textContent = l.target_exit_min + ' min';
+  document.getElementById('lrnN').innerHTML = `${l.deque_n} / ${l.window}`;
+  document.getElementById('lrnCap').textContent = l.max_cap + ' min';
+  document.getElementById('lrnFloor').textContent = l.min_floor + ' min';
+  document.getElementById('lrnTotalExits').textContent = (l.n_learner_exits_total || 0);
+  document.getElementById('lrnBootstrap').innerHTML = l.bootstrap_active
+    ? '<span class="yellow">on (default ' + l.bootstrap_default + 'm)</span>'
+    : '<span class="up">off</span>';
+  document.getElementById('lrnPolicy').innerHTML =
+    `<strong>Policy:</strong> exit when elapsed_min &ge; median(last ${l.window} positive-peak trades), clamped to [${l.min_floor}, ${l.max_cap}]. ` +
+    `Emergency SL at -50 bps still active. Ignores the ML model entirely. ` +
+    (l.deque_source ? `<span class="dim">deque source: ${l.deque_source}</span>` : '');
+  // Histogram
+  const hist = l.histogram_buckets_5m || [];
+  if (hist.length) {
+    const total = hist.reduce((a,b)=>a+b, 0) || 1;
+    let html = '<div style="display:flex; gap:2px; align-items:flex-end; height:60px; padding:6px 0; border-bottom:1px solid #30363d;">';
+    for (let i = 0; i < hist.length; i++) {
+      const h = (hist[i] / Math.max(...hist)) * 100;
+      const lo = i*5, hi = i*5+5;
+      const isTarget = (l.target_exit_min >= lo && l.target_exit_min < hi);
+      const color = isTarget ? '#3fb950' : '#388bfd';
+      const label = (i === hist.length - 1) ? `${lo}+` : `${lo}-${hi-1}`;
+      html += `<div style="flex:1; display:flex; flex-direction:column; align-items:center;" title="${label}m: ${hist[i]} trades">` +
+              `<div style="height:${h}%; min-height:1px; width:90%; background:${color}; border-radius:1px 1px 0 0;"></div>` +
+              `</div>`;
+    }
+    html += '</div><div style="display:flex; gap:2px; font-size:10px; color:#7d8590; padding-top:2px;">';
+    for (let i = 0; i < hist.length; i++) {
+      const lo = i*5;
+      html += `<div style="flex:1; text-align:center;">${(i === hist.length - 1) ? lo+'+' : lo}</div>`;
+    }
+    html += '</div><div class="dim" style="font-size:11px; margin-top:4px;">Distribution of MFE peak minutes in current deque (green = bucket containing target_exit_min).</div>';
+    document.getElementById('lrnHistogram').innerHTML = html;
+  } else {
+    document.getElementById('lrnHistogram').innerHTML = '';
+  }
+  // Recent learner exits — REAL net PnL only
+  const rows = l.recent_real_exits || [];
+  if (!rows.length) {
+    document.getElementById('lrnRecentTable').innerHTML =
+      '<div class="dim" style="padding:6px 0;">No learner exits recorded yet (first trade after deploy).</div>';
+  } else {
+    let html = '<div style="font-size:11px; color:#7d8590; margin-bottom:4px;">Recent real exits — NET PnL is confirmed (real Kraken fees deducted) where fee_source=real:</div>';
+    html += '<div style="overflow-x:auto;"><table style="width:100%; font-size:12px; border-collapse:collapse;">' +
+      '<thead><tr style="border-bottom:1px solid #30363d; text-align:left;">' +
+      '<th style="padding:6px 4px;">When</th><th>Dir</th>' +
+      '<th class="num">Hold</th><th class="num">MFE</th><th class="num">MFE min</th>' +
+      '<th>Reason</th><th class="num">Net bps</th><th class="num">Net @lev</th><th>Fee src</th></tr></thead><tbody>';
+    for (const r of rows.slice().reverse()) {
+      const ts = r.time ? new Date(r.time).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '–';
+      const d = r.direction === 1 ? 'L' : 'S';
+      const net = r.pnl_bps_net;
+      const netLev = r.pnl_bps_net_leveraged;
+      const cls = (net != null && net >= 0) ? 'up' : 'down';
+      const fcls = r.fee_source === 'real' ? 'up' : (r.fee_source === 'assumed' ? 'down' : 'yellow');
+      html += `<tr style="border-bottom:1px solid #21262d;">` +
+        `<td style="padding:5px 4px;">${ts}</td>` +
+        `<td>${d}</td>` +
+        `<td class="num">${r.hold_min != null ? r.hold_min.toFixed(1) + 'm' : '–'}</td>` +
+        `<td class="num">${r.mfe_bps != null ? (r.mfe_bps>=0?'+':'') + r.mfe_bps.toFixed(0) : '–'}</td>` +
+        `<td class="num">${r.mfe_min != null ? r.mfe_min.toFixed(1) + 'm' : '–'}</td>` +
+        `<td>${r.reason || '–'}</td>` +
+        `<td class="num ${cls}">${net != null ? (net>=0?'+':'') + net.toFixed(1) : '–'}</td>` +
+        `<td class="num ${cls}">${netLev != null ? (netLev>=0?'+':'') + netLev.toFixed(0) : '–'}</td>` +
+        `<td class="${fcls}">${r.fee_source || '–'}</td>` +
+        `</tr>`;
+    }
+    html += '</tbody></table></div>';
+    document.getElementById('lrnRecentTable').innerHTML = html;
+  }
+  // Footnote
+  let foot = '';
+  if (l.active) {
+    foot = `Bot will exit at minute <strong>${l.target_exit_min}</strong> on the next trade (after emergency-SL backstop). Deque updates after every closed trade with a positive MFE peak.`;
+  } else {
+    foot = `<span class="dim">Learner mode not active. Run with EXIT_DECIDER=learner to enable.</span>`;
+  }
+  document.getElementById('lrnFootnote').innerHTML = foot;
+}
+
 // ---- Entropy ----
 function renderEntropy(eth) {
   const h = eth.last_H, th = 0.4352;
@@ -1098,15 +1208,33 @@ function renderTrades(trades) {
     $('tradesMeta').textContent = '';
     return;
   }
-  $('tradesMeta').textContent = `· last ${Math.min(trades.length, 15)} of ${trades.length}`;
+  $('tradesMeta').textContent = `· last ${Math.min(trades.length, 15)} of ${trades.length} · bps shown is NET (fees deducted) when available`;
   list.innerHTML = trades.slice().reverse().slice(0, 15).map((t, i) => {
     const idx = trades.length - 1 - i;
-    const win = (t.pnl_bps_leveraged || 0) >= 0;
+    // Phase 12d: prefer NET PnL (post-fee, actual-leverage). For older trades
+    // that predate net logging, compute an APPROXIMATE net leveraged on the
+    // fly by deducting a 10bps round-trip fee at nominal 10x leverage. This
+    // is marked with "(~)" so the user knows it's reconstructed not logged.
+    const FEE_RT_NOMINAL = 10;  // bps round-trip taker, matches publish_status
+    const pnlNetLev = t.pnl_bps_net_leveraged;
+    let pnl, isNet, isReconstructed = false;
+    if (pnlNetLev != null) {
+      pnl = pnlNetLev;
+      isNet = true;
+    } else if (t.pnl_bps != null) {
+      // gross unlev minus 10 bps fee, scaled by nominal 10x
+      pnl = (t.pnl_bps - FEE_RT_NOMINAL) * 10;
+      isNet = true;
+      isReconstructed = true;
+    } else {
+      pnl = t.pnl_bps_leveraged || 0;  // last resort
+      isNet = false;
+    }
+    const win = pnl >= 0;
     const d = t.direction === 1 ? 'L' : 'S';
     const time = new Date(t.time);
     const timeStr = time.toLocaleString([], { month: 'short', day: 'numeric',
                                               hour: '2-digit', minute: '2-digit' });
-    const pnl = t.pnl_bps_leveraged || 0;
     return `<div>
       <div class="tr ${win?'win':'loss'}" id="tr-${idx}" onclick="toggleZoom(${idx})">
         <div class="bar"></div>
@@ -1120,7 +1248,7 @@ function renderTrades(trades) {
             <span>→ $${(t.exit_price||0).toFixed(2)} · ${(t.hold_min||0).toFixed(0)}m</span>
           </div>
         </div>
-        <div class="pnl ${win?'up':'down'}">${pnl>=0?'+':''}${pnl.toFixed(0)}</div>
+        <div class="pnl ${win?'up':'down'}" title="${isNet ? (isReconstructed ? `NET reconstructed: (gross_bps - ${FEE_RT_NOMINAL}) × 10x` : `NET logged (fees -10 bps, lev ${t.actual_leverage||'?'}x)`) : 'GROSS @10x (pre-fee)'}">${pnl>=0?'+':''}${pnl.toFixed(0)}${isReconstructed?'<span class="dim" style="font-size:9px;">~</span>':(isNet?'':'<span class="dim" style="font-size:9px;">*g</span>')}</div>
       </div>
       <div class="tr-expand" id="exp-${idx}" style="display:none;"></div>
     </div>`;
