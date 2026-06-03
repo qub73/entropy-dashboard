@@ -1235,17 +1235,27 @@ function renderTrades(trades) {
     const time = new Date(t.time);
     const timeStr = time.toLocaleString([], { month: 'short', day: 'numeric',
                                               hour: '2-digit', minute: '2-digit' });
+    // Phase 14b: MFE peak diagnostics — show peak_bps and peak_min for
+    // verifying the trailing-retrace policy captures peaks correctly.
+    const mfeBps = t.mfe_bps;
+    const mfeMin = t.mfe_min;
+    const mfeStr = (mfeBps != null && mfeMin != null)
+      ? `<span class="dim" style="font-size:11px;" title="Max Favorable Excursion: peak gross PnL during the trade and minute it occurred">MFE ${mfeBps>=0?'+':''}${mfeBps.toFixed(0)}bps @ m${mfeMin.toFixed(0)}</span>`
+      : '';
+    const armedStr = t.trailing_armed
+      ? '<span class="up" style="font-size:10px; margin-left:6px;" title="Phase 14 trailing was armed during this trade">⌖</span>'
+      : '';
     return `<div>
       <div class="tr ${win?'win':'loss'}" id="tr-${idx}" onclick="toggleZoom(${idx})">
         <div class="bar"></div>
         <div class="mid">
           <div class="top">
             <span><strong>${d}</strong> ${t.pair} @ $${(t.entry_price||0).toFixed(2)}</span>
-            <span class="dim">${t.reason}</span>
+            <span class="dim">${t.reason}${armedStr}</span>
           </div>
           <div class="bot">
             <span>${timeStr}</span>
-            <span>→ $${(t.exit_price||0).toFixed(2)} · ${(t.hold_min||0).toFixed(0)}m</span>
+            <span>→ $${(t.exit_price||0).toFixed(2)} · ${(t.hold_min||0).toFixed(0)}m  ${mfeStr}</span>
           </div>
         </div>
         <div class="pnl ${win?'up':'down'}" title="${isNet ? (isReconstructed ? `NET reconstructed: (gross_bps - ${FEE_RT_NOMINAL}) × 10x` : `NET logged (fees -10 bps, lev ${t.actual_leverage||'?'}x)`) : 'GROSS @10x (pre-fee)'}">${pnl>=0?'+':''}${pnl.toFixed(0)}${isReconstructed?'<span class="dim" style="font-size:9px;">~</span>':(isNet?'':'<span class="dim" style="font-size:9px;">*g</span>')}</div>
